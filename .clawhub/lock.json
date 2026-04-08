@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "skills": {
+    "openclaw-tavily-search": {
+      "version": "0.1.0",
+      "installedAt": 1775186700311
+    },
+    "memory-hygiene": {
+      "version": "1.0.0",
+      "installedAt": 1775186702539
+    },
+    "github": {
+      "version": "1.0.0",
+      "installedAt": 1775186704255
+    },
+    "agent-browser-clawdbot": {
+      "version": "0.1.0",
+      "installedAt": 1775186705784
+    },
+    "tencentcloud-lighthouse-skill": {
+      "version": "1.0.0",
+      "installedAt": 1775186708165
+    },
+    "tencent-docs": {
+      "version": "1.0.24",
+      "installedAt": 1775186713746
+    },
+    "tencent-cos-skill": {
+      "version": "1.0.6",
+      "installedAt": 1775186716231
+    },
+    "tencent-meeting-skill": {
+      "version": "1.0.5",
+      "installedAt": 1775186718942
+    },
+    "ima-skills": {
+      "version": "1.1.2",
+      "installedAt": 1775186721346
+    },
+    "web-tools-guide": {
+      "version": "1.0.1",
+      "installedAt": 1775186723702
+    },
+    "skill-vetter": {
+      "version": "1.0.0",
+      "installedAt": 1775642191411
+    },
+    "weather": {
+      "version": "1.0.0",
+      "installedAt": 1775642205607
+    },
+    "skill-creator": {
+      "version": "0.1.0",
+      "installedAt": 1775642248757
+    },
+    "cron": {
+      "version": "1.0.0",
+      "installedAt": 1775643203421
+    }
+  }
+}
