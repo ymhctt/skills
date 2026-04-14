@@ -12,23 +12,42 @@
 
 ---
 
-## 📚 知识库工作流（重要！）
+## 📚 恩墨记录 - 知识库
 
 | 项目 | 内容 |
 |------|------|
+| **名称** | 恩墨记录 |
 | **GitHub仓库** | https://github.com/ymhctt/document.git |
 | **本地路径** | /root/.openclaw/workspace/document/ |
 | **远程方式** | SSH (git@github.com:ymhctt/document.git) |
 | **每日同步** | 每天 7:00 自动 git pull |
+
+### 知识库结构
+
+```
+document/  (恩墨记录)
+├── 01-MySQL/
+├── 02-PG-openGauss-MogDB/
+├── 03-MongoDB/
+├── 04-Linux-系统/
+├── 05-中间件-Redis-ZK-Nginx/
+├── 06-分布式数据库-大数据/
+├── 07-Oracle-迁移/
+├── 98-工具-脚本-杂项/
+├── 99-未分类/
+└── 小龙虾的文档/      ← 婷婷专属整理目录
+    └── (深度整理的技术文档)
+```
 
 ### 📝 收到链接后的处理流程
 
 1. 收到爸爸发的文档链接
 2. 阅读链接内容，提取关键信息
 3. 整理成结构化文档
-4. 放入 `document/小龙虾的文档/` 目录
+4. 放入对应分类目录（如 `小龙虾的文档/`）
 5. **push 前必须先 pull**
 6. git add → git commit → git push
+7. 更新 `log.md`（记录 ingest 活动）
 
 ---
 
@@ -59,6 +78,14 @@
 ## 🎯 学习与教训
 
 - **教训**：每次 push 代码前必须先 pull，避免覆盖他人内容！
+- **MySQL InnoDB 崩溃恢复 Bug**：已提交事务可能残留在 `active_tw_trxs` 中导致 Undo log 膨胀；官方修复在 MySQL 9.6.0（Bug #38132549）；日常运维禁止使用 `kill -9` 停止 MySQL ✅
+- **xtrabackup ftWRL 参数**：
+  - `--ftwrl-wait-threshold=300`：有超过300秒的SQL时，ftwrl锁等待1800秒后退出
+  - `--kill-long-query-type=all --kill-long-queries-timeout=1800`：等待1800秒后kill阻塞查询
+  - `--safe-slave-backup`：备份前停止slave SQL线程，避免临时表问题
+- **MySQL 8.0.22 异步复制自动故障转移**：副本可自动重建到备用源的复制连接；需配置 `asynchronous_connection_failover_add_source()` UDF；建议将 `MASTER_RETRY_COUNT` 设为较小值以快速触发故障转移
+- **binlog编号上限**：最大值为2147483647，达到后执行 `flush binary logs` 会导致MySQL进程崩溃退出（ERROR 1598）
+- **Opening tables 问题**：table_open_cache 应 >= 并发连接数 × 平均每连接查询表数；高并发+多表JOIN易导致table_open_cache不足，大量线程卡在Opening tables
 - **系统状态**：所有定时任务已配置完成，系统运行稳定 ✅
 
 ## 📋 待完成事项
@@ -82,4 +109,10 @@
 
 ---
 
-_Last updated: 2026-04-10 07:03_
+_Last updated: 2026-04-14 13:03（每小时提炼完成）_
+_2026-04-14 08:03 无新增内容；MEMORY.md 已最新 ✅
+_Last check: 2026-04-14 06:03 无新增内容；2026-04-13.md 仅含归档记录；daily-learn/2026-04-13.md MySQL知识（binlog编号/半同步备库）均为已知信息；cron无活动；MEMORY.md 已最新 ✅
+_2026-04-14 02:03 无新增内容；2026-04-13.md 仅含归档记录；daily-learn/ MySQL内容已收录；MEMORY.md 已最新 ✅
+_2026-04-13 20:03 无新增内容；2026-04-13.md 仅含归档记录；daily-learn/ 内容已收录；cron/ stats/runs 无活动；MEMORY.md 已最新 ✅
+_2026-04-13 19:03 每小时提炼完成，无新增内容 ✅
+_2026-04-13 02:00 完成上周日记归档（04-08~04-12）至 archive/ ✅

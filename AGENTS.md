@@ -221,6 +221,78 @@ Think of it like a human reviewing their journal and updating their mental model
 
 The goal: Be helpful without being annoying. Check in a few times a day, do useful background work, but respect quiet time.
 
+## 📚 恩墨记录 - Wiki 知识库维护规范
+
+参考 Karpathy 的 LLM 知识库模式，构建持久化 wiki。
+
+### 架构（三层）
+
+```
+Raw Sources（原始资料）
+    ↓ 整理
+恩墨记录（LLM 生成的 markdown 文件）
+    ↓ 维护
+Schema（本 AGENTS.md 等规范）
+```
+
+### 目录结构
+
+```
+document/  (恩墨记录)
+├── index.md                 # 全局索引（本文件）
+├── log.md                   # 活动时间线
+├── 小龙虾的文档/             # 深度整理的文档
+│   ├── MySQL_xxx.md
+│   └── PostgreSQL_xxx.md
+├── 01-MySQL/                # 分类目录（原始笔记）
+├── 02-PG-openGauss-MogDB/
+├── 04-Linux-系统/
+└── ...
+```
+
+### 工作流
+
+**Ingest（新文档处理）**
+1. 收到文档链接或全文
+2. 整理成结构化 markdown
+3. 放入 `小龙虾的文档/` 目录
+4. 更新 `index.md`（添加条目）
+5. 更新 `log.md`（记录 ingest）
+6. push 到 GitHub
+
+**Query（查询）**
+1. 先查 index.md 找相关文档
+2. 读取相关文档内容
+3. 综合回答，引用文档
+4. 有价值的答案可沉淀到知识库
+
+**Lint（健康检查）**
+- 每周一次
+- 检查：矛盾、过时、孤立页面、缺失引用
+- 由 weekly cron 触发
+
+### index.md 规范
+
+- 每个分类下的文档列表
+- 包含：文档名、日期、简短摘要
+- 用 `[[双括号]]` 链接到文档
+
+### log.md 规范
+
+- 格式：`## [YYYY-MM-DD] 类型 | 标题`
+- 类型：ingest / query / lint / improve
+- 可用 `grep "^## \[" log.md | tail -10` 快速查看
+
+### 文档编写规范
+
+- 使用中文标题
+- 使用中文标点符号
+- 代码块标注语言
+- 表格要有表头
+- 重要信息加粗或高亮
+
+---
+
 ## Make It Yours
 
 This is a starting point. Add your own conventions, style, and rules as you figure out what works.
