@@ -115,6 +115,7 @@ document/  (恩墨记录)
 | **Skill 安装路径** | ~/.openclaw/workspace/skills/mes-cli-terminal/ |
 | **当前版本** | 0.4.3 |
 | **升级方式** | CLI：`mes update`；Skill：git pull 最新版仓库覆盖安装 |
+| **自动更新** | 每天凌晨 3:00 自动执行更新任务（cron ID: b5740ba4-616e-45e1-98d9-8623008c5511） |
 
 ---
 

@@ -40,6 +40,10 @@ Skills are shared. Your setup is yours. Keeping them apart means you can update 
 - 每天凌晨 2:00 自动执行
 - 保留最近 1 天的文件
 - cron ID: ce65d49c-6f01-40b5-b33e-3b1153f4f706
+- **MES CLI + Skill 自动更新**：每天凌晨 3:00
+  - mes update（CLI）
+  - git pull origin main（skill）
+  - cron ID: b5740ba4-616e-45e1-98d9-8623008c5511
 - 日志: /root/.openclaw/media/inbound/cleanup.log
 
 ---
