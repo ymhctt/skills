@@ -40,6 +40,10 @@ Skills are shared. Your setup is yours. Keeping them apart means you can update 
 - 每天凌晨 2:00 自动执行
 - 保留最近 1 天的文件
 - cron ID: ce65d49c-6f01-40b5-b33e-3b1153f4f706
+- **东西大区4部每日周报工统计**：每天早上 9:00
+  - mes statistics list 统计本周全团队报工
+  - 按格式输出：成员|每日工时|本周合计；少于10字报工单独列出
+  - cron ID: 90cc4aa2-6975-42e6-9fe2-e6f7791adcee
 - **MES CLI + Skill 自动更新**：每天凌晨 3:00
   - mes update（CLI）
   - git pull origin main（skill）
