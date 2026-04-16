@@ -96,12 +96,25 @@ document/  (恩墨记录)
   - `net_read_timeout`（默认30s）/ `net_write_timeout`（默认60s）：网络读写超时
 - **MySQL 条件优化 `optimize_cond` 四步**：提取公共子条件(extract_common_cond) → 等值传播(build_equal_items) → 常数传播(propagate_cond_constants) → 零散条件去除(remove_eq_conds)；前提：where条件为析取式、存在公共子条件、完全一致形式、具幂等性
 - **InnoDB 读写锁三种模式**：S（Shared）、SX（Shared-Exclusive）、X（Excluded）；SX锁优化场景：在 dict_index_t.lock 上加SX锁可避免阻塞 B+Tree 搜索操作（传统X锁会阻塞所有搜索）；基于原子操作+自旋锁实现，减少内核态同步开销
+- **MySQL crash recovery 与 binlog 两阶段提交**：crash recovery 时，若 redo 处于 prepare 状态且 binlog 已写入，事务不能丢失；核心参数 `innodb_fast_shutdown`（0=慢关闭/最完整清理，1=默认/只刷脏页，2=快关闭/crash等价）；`innodb_force_recovery` 控制恢复强度（0=全部检查，1~3允许SELECT/DROP/CREATE，≥4限制更严）；两阶段提交顺序：执行器→引擎写数据+redo(prepare)→执行器写binlog→引擎commit(redo commit)；crash时redo prepare+binlog已写=需提交，不可回滚
 - **系统状态**：所有定时任务已配置完成，系统运行稳定 ✅
 
 ## 📋 待完成事项
 
 - [ ] 完善 USER.md（爸爸姓名等个人信息待补充）
 - [ ] 完善 IDENTITY.md（婷婷的头像尚未设置）
+
+---
+
+## 🛠️ MES CLI 与 Skill
+
+| 项目 | 内容 |
+|------|------|
+| **CLI 下载** | https://oss-emcsprod-public.oss-cn-beijing.aliyuncs.com/tools/mes/ |
+| **Skill 仓库** | https://github.com/enmotech/mes-cli-skills.git |
+| **Skill 安装路径** | ~/.openclaw/workspace/skills/mes-cli-terminal/ |
+| **当前版本** | 0.4.3 |
+| **升级方式** | CLI：`mes update`；Skill：git pull 最新版仓库覆盖安装 |
 
 ---
 
@@ -132,7 +145,8 @@ document/  (恩墨记录)
 
 ---
 
-_Last updated: 2026-04-16 19:03 提炼完成：无新增内容；2026-04-16.md 空；2026-04-15.md 仅含例行cron记录；MEMORY.md 已最新 ✅
+_Last updated: 2026-04-16 22:03 提炼完成：daily-learn/2026-04-16.md MySQL crash recovery + binlog两阶段提交 → 学习与教训；其他内容（yum配置/四川电信VIP判断）无需收录；MEMORY.md 已更新 ✅
+_2026-04-16 19:03 提炼完成：无新增内容；2026-04-16.md 空；2026-04-15.md 仅含例行cron记录；MEMORY.md 已最新 ✅
 _2026-04-16 13:03 提炼完成：无新增内容；2026-04-16.md 和 2026-04-15.md 均为空或例行记录；MEMORY.md 已最新 ✅
 _2026-04-16 11:03 提炼完成：无新增内容；2026-04-16.md 无实质内容；2026-04-15.md 仅含例行记录；MEMORY.md 已最新 ✅
 _2026-04-15 13:03 提炼完成：无新增内容；MEMORY.md 已最新 ✅
