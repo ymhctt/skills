@@ -86,12 +86,35 @@ document/  (恩墨记录)
 - **MySQL 8.0.22 异步复制自动故障转移**：副本可自动重建到备用源的复制连接；需配置 `asynchronous_connection_failover_add_source()` UDF；建议将 `MASTER_RETRY_COUNT` 设为较小值以快速触发故障转移
 - **binlog编号上限**：最大值为2147483647，达到后执行 `flush binary logs` 会导致MySQL进程崩溃退出（ERROR 1598）
 - **Opening tables 问题**：table_open_cache 应 >= 并发连接数 × 平均每连接查询表数；高并发+多表JOIN易导致table_open_cache不足，大量线程卡在Opening tables
+- **MySQL 9.6 外键管理变革**：MySQL 9.6 起，外键约束和级联操作改由 SQL 引擎处理（原由 InnoDB 内部执行）；此举解决了级联操作对 SQL 层不可见、二进制日志缺失子表更改、CDC 复制不一致等问题；性能与原 InnoDB 方式几乎相同，完全向后兼容
+- **PostgreSQL autovacuum 评分系统重构**：旧版只在阈值接近时才计算评分，无法提前预警；新版始终计算评分，便于 DBA 提前介入和预测性维护（来源：阿里/淘宝 MySQL 内核月报）
+- **yum 基础命令**：`yum clean all` + `yum makecache` 清理缓存重建元数据；`yum search`、`yum list`、`yum list installed`、`yum list updates` 查询软件包
+- **MySQL timeout 五种参数**：
+  - `connect_timeout`（默认5s）：连接握手阶段超时，6次握手任意一次失败即断开
+  - `wait_timeout`（默认28800s）：sleep线程存活超时，session级别；实际交互模式下也是它生效（非 interactive_timeout）
+  - `interactive_timeout`：仅在连接初期将值赋给 wait_timeout，自己不起实际控制作用
+  - `net_read_timeout`（默认30s）/ `net_write_timeout`（默认60s）：网络读写超时
+- **MySQL 条件优化 `optimize_cond` 四步**：提取公共子条件(extract_common_cond) → 等值传播(build_equal_items) → 常数传播(propagate_cond_constants) → 零散条件去除(remove_eq_conds)；前提：where条件为析取式、存在公共子条件、完全一致形式、具幂等性
+- **InnoDB 读写锁三种模式**：S（Shared）、SX（Shared-Exclusive）、X（Excluded）；SX锁优化场景：在 dict_index_t.lock 上加SX锁可避免阻塞 B+Tree 搜索操作（传统X锁会阻塞所有搜索）；基于原子操作+自旋锁实现，减少内核态同步开销
 - **系统状态**：所有定时任务已配置完成，系统运行稳定 ✅
 
 ## 📋 待完成事项
 
 - [ ] 完善 USER.md（爸爸姓名等个人信息待补充）
 - [ ] 完善 IDENTITY.md（婷婷的头像尚未设置）
+
+---
+
+## 🧹 inbound 媒体文件清理规则
+
+| 项目 | 说明 |
+|------|------|
+| **规则** | 每天凌晨 2:00 自动清理 inbound 目录超过 1 天的临时文件 |
+| **路径** | /root/.openclaw/media/inbound/ |
+| **保留** | 1 天内的新文件 |
+| **日志** | 清理结果写入 cleanup.log |
+| **cron ID** | ce65d49c-6f01-40b5-b33e-3b1153f4f706 |
+| **创建日期** | 2026-04-16 |
 
 ## 📢 通知规则
 
@@ -109,10 +132,15 @@ document/  (恩墨记录)
 
 ---
 
-_Last updated: 2026-04-14 13:03（每小时提炼完成）_
-_2026-04-14 08:03 无新增内容；MEMORY.md 已最新 ✅
-_Last check: 2026-04-14 06:03 无新增内容；2026-04-13.md 仅含归档记录；daily-learn/2026-04-13.md MySQL知识（binlog编号/半同步备库）均为已知信息；cron无活动；MEMORY.md 已最新 ✅
+_Last updated: 2026-04-16 19:03 提炼完成：无新增内容；2026-04-16.md 空；2026-04-15.md 仅含例行cron记录；MEMORY.md 已最新 ✅
+_2026-04-16 13:03 提炼完成：无新增内容；2026-04-16.md 和 2026-04-15.md 均为空或例行记录；MEMORY.md 已最新 ✅
+_2026-04-16 11:03 提炼完成：无新增内容；2026-04-16.md 无实质内容；2026-04-15.md 仅含例行记录；MEMORY.md 已最新 ✅
+_2026-04-15 13:03 提炼完成：无新增内容；MEMORY.md 已最新 ✅
+_2026-04-14 23:03 提炼完成：新增 PostgreSQL autovacuum评分系统重构 + yum基础命令到学习与教训；MEMORY.md 已更新 ✅
+_2026-04-14 19:03 无新增内容；2026-04-14.md 为空；hygiene.log 仅含例行日志；MEMORY.md 已最新 ✅
+_2026-04-14 13:03 无新增内容；MEMORY.md 已最新 ✅
 _2026-04-14 02:03 无新增内容；2026-04-13.md 仅含归档记录；daily-learn/ MySQL内容已收录；MEMORY.md 已最新 ✅
 _2026-04-13 20:03 无新增内容；2026-04-13.md 仅含归档记录；daily-learn/ 内容已收录；cron/ stats/runs 无活动；MEMORY.md 已最新 ✅
 _2026-04-13 19:03 每小时提炼完成，无新增内容 ✅
 _2026-04-13 02:00 完成上周日记归档（04-08~04-12）至 archive/ ✅
+_2026-04-16 04:03 提炼完成：无新增内容；2026-04-15.md 仅含例行记录；daily-learn/MySQL内容已收录至学习与教训；MEMORY.md 已最新 ✅

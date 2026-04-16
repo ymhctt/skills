@@ -35,6 +35,13 @@ Things like:
 
 Skills are shared. Your setup is yours. Keeping them apart means you can update skills without losing your notes, and share skills without leaking your infrastructure.
 
+## 🧹 inbound 媒体文件清理
+
+- 每天凌晨 2:00 自动执行
+- 保留最近 1 天的文件
+- cron ID: ce65d49c-6f01-40b5-b33e-3b1153f4f706
+- 日志: /root/.openclaw/media/inbound/cleanup.log
+
 ---
 
 Add whatever helps you do your job. This is your cheat sheet.
