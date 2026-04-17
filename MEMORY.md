@@ -82,7 +82,13 @@ document/  (恩墨记录)
 ## 🎯 学习与教训
 
 - **教训**：每次 push 代码前必须先 pull，避免覆盖他人内容！
-- **MES 周报工统计 `start` 字段问题**：统计时按 `start` 字段分组，若报工记录中 `start` 未填，会被算成 0 或无法参与汇总；2026-04-17 第一次统计出 472h（多人被算0），第二次才修正为 319h；排查方向：MES 工时统计应以实际工时记录时间或提交时间为准，而非依赖 `start` 字段
+- **MES 周报工统计正确方法**（2026-04-17 修正）：
+  - ✅ 正确：`mes -o json statistics list --from --to --team-id 23 --page-size 200`，按 `executorId` 分组汇总 `taskTime`
+  - ❌ 错误：用 `statistics summary --group-type 0`（team-id 过滤有 Bug，返回数据不对）
+  - ❌ 错误：按 `start` 日期分组（`start` 填错或留空会导致数据丢失）
+  - ❌ 错误：用 `statistics list` 但默认 pageSize=50 不翻页（83条记录会截断）
+  - 2026-04-17 第一次跑出 472h，第二次错误地修正为 319h，正确值是 472h（18人/83条记录）
+  - teamId=23 是「东西大区4部」，共20人
 - **MySQL InnoDB 崩溃恢复 Bug**：已提交事务可能残留在 `active_tw_trxs` 中导致 Undo log 膨胀；官方修复在 MySQL 9.6.0（Bug #38132549）；日常运维禁止使用 `kill -9` 停止 MySQL ✅
 - **xtrabackup ftWRL 参数**：
   - `--ftwrl-wait-threshold=300`：有超过300秒的SQL时，ftwrl锁等待1800秒后退出
