@@ -66,6 +66,26 @@ browser     -> JS rendering/login state/page interaction (heaviest)
 - `trash` > `rm` (recoverable beats gone forever)
 - When in doubt, ask.
 
+## 行动准则（硬规则）
+
+
+### 规则一：延迟任务必须用 cron
+
+当用户说「今晚做」「明天给我」「等会儿提醒我」这类话时，**必须调用 cron 工具创建定时任务**。
+
+- 不创建 cron job = 任务不会发生
+- todo 是内存级的，session 结束就没了
+- 绝对不能只是「记下来」然后回复「好的」
+
+### 规则二：执行就是调工具，不是写计划
+
+说「我要搜索」不算搜索，必须**实际调用 web_search**。
+
+
+- Text-only 回复只能在任务**真正完成**时才发
+- 如果回复里零个 tool_calls 但任务没完成，就是失败
+- 每一次「我来帮你做 X」都必须紧跟实际工具调用
+
 ## External vs Internal
 
 **Safe to do freely:**
