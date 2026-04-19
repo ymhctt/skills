@@ -86,6 +86,34 @@ browser     -> JS rendering/login state/page interaction (heaviest)
 - 如果回复里零个 tool_calls 但任务没完成，就是失败
 - 每一次「我来帮你做 X」都必须紧跟实际工具调用
 
+## ⏰ Cron SystemEvent 处理规范（2026-04-19 固化）
+
+所有定时任务均使用 `--session main + --system-event`，触发时会在当前对话中收到 systemEvent。
+
+**处理原则：**
+
+1. **识别事件类型**：根据 `systemEvent` 文本分发到对应处理逻辑
+2. **静默执行**：定时任务的执行结果默认静默，不主动打扰爸爸（除非任务本身要求通知）
+3. **超时控制**：所有 cron 任务走 main session 无冷启动，不再需要调超时参数
+
+**systemEvent 路由表：**
+
+| systemEvent | 含义 | 处理方式 |
+|-------------|------|---------|
+| `cron:weekly_report` | 9:00 周报工统计 | 执行 `scripts/weekly_report.py`，整理成表格推送 |
+| `cron:git_sync` | 7:00 Git知识库同步 | `git -C document/ pull --ff-only`，静默 |
+| `cron:media_cleanup` | 2:00 inbound媒体清理 | 执行清理脚本写日志，静默 |
+| `cron:mes_update` | 3:00 MES CLI更新 | `mes update` + `git pull`，静默 |
+| `cron:morning_summary` | 8:00 早间汇总 | 系统状态汇总推送 |
+| `cron:memory_refine` | 每小时 Memory提炼 | 提炼今日内容到 MEMORY.md，静默 |
+
+**新建 cron 任务规范（重要！）：**
+
+- 必须使用 `--session main + --system-event "cron:任务名"`
+- **禁止使用** `--session isolated`（有60秒冷启动硬限制，会导致任务在初始化完成前被杀死）
+- **禁止依赖** `light-context` 或 `--timeout-seconds` 来解决超时问题（无法突破冷启动限制）
+- 正确模板：`openclaw cron add --session main --system-event "cron:任务名" --cron "0 9 * * *" --message "..."`
+
 ## External vs Internal
 
 **Safe to do freely:**

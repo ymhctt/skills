@@ -76,12 +76,21 @@ document/  (恩墨记录)
 | 2026-04-09 | 建立知识库Git同步任务 | 每天7点自动同步 |
 | 2026-04-10 | Git同步超时调优 | 每日Git同步超时从120s增至300s，避免云端拉取超时 |
 | 2026-04-17 | Cron任务light-context优化 | 周报工/早间汇总/Git同步/MES更新四个任务启用 light-context（跳过workspace文件加载，加速冷启动）；早间汇总120s/周报工500s/Git同步180s/MES更新180s |
+| 2026-04-19 | Cron任务isolated session冷启动问题修复 | **根本原因**：isolated session 每次创建需 ~60秒 LLM API 冷启动（连接握手），cron调度器有约60秒硬限制，导致任务还没开始就被杀死；**修复**：所有cron任务改用 `--session main + --system-event "cron:xxx"`（走main热会话，无冷启动）；从此cron任务毫秒级完成 |
+| 2026-04-19 | 周报工统计脚本化 | 创建 `scripts/weekly_report.py`，MES查询+数据整理一体化，2.3秒出完整结构化数据（652h/110条记录），绕过LLM冷启动问题 |
 
 ---
 
 ## 🎯 学习与教训
 
 - **教训**：每次 push 代码前必须先 pull，避免覆盖他人内容！
+- **2026-04-19 cron任务超时问题总结**：
+  - `agents.defaults.timeoutSeconds: 600` 已是最优，与cron超时无关
+  - **真正原因**：isolated session 冷启动 ~60秒 = cron调度器硬限制，任务在LLM初始化完成前就被杀
+  - **正确做法**：cron任务一律用 `--session main + --system-event "cron:xxx"`，不要用 isolated session
+  - **错误做法**：试图通过调 `--timeout-seconds` 或 `light-context` 解决，无法突破60秒冷启动硬限制
+  - **验证**：改 main session 后，任务20ms~121ms完成，彻底解决超时问题
+  - **注意**：main session cron 会在当前对话中触发 systemEvent，需在 SOUL.md/AGENTS.md 中处理对应事件分发
 - **MES 周报工统计正确方法**（2026-04-17 修正）：
   - ✅ 正确：`mes -o json statistics list --from --to --team-id 23 --page-size 200`，按 `executorId` 分组汇总 `taskTime`
   - ❌ 错误：用 `statistics summary --group-type 0`（team-id 过滤有 Bug，返回数据不对）
@@ -107,8 +116,23 @@ document/  (恩墨记录)
   - `net_read_timeout`（默认30s）/ `net_write_timeout`（默认60s）：网络读写超时
 - **MySQL 条件优化 `optimize_cond` 四步**：提取公共子条件(extract_common_cond) → 等值传播(build_equal_items) → 常数传播(propagate_cond_constants) → 零散条件去除(remove_eq_conds)；前提：where条件为析取式、存在公共子条件、完全一致形式、具幂等性
 - **InnoDB 读写锁三种模式**：S（Shared）、SX（Shared-Exclusive）、X（Excluded）；SX锁优化场景：在 dict_index_t.lock 上加SX锁可避免阻塞 B+Tree 搜索操作（传统X锁会阻塞所有搜索）；基于原子操作+自旋锁实现，减少内核态同步开销
+- **MySQL 8 窗口函数**：MySQL 8 支持窗口函数（RANK()、LAG()、NTILE() 等，以及 SUM()/AVG() 等聚合函数的窗口用法）；核心语法 `OVER([window_name] [partition_clause] [order_clause] [frame_clause])`；frame_clause 用于滑动窗口计算；可在 FROM 子句后用 `WINDOW` 子句定义命名窗口；注意：窗口函数不能用于 UPDATE/DELETE 中更新行，只能用于 SELECT/子查询选行
+- **MySQL 8 自定义表空间路径**：`CREATE TABLESPACE ts_name ADD DATAFILE '/path/to/ts_name.ibd' ENGINE=INNODB`；`CREATE TABLE t (...) TABLESPACE=ts_name` 指定表所属表空间；`ALTER TABLE t TABLESPACE=ts_name` 迁移已有表；`AUTOEXTEND_SIZE` 控制表空间满时的自动扩容大小（8.0.13+）；`FILE_BLOCK_SIZE` 定义表空间数据文件块大小，存储压缩表时需与表的 `KEY_BLOCK_SIZE` 匹配；`ENCRYPTION` 控制静态加密；用于解决磁盘 IO 压力或容量瓶颈时将库表分散到不同磁盘
+- **PostgreSQL 子事务（SAVEPOINT）**：子事务允许回滚事务中的部分工作；`SAVEPOINT name`（无需引号）创建命名保存点；`ROLLBACK TO SAVEPOINT name` 回滚到指定保存点，保留保存点之前的工作；子事务在主事务提交时自动提交；需注意子事务性能问题（Subtransaction overhead）
 - **MySQL crash recovery 与 binlog 两阶段提交**：crash recovery 时，若 redo 处于 prepare 状态且 binlog 已写入，事务不能丢失；核心参数 `innodb_fast_shutdown`（0=慢关闭/最完整清理，1=默认/只刷脏页，2=快关闭/crash等价）；`innodb_force_recovery` 控制恢复强度（0=全部检查，1~3允许SELECT/DROP/CREATE，≥4限制更严）；两阶段提交顺序：执行器→引擎写数据+redo(prepare)→执行器写binlog→引擎commit(redo commit)；crash时redo prepare+binlog已写=需提交，不可回滚
+- **pt-archiver 数据归档工具要点**（2026-04-18）：源表必须有主键；默认迁移完会删源数据；未加 `--no-safe-auto-increment` 会漏最大ID记录（8.0前重启按最大值重置auto-increment）；归档中源数据变更可能导致不一致；可用 `--for-update/--share-lock` 锁定但影响业务；归档完不会自动 ANALYZE/OPTIMIZE
+- **MySQL binlog 文件补充**（2026-04-18）：`crash_safe_index_file` 是 binlog 索引文件操作的崩溃恢复机制，先写临时文件再原子替换正式 index；`purge_index_file` 是 PURGE 日志时临时记录待删文件名，保证删除和索引更新原子性；binlog 编号上限 2147483647，超限 flush 会导致 MySQL 崩溃（ERROR 1598）
 - **系统状态**：所有定时任务已配置完成，系统运行稳定 ✅
+
+## 🛠️ 周报工统计脚本
+
+| 项目 | 内容 |
+|------|------|
+| **路径** | `~/.openclaw/workspace/scripts/weekly_report.py` |
+| **功能** | MES查询 + 按人员/日期分组 + 少于10字条目 + 未报工人员 |
+| **性能** | 2.3秒完成，110条记录，652总工时 |
+| **使用方法** | `python3 /root/.openclaw/workspace/scripts/weekly_report.py` |
+| **输出** | JSON格式，含 week/total_hours/members/short_items/not_reported |
 
 ## 📋 待完成事项
 
@@ -159,19 +183,4 @@ document/  (恩墨记录)
 
 ---
 
-_Last updated: 2026-04-17 13:03 提炼完成：无新增内容；MEMORY.md 已最新 ✅
-_2026-04-17 10:03 提炼完成：无新增内容；MEMORY.md 已最新 ✅2026-04-16 23:03 提炼完成：无新增内容；2026-04-16.md 仅含上次提炼记录；daily-learn/内容已收录；MEMORY.md 已最新 ✅
-_2026-04-16 22:03 提炼完成：daily-learn/2026-04-16.md MySQL crash recovery + binlog两阶段提交 → 学习与教训；其他内容（yum配置/四川电信VIP判断）无需收录；MEMORY.md 已更新 ✅
-_2026-04-16 19:03 提炼完成：无新增内容；2026-04-16.md 空；2026-04-15.md 仅含例行cron记录；MEMORY.md 已最新 ✅
-_2026-04-16 13:03 提炼完成：无新增内容；2026-04-16.md 和 2026-04-15.md 均为空或例行记录；MEMORY.md 已最新 ✅
-_2026-04-16 11:03 提炼完成：无新增内容；2026-04-16.md 无实质内容；2026-04-15.md 仅含例行记录；MEMORY.md 已最新 ✅
-_2026-04-15 13:03 提炼完成：无新增内容；MEMORY.md 已最新 ✅
-_2026-04-14 23:03 提炼完成：新增 PostgreSQL autovacuum评分系统重构 + yum基础命令到学习与教训；MEMORY.md 已更新 ✅
-_2026-04-14 19:03 无新增内容；2026-04-14.md 为空；hygiene.log 仅含例行日志；MEMORY.md 已最新 ✅
-_2026-04-14 13:03 无新增内容；MEMORY.md 已最新 ✅
-_2026-04-14 02:03 无新增内容；2026-04-13.md 仅含归档记录；daily-learn/ MySQL内容已收录；MEMORY.md 已最新 ✅
-_2026-04-13 20:03 无新增内容；2026-04-13.md 仅含归档记录；daily-learn/ 内容已收录；cron/ stats/runs 无活动；MEMORY.md 已最新 ✅
-_2026-04-13 19:03 每小时提炼完成，无新增内容 ✅
-_2026-04-13 02:00 完成上周日记归档（04-08~04-12）至 archive/ ✅
-_2026-04-16 04:03 提炼完成：无新增内容；2026-04-15.md 仅含例行记录；daily-learn/MySQL内容已收录至学习与教训；MEMORY.md 已最新 ✅
-_2026-04-17 09:59 Cron任务优化：早间汇总/周报工/Git同步/MES更新启用 light-context+合理timeout；补充周报工/MES更新/inbound清理cron ID；已记录至 MEMORY.md ✅
+_Last updated: 2026-04-19 09:45 今日cron问题修复已固化：isolated冷启动→main session；周报工脚本已创建；所有8个定时任务状态ok ✅
