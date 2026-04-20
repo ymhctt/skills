@@ -106,8 +106,10 @@ document/  (恩墨记录)
 - **MySQL 8.0.22 异步复制自动故障转移**：副本可自动重建到备用源的复制连接；需配置 `asynchronous_connection_failover_add_source()` UDF；建议将 `MASTER_RETRY_COUNT` 设为较小值以快速触发故障转移
 - **binlog编号上限**：最大值为2147483647，达到后执行 `flush binary logs` 会导致MySQL进程崩溃退出（ERROR 1598）
 - **Opening tables 问题**：table_open_cache 应 >= 并发连接数 × 平均每连接查询表数；高并发+多表JOIN易导致table_open_cache不足，大量线程卡在Opening tables
+- **MySQL binlog ROW 格式事务隔离级判断陷阱**（2026-04-19）：binlog 中出现 `/*!50718 SET TRANSACTION ISOLATION LEVEL READ COMMITTED*/` 并**不代表**实际隔离级是 RC；当 binlog 格式为 ROW 且源库隔离级为 RR 时，MySQL 会在 binlog 中插入此语句作为**优化手段**，让回放时使用 RC 隔离级来提高速度、降低锁开销、减少死锁；真正判断隔离级的方式是 `SELECT @@global.transaction_isolation;`，不能通过 binlog 解析来断定
 - **MySQL 9.6 外键管理变革**：MySQL 9.6 起，外键约束和级联操作改由 SQL 引擎处理（原由 InnoDB 内部执行）；此举解决了级联操作对 SQL 层不可见、二进制日志缺失子表更改、CDC 复制不一致等问题；性能与原 InnoDB 方式几乎相同，完全向后兼容
-- **PostgreSQL autovacuum 评分系统重构**：旧版只在阈值接近时才计算评分，无法提前预警；新版始终计算评分，便于 DBA 提前介入和预测性维护（来源：阿里/淘宝 MySQL 内核月报）
+- **MogDB 3.0.3→5.0.6 升级 whale 插件问题**：升级过程中若无法自动下载插件包，ptk 升级命令会失败；需预先下载对应版本的 whale 安装包，指定 `plugin_dir` 再升级；升级插件列表含 dblink/orafce/pg_bulkload/pg_prewarm/pg_repack/pg_trgm/postgis/wal2json/whale；选不同意则升级立即终止
+- **MogHA 高可用软件**（云和恩墨自研，适用于 MogDB/openGauss）：lite 模式（轻量，2节点，需配置 ping_list 防脑裂，不修改复制关系）vs full 模式（最多1主8备，所有节点运行，修改 replconninfo）；故障切换秒级完成，支持 VIP 漂移；Python≥3.6，依赖 gsql/gs_ctl 免密（pg_hba.conf trust）
 - **yum 基础命令**：`yum clean all` + `yum makecache` 清理缓存重建元数据；`yum search`、`yum list`、`yum list installed`、`yum list updates` 查询软件包
 - **MySQL timeout 五种参数**：
   - `connect_timeout`（默认5s）：连接握手阶段超时，6次握手任意一次失败即断开
@@ -183,4 +185,4 @@ document/  (恩墨记录)
 
 ---
 
-_Last updated: 2026-04-19 09:45 今日cron问题修复已固化：isolated冷启动→main session；周报工脚本已创建；所有8个定时任务状态ok ✅
+_Last updated: 2026-04-20 08:03 每小时提炼完成：无新增内容；MEMORY.md 已最新 ✅

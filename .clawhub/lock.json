@@ -3,7 +3,7 @@
   "skills": {
     "openclaw-tavily-search": {
       "version": "0.1.0",
-      "installedAt": 1775186700311
+      "installedAt": 1775644196548
     },
     "memory-hygiene": {
       "version": "1.0.0",
@@ -56,6 +56,30 @@
     "cron": {
       "version": "1.0.0",
       "installedAt": 1775643203421
+    },
+    "agent-browser": {
+      "version": "0.2.0",
+      "installedAt": 1775644243085
+    },
+    "self-improving-agent": {
+      "version": "1.0.11",
+      "installedAt": 1775644283444
+    },
+    "proactive-agent": {
+      "version": "3.1.0",
+      "installedAt": 1775701653830
+    },
+    "summarize": {
+      "version": "1.0.0",
+      "installedAt": 1775644320036
+    },
+    "web-search": {
+      "version": "1.0.0",
+      "installedAt": 1775644383790
+    },
+    "ontology": {
+      "version": "0.1.2",
+      "installedAt": 1775701386201
     }
   }
 }
