@@ -59,7 +59,7 @@ document/  (恩墨记录)
 | 每日Git同步 | 每天 7:00 | git pull 知识库 | 静默 |
 | 每日早间简报 | 每天 7:20 | 天气+新闻推送给爸爸 | 正常通知 |
 | 每小时Memory提炼 | 每小时 :00 | 提炼内容到 MEMORY.md | 静默 |
-| 每周Memory归档 | 每周一 2:00 | 上周日记归档 | 静默 |
+| 每周Memory归档 | 每周一 2:00 | 上周日记归档 → announce微信推送 | 静默 |
 | 每日早间汇总 | 每天 8:00 | Git/Memory/备份状态汇总 → announce微信 | 正常通知 |
 | 东西大区周报工统计 | 每天 9:00 | MES查询20人本周报工 → announce微信 | 正常通知 |
 | 每日MES自动更新 | 每天 3:00 | mes update + skill git pull | 静默 |
