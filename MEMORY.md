@@ -60,9 +60,9 @@ document/  (恩墨记录)
 | 每日早间简报 | 每天 7:20 | 天气+新闻推送给爸爸 | 正常通知 |
 | 每小时Memory提炼 | 每小时 :00 | 提炼内容到 MEMORY.md | 静默 |
 | 每周Memory归档 | 每周一 2:00 | 上周日记归档 | 静默 |
-| **每日早间汇总** | 每天 8:00 | Git/Memory/备份状态汇总 | 正常通知 |
-| **东西大区周报工统计** | 每天 9:00 | MES 查询20人本周报工并推送 | 正常通知 |
-| **每日MES自动更新** | 每天 3:00 | mes update + skill git pull | 静默 |
+| 每日早间汇总 | 每天 8:00 | Git/Memory/备份状态汇总 → announce微信 | 正常通知 |
+| 东西大区周报工统计 | 每天 9:00 | MES查询20人本周报工 → announce微信 | 正常通知 |
+| 每日MES自动更新 | 每天 3:00 | mes update + skill git pull | 静默 |
 | **inbound媒体清理** | 每天 2:00 | 清理1天前临时文件 | 静默 |
 
 ---
@@ -76,7 +76,7 @@ document/  (恩墨记录)
 | 2026-04-09 | 建立知识库Git同步任务 | 每天7点自动同步 |
 | 2026-04-10 | Git同步超时调优 | 每日Git同步超时从120s增至300s，避免云端拉取超时 |
 | 2026-04-17 | Cron任务light-context优化 | 周报工/早间汇总/Git同步/MES更新四个任务启用 light-context（跳过workspace文件加载，加速冷启动）；早间汇总120s/周报工500s/Git同步180s/MES更新180s |
-| 2026-04-19 | Cron任务isolated session冷启动问题修复 | **根本原因**：isolated session 每次创建需 ~60秒 LLM API 冷启动（连接握手），cron调度器有约60秒硬限制，导致任务还没开始就被杀死；**修复**：所有cron任务改用 `--session main + --system-event "cron:xxx"`（走main热会话，无冷启动）；从此cron任务毫秒级完成 |
+| 2026-04-19 | Cron任务isolated session冷启动问题修复 | **问题**：isolated session 每次创建需 ~60秒 LLM API 冷启动（连接握手），cron调度器有约60秒硬限制，导致任务在LLM初始化完成前就被杀死；**修复**：8:00/9:00任务改用 `--announce --session isolated`（isolated session执行完直接推送微信，不依赖主会话）；从此cron任务毫秒级完成且结果直接推送到微信 |
 | 2026-04-19 | 周报工统计脚本化 | 创建 `scripts/weekly_report.py`，MES查询+数据整理一体化，2.3秒出完整结构化数据（652h/110条记录），绕过LLM冷启动问题 |
 
 ---
@@ -153,7 +153,7 @@ document/  (恩墨记录)
 | **当前版本** | 0.4.3 |
 | **升级方式** | CLI：`mes update`；Skill：git pull 最新版仓库覆盖安装 |
 | **自动更新** | 每天凌晨 3:00 自动执行更新任务（cron ID: ad3dc4bb-b1aa-43aa-9a77-eb2b94839b7a） |
-| **每日周报工统计** | 每天早上 9:00 统计东西大区4部本周报工并推送（cron ID: 90cc4aa2-6975-42e6-9fe2-e6f7791adcee） |
+| **每日周报工统计** | 每天早上 9:00 统计东西大区4部本周报工并推送（cron ID: 809faa14） |
 | **inbound媒体清理** | 每天凌晨 2:00 清理临时文件（cron ID: ce65d49c-6f01-40b5-b33e-3b1153f4f706） |
 
 ---
@@ -185,4 +185,4 @@ document/  (恩墨记录)
 
 ---
 
-_Last updated: 2026-04-20 08:03 每小时提炼完成：无新增内容；MEMORY.md 已最新 ✅
+_Last updated: 2026-04-20 12:03 每小时提炼完成：无新增内容；MEMORY.md 已最新 ✅
