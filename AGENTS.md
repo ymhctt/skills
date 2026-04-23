@@ -104,7 +104,8 @@ browser     -> JS rendering/login state/page interaction (heaviest)
 | `cron:git_sync` | 7:00 Git知识库同步 | `git -C document/ pull --ff-only`，静默 |
 | `cron:media_cleanup` | 2:00 inbound媒体清理 | 执行清理脚本写日志，静默 |
 | `cron:mes_update` | 3:00 MES CLI更新 | `mes update` + `git pull`，静默 |
-| `cron:morning_summary` | 8:00 早间汇总 | 系统状态汇总推送 |
+| `cron:morning_briefing` | 8:00 天气新闻 | 调用天气/新闻 skill 推送 |
+| `cron:morning_summary` | 7:20 早间汇总 | 系统状态汇总推送 |
 | `cron:memory_refine` | 每小时 Memory提炼 | 提炼今日内容到 MEMORY.md，静默 |
 
 **新建 cron 任务规范（重要！）：**
