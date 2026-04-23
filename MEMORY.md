@@ -207,4 +207,4 @@ _Last updated: 2026-04-21 23:03 每小时提炼完成：新增 InnoDB Mutex 六�
 
 _Last updated: 2026-04-23 12:03 每小时提炼 ✅ 无新增内容；爸爸贵阳出差中_
 
-_Last updated: 2026-04-23 13:03 每小时提炼 ✅ 无新增内容；爸爸贵阳出差中_
+_Last updated: 2026-04-23 21:15 爸爸强调：所有报工统计必须用 mes-work-report skill 生成！cron也用的是这个skill的generate_report.py_

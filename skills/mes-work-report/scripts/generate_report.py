@@ -51,14 +51,47 @@ def fetch_summary(team_id: int, from_date: str, to_date: str) -> list[dict]:
 
 
 def fetch_calendar(user_id: int, from_date: str, to_date: str) -> dict:
-    """获取用户每日报工日历，返回 {date_str: hours} 映射。"""
-    data = run_mes(["statistics", "calendar", "--user-id", str(user_id), "--from", from_date, "--to", to_date])
-    items = data.get("operateCallBackObj", [])
+    """获取用户每日报工明细，用 statistics list 累加（修复 calendar API 返回空的问题）。"""
+    all_records = []
+    page = 1
+    while True:
+        data = run_mes([
+            "statistics", "list",
+            "--executor-id", str(user_id),
+            "--from", from_date,
+            "--to", to_date,
+            "--page", str(page),
+            "--page-size", "100",
+        ])
+        items = _extract_list(data)
+        has_next = data.get("hasNextPage", False) if isinstance(data, dict) else False
+        if not items:
+            break
+        all_records.extend(items)
+        if not has_next or len(items) < 100:
+            break
+        page += 1
     result = {}
-    for item in items:
-        d = item.get("date", "")[:10]
-        result[d] = round(item.get("taskTime", 0) or 0, 1)
+    for r in all_records:
+        d = (r.get("start") or "")[:10]
+        h = round(float(r.get("taskTime", 0) or 0), 1)
+        if d:
+            result[d] = result.get(d, 0) + h
     return result
+
+def _extract_list(data):
+    if isinstance(data, list):
+        return data
+    if isinstance(data, dict):
+        for key in ("list", "operateCallBackObj", "data"):
+            val = data.get(key)
+            if isinstance(val, list):
+                return val
+            if isinstance(val, dict):
+                inner = val.get("list")
+                if isinstance(inner, list):
+                    return inner
+    return []
 
 
 def get_work_dates(from_date: str, to_date: str) -> list[str]:
