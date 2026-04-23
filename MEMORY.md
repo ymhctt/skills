@@ -61,7 +61,7 @@ document/  (恩墨记录)
 | 每小时Memory提炼 | 每小时 :00 | 提炼内容到 MEMORY.md | 静默 |
 | 每周Memory归档 | 每周一 2:00 | 上周日记归档 → announce微信推送 | 静默 |
 | 每日早间汇总 | 每天 8:00 | Git/Memory/备份状态汇总 → announce微信 | 正常通知 |
-| 东西大区周报工统计 | 每天 9:00 | MES查询20人本周报工 → announce微信 | 正常通知 |
+| 东西大区周报工统计 | 每天 9:00 | MES查询20人本周报工 → main+systemEvent | 正常通知 |
 | 每日MES自动更新 | 每天 3:00 | mes update + skill git pull | 静默 |
 | **inbound媒体清理** | 每天 2:00 | 清理1天前临时文件 | 静默 |
 
@@ -76,7 +76,10 @@ document/  (恩墨记录)
 | 2026-04-09 | 建立知识库Git同步任务 | 每天7点自动同步 |
 | 2026-04-10 | Git同步超时调优 | 每日Git同步超时从120s增至300s，避免云端拉取超时 |
 | 2026-04-17 | Cron任务light-context优化 | 周报工/早间汇总/Git同步/MES更新四个任务启用 light-context（跳过workspace文件加载，加速冷启动）；早间汇总120s/周报工500s/Git同步180s/MES更新180s |
-| 2026-04-19 | Cron任务isolated session冷启动问题修复 | **问题**：isolated session 每次创建需 ~60秒 LLM API 冷启动（连接握手），cron调度器有约60秒硬限制，导致任务在LLM初始化完成前就被杀死；**修复**：8:00/9:00任务改用 `--announce --session isolated`（isolated session执行完直接推送微信，不依赖主会话）；从此cron任务毫秒级完成且结果直接推送到微信 |
+| 2026-04-21 | Cron任务isolated+announce模式确认 | **纠正**：60秒冷启动限制只影响 `--session main + --system-event` 路线；`--announce --session isolated` 配合可正常工作，因为不需要等 session 响应，直接投递；早间简报34秒内在60秒内完成，isolated 模式可以工作 |
+| 2026-04-23 | 早间简报/周报工 isolated 超时修复 | 8点/9点任务均报62秒超时（isolated冷启动~60秒），早间简报：timeout 180→300s + light-context；周报工：改为 main+system-event 模式（无冷启动）；周报工 cron ID 变更为 f9ca9e48 |
+| 2026-04-21 | 早间任务时间调整 | 7:20=早间汇总（详细），8:00=早间简报（天气新闻）；两个任务调整了 cron 时间并统一用 `--announce --session isolated` 模式 |
+| 2026-04-21 | 修复早间简报 timeout | 早间简报原跑 isolated session，因冷启动+执行超过60秒导致 timeout；改为 `--announce --session isolated` 后任务轻量（34秒）可在60秒内完成 |
 | 2026-04-19 | 周报工统计脚本化 | 创建 `scripts/weekly_report.py`，MES查询+数据整理一体化，2.3秒出完整结构化数据（652h/110条记录），绕过LLM冷启动问题 |
 
 ---
@@ -84,13 +87,10 @@ document/  (恩墨记录)
 ## 🎯 学习与教训
 
 - **教训**：每次 push 代码前必须先 pull，避免覆盖他人内容！
-- **2026-04-19 cron任务超时问题总结**：
-  - `agents.defaults.timeoutSeconds: 600` 已是最优，与cron超时无关
-  - **真正原因**：isolated session 冷启动 ~60秒 = cron调度器硬限制，任务在LLM初始化完成前就被杀
-  - **正确做法**：cron任务一律用 `--session main + --system-event "cron:xxx"`，不要用 isolated session
-  - **错误做法**：试图通过调 `--timeout-seconds` 或 `light-context` 解决，无法突破60秒冷启动硬限制
-  - **验证**：改 main session 后，任务20ms~121ms完成，彻底解决超时问题
-  - **注意**：main session cron 会在当前对话中触发 systemEvent，需在 SOUL.md/AGENTS.md 中处理对应事件分发
+- **2026-04-21 cron任务模式总结**（纠正2026-04-19的说法）：
+  - `--session main + --system-event`：在主会话中处理，可并发但可能在聊天时被延迟
+  - `--announce --session isolated`：**推荐**，isolated session 执行完直接推送微信，不依赖主会话，60秒冷启动对轻量任务（34秒）不构成问题
+  - **推荐做法**：需要微信推送且任务轻量（&lt;60秒）→ `--announce --session isolated`；任务重或需要主会话处理 → `--session main + --system-event`
 - **MES 周报工统计正确方法**（2026-04-17 修正）：
   - ✅ 正确：`mes -o json statistics list --from --to --team-id 23 --page-size 200`，按 `executorId` 分组汇总 `taskTime`
   - ❌ 错误：用 `statistics summary --group-type 0`（team-id 过滤有 Bug，返回数据不对）
@@ -121,9 +121,24 @@ document/  (恩墨记录)
 - **MySQL 8 窗口函数**：MySQL 8 支持窗口函数（RANK()、LAG()、NTILE() 等，以及 SUM()/AVG() 等聚合函数的窗口用法）；核心语法 `OVER([window_name] [partition_clause] [order_clause] [frame_clause])`；frame_clause 用于滑动窗口计算；可在 FROM 子句后用 `WINDOW` 子句定义命名窗口；注意：窗口函数不能用于 UPDATE/DELETE 中更新行，只能用于 SELECT/子查询选行
 - **MySQL 8 自定义表空间路径**：`CREATE TABLESPACE ts_name ADD DATAFILE '/path/to/ts_name.ibd' ENGINE=INNODB`；`CREATE TABLE t (...) TABLESPACE=ts_name` 指定表所属表空间；`ALTER TABLE t TABLESPACE=ts_name` 迁移已有表；`AUTOEXTEND_SIZE` 控制表空间满时的自动扩容大小（8.0.13+）；`FILE_BLOCK_SIZE` 定义表空间数据文件块大小，存储压缩表时需与表的 `KEY_BLOCK_SIZE` 匹配；`ENCRYPTION` 控制静态加密；用于解决磁盘 IO 压力或容量瓶颈时将库表分散到不同磁盘
 - **PostgreSQL 子事务（SAVEPOINT）**：子事务允许回滚事务中的部分工作；`SAVEPOINT name`（无需引号）创建命名保存点；`ROLLBACK TO SAVEPOINT name` 回滚到指定保存点，保留保存点之前的工作；子事务在主事务提交时自动提交；需注意子事务性能问题（Subtransaction overhead）
-- **MySQL crash recovery 与 binlog 两阶段提交**：crash recovery 时，若 redo 处于 prepare 状态且 binlog 已写入，事务不能丢失；核心参数 `innodb_fast_shutdown`（0=慢关闭/最完整清理，1=默认/只刷脏页，2=快关闭/crash等价）；`innodb_force_recovery` 控制恢复强度（0=全部检查，1~3允许SELECT/DROP/CREATE，≥4限制更严）；两阶段提交顺序：执行器→引擎写数据+redo(prepare)→执行器写binlog→引擎commit(redo commit)；crash时redo prepare+binlog已写=需提交，不可回滚
+- **MySQL 8.0 SET PERSIST**：可将全局变量修改持久化到 `mysqld-auto.cnf`，重启后仍生效；`SET PERSIST max_connections=1000`（内存+文件），`SET PERSIST_ONLY`（仅文件）；启动时最后读取此文件；可通过 `performance_schema.persisted_variables` 查看
+- **InnoDB Mutex 六种类型**（2026-04-21）：OSBasicMutex（OS事件，单次加锁尝试）| OSTrackMutex（继承自OSBasicMutex，支持max_spins次数重试）| TTASFutexMutex（Linux futex，CAS原子指令+TAS解锁）| TTASMutex（TAS原子指令，忙等待）| TTASEventMutex（TAS+ut_delay()睡眠延迟+最终等待）| PolicyMutex（携带持有者信息，用于Performance schema监控）；SX锁可避免阻塞B+Tree搜索，减少内核态同步开销
+- **MySQL 单主MGR集群间异步复制 failover**（2026-04-21）：MySQL 8.0.22+ 支持异步连接故障转移；8.0.27起单主模式MGR作为备库时可自动维护备选主库列表；要求开启GTID+master_auto_position；复制用户需授权performance_schema.*权限；备库所有成员都需执行CHANGE MASTER；故障转移粒度为节点级，而非集群级
 - **pt-archiver 数据归档工具要点**（2026-04-18）：源表必须有主键；默认迁移完会删源数据；未加 `--no-safe-auto-increment` 会漏最大ID记录（8.0前重启按最大值重置auto-increment）；归档中源数据变更可能导致不一致；可用 `--for-update/--share-lock` 锁定但影响业务；归档完不会自动 ANALYZE/OPTIMIZE
 - **MySQL binlog 文件补充**（2026-04-18）：`crash_safe_index_file` 是 binlog 索引文件操作的崩溃恢复机制，先写临时文件再原子替换正式 index；`purge_index_file` 是 PURGE 日志时临时记录待删文件名，保证删除和索引更新原子性；binlog 编号上限 2147483647，超限 flush 会导致 MySQL 崩溃（ERROR 1598）
+- **MySQL 通信包错误 `Aborted_clients`/`Aborted_connects`**（2026-04-22）：
+  - `Aborted_connects`：登录失败（密码错误、权限不足、connect_timeout 超限）
+  - `Aborted_clients`：连接成功但异常断开（未调用 `mysql_close()`、sleep 超 `wait_timeout`、程序中途终止）
+  - 共同原因：max_allowed_packet 过小、Linux 以太网驱动 bug、线程库中断、TCP/IP 配置错误、硬件故障
+  - 排查：`show status like 'Aborted%'` + `show variables like '%timeout'`
+- **InnoDB redo log 机制**（2026-04-22）：
+  - WAL 原则：数据页刷盘前，redo log 必须先落盘
+  - LSN（Log Sequence Number）：unsigned long long，不断递增，标识 redo 中的位置
+  - flush list：Buffer Pool 各 instance 维护，按 page 的 LSN 排序；做 checkpoint 时选最老（最小 LSN）page
+  - ib_logfile[N]：循环顺序写，覆盖前需保证对应脏页已刷盘
+  - innodb_log_files_in_group × innodb_log_file_size = 总 redo 大小
+  - 危险线：未 checkpoint 日志超过文件总大小 76% 时，InnoDB 强制 preflush 脏页，导致大量线程 stall
+  - log_sys：日志系统核心对象，控制日志拷贝、写入、checkpoint
 - **系统状态**：所有定时任务已配置完成，系统运行稳定 ✅
 
 ## 🛠️ 周报工统计脚本
@@ -136,9 +151,12 @@ document/  (恩墨记录)
 | **使用方法** | `python3 /root/.openclaw/workspace/scripts/weekly_report.py` |
 | **输出** | JSON格式，含 week/total_hours/members/short_items/not_reported |
 
+---
+
 ## 📋 待完成事项
 
 - [ ] 完善 USER.md（爸爸姓名等个人信息待补充）
+| **贵阳出差** | 2026-04-22 爸爸在贵阳出差，预计返回后通知我 |
 - [ ] 完善 IDENTITY.md（婷婷的头像尚未设置）
 
 ---
@@ -150,10 +168,10 @@ document/  (恩墨记录)
 | **CLI 下载** | https://oss-emcsprod-public.oss-cn-beijing.aliyuncs.com/tools/mes/ |
 | **Skill 仓库** | https://github.com/enmotech/mes-cli-skills.git |
 | **Skill 安装路径** | ~/.openclaw/workspace/skills/mes-cli-terminal/ |
-| **当前版本** | 0.4.3 |
+| **当前版本** | 0.4.8 |
 | **升级方式** | CLI：`mes update`；Skill：git pull 最新版仓库覆盖安装 |
 | **自动更新** | 每天凌晨 3:00 自动执行更新任务（cron ID: ad3dc4bb-b1aa-43aa-9a77-eb2b94839b7a） |
-| **每日周报工统计** | 每天早上 9:00 统计东西大区4部本周报工并推送（cron ID: 809faa14） |
+| **每日周报工统计** | 每天早上 9:00 统计东西大区4部本周报工并推送（cron ID: f9ca9e48，main+system-event） |
 | **inbound媒体清理** | 每天凌晨 2:00 清理临时文件（cron ID: ce65d49c-6f01-40b5-b33e-3b1153f4f706） |
 
 ---
@@ -185,4 +203,6 @@ document/  (恩墨记录)
 
 ---
 
-_Last updated: 2026-04-20 12:03 每小时提炼完成：无新增内容；MEMORY.md 已最新 ✅
+_Last updated: 2026-04-21 23:03 每小时提炼完成：新增 InnoDB Mutex 六种类型 + MGR集群间异步复制 failover 知识点 ✅
+
+_Last updated: 2026-04-23 06:03 每小时提炼 ✅ MEMORY.md 无新增内容（上次 22:03 已完成）；爸爸在贵阳出差中_
