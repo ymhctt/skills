@@ -61,7 +61,7 @@ document/  (恩墨记录)
 | 每小时Memory提炼 | 每小时 :00 | 提炼内容到 MEMORY.md | 静默 |
 | 每周Memory归档 | 每周一 2:00 | 上周日记归档 → announce微信推送 | 静默 |
 | 每日早间汇总 | 每天 8:00 | Git/Memory/备份状态汇总 → announce微信 | 正常通知 |
-| 东西大区周报工统计 | 每天 9:00 | MES查询20人本周报工 → main+systemEvent | 正常通知 |
+| **东西大区4部报工统计** | **每天 9:00** | **MES查询→文本+HTML双推送微信** | **正常通知** |
 | 每日MES自动更新 | 每天 3:00 | mes update + skill git pull | 静默 |
 | **inbound媒体清理** | 每天 2:00 | 清理1天前临时文件 | 静默 |
 
@@ -77,7 +77,7 @@ document/  (恩墨记录)
 | 2026-04-10 | Git同步超时调优 | 每日Git同步超时从120s增至300s，避免云端拉取超时 |
 | 2026-04-17 | Cron任务light-context优化 | 周报工/早间汇总/Git同步/MES更新四个任务启用 light-context（跳过workspace文件加载，加速冷启动）；早间汇总120s/周报工500s/Git同步180s/MES更新180s |
 | 2026-04-21 | Cron任务isolated+announce模式确认 | **纠正**：60秒冷启动限制只影响 `--session main + --system-event` 路线；`--announce --session isolated` 配合可正常工作，因为不需要等 session 响应，直接投递；早间简报34秒内在60秒内完成，isolated 模式可以工作 |
-| 2026-04-23 | 早间简报/周报工 isolated 超时修复 | 8点/9点任务均报62秒超时（isolated冷启动~60秒），早间简报：timeout 180→300s + light-context；周报工：改为 main+system-event 模式（无冷启动）；周报工 cron ID 变更为 f9ca9e48 |
+| 2026-04-23 | 报工统计cron重建（文本+HTML双推送） | 新cron ID 4687754d，isolated+announce+channel模式；同时推送文本内容+HTML附件到微信；脚本输出JSON含text/html_path字段 |
 | 2026-04-21 | 早间任务时间调整 | 7:20=早间汇总（详细），8:00=早间简报（天气新闻）；两个任务调整了 cron 时间并统一用 `--announce --session isolated` 模式 |
 | 2026-04-21 | 修复早间简报 timeout | 早间简报原跑 isolated session，因冷启动+执行超过60秒导致 timeout；改为 `--announce --session isolated` 后任务轻量（34秒）可在60秒内完成 |
 | 2026-04-19 | 周报工统计脚本化 | 创建 `scripts/weekly_report.py`，MES查询+数据整理一体化，2.3秒出完整结构化数据（652h/110条记录），绕过LLM冷启动问题 |

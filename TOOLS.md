@@ -41,7 +41,7 @@ Skills are shared. Your setup is yours. Keeping them apart means you can update 
 |------|------|---------|------|
 | 每日早间汇总 | 7:20 | f83760d8-9fa7-4b39-b0e4-56064ac465fb | announce+isolated |
 | 每日早间简报 | 8:00 | 795bfadc | 贵阳天气+国内外各10条热点新闻 | announce+isolated |
-| 东西大区周报工统计 | 9:00 | 809faa14-dbce-4a04-8779-676b47f95a29 | announce+isolated |
+| 东西大区4部报工统计（文本+HTML） | 9:00 | 4687754d-a8d5-4e5d-bdce-5bee9062b462 | announce+isolated |
 
 ## ⏰ 定时任务（静默）
 
