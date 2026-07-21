@@ -38,8 +38,8 @@
       "installedAt": 1775186721346
     },
     "web-tools-guide": {
-      "version": "1.0.1",
-      "installedAt": 1775186723702
+      "version": "1.0.2",
+      "installedAt": 1784388701728
     },
     "skill-vetter": {
       "version": "1.0.0",
@@ -80,6 +80,22 @@
     "ontology": {
       "version": "0.1.2",
       "installedAt": 1775701386201
+    },
+    "vision-recognition-ocr": {
+      "version": "1.0.1",
+      "installedAt": 1780317589442
+    },
+    "image-vision": {
+      "version": "1.0.0",
+      "installedAt": 1780317611787
+    },
+    "minimax-vision-captcha": {
+      "version": "1.0.0",
+      "installedAt": 1780317656641
+    },
+    "find-skill-skillhub": {
+      "version": "1.0.2",
+      "installedAt": 1784388705127
     }
   }
 }
