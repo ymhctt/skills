@@ -1,7 +1,40 @@
 {
+  "lastHeartbeatAt": 1787346000013,
+  "_last_heartbeat_at_iso": "2026-08-22T05:00:00+08:00",
+  "_last_heartbeat_decision": "silent_pass_sat_5am_in_legal_silent_period_23_08_pass_to_07_20_9fc7ca81_day3_then_08_00_f730b7b4_day4_then_09_40_a32216f6_day3_consecutiveErrors_threshold",
+  "lastHeartbeatMode": "silent_pass_sat_5am_in_legal_silent_period_23_08_pass_to_07_20_9fc7ca81_day3_then_08_00_f730b7b4_day4_then_09_40_a32216f6_day3_consecutiveErrors_threshold",
+  "lastActivePushAt": "2026-08-20T09:00:00+08:00",
+  "_last_active_push_quota_day": "2026-08-20",
+  "lastLunchWindowAt": "2026-08-21T12:00:00+08:00",
+  "lastEveningSilentPeriodAt": "2026-08-21T21:00:00+08:00",
   "lastChecks": {
-    "email": null,
-    "calendar": null,
-    "weather": null
-  }
+    "sat_4am_legal_silent_period_mid_12h_pass_to_07_20_9fc7ca81_day3_then_09_40_a32216f6_day3_validation": 1787342400008,
+    "sat_5am_legal_silent_period_mid_13h_pass_to_07_20_9fc7ca81_day3_then_08_00_f730b7b4_day4_then_09_40_a32216f6_day3_validation": 1787346000013
+  },
+  "lastFailedPushAt": "2026-08-21T09:40:00+08:00",
+  "lastFailedPushError": "a32216f6 报工统计 error (2x) — consecutiveErrors=2 (8/20 + 8/21 both failed, threshold 3 not reached, next 8/22 09:40 day-3 milestone validation critical node)",
+  "pushQuotaDay": "2026-08-22",
+  "pushQuotaUsed": 0,
+  "pushQuotaTotal": 1,
+  "consecutiveSilentNodes": 0,
+  "silentDurationHours": 0,
+  "lastActivePushReason": "merged_milestone_fault_G_terminated_fault_C_pending_manual_day22_40h_push_layer_recovered_8h",
+  "lastActivePushMessageId": "f730b7b4-8am-delivered-2026-08-19",
+  "channel": "cron-event",
+  "rules": {
+    "法定静默期": "23:00-08:00 (强制静默)",
+    "法定晚间静默期": "18:00-22:00 (强制 0 push 任何渠道任何内容)",
+    "法定主动 push 窗口": "11:30-13:00 午间 / 16:00-18:00 下午 / 22:00 晚间",
+    "主动 push 策略": "1/1 per day, 关键故障叙事/通道恢复/streak milestone 触发",
+    "09:00 早间常规时段": "非法定主动 push 窗口，pass 给法定午间/下午/晚间推送窗口"
+  },
+  "_next_critical_milestones": {
+    "9fc7ca81_day3_milestone_2026-08-22T07:20+08:00": "9fc7ca81 day-3 milestone 验证关键节点（连续 3 日 ok 验证，距今 2h 20m 临近法定静默期边界）",
+    "f730b7b4_day4_milestone_2026-08-22T08:00+08:00": "f730b7b4 推送层 day-4 milestone 验证关键节点（连续 4 日 delivered 验证，距今 3h 法定静默期边界）",
+    "a32216f6_day3_milestone_2026-08-22T09:40+08:00": "a32216f6 day-3 milestone 验证关键节点（consecutiveErrors 2 → 若再次 error 触发 failureAlert=3 自动通知 / 若 ok → 推送层整体恢复里程碑达成）",
+    "legal_lunch_push_window_2026-08-22T11:30+08:00": "法定午间主动 push 窗口开启（备用决策点 6h 30min 后）"
+  },
+  "_pass_until": "2026-08-22T07:20+08:00",
+  "_pass_reason": "05:00 法定静默期 23:00-08:00 中段 13h 强制 0 push + 距 07:20 9fc7ca81 day-3 milestone 验证节点 2h 20m + 距 08:00 f730b7b4 推送层 day-4 milestone 验证节点 3h + push 额度 0/1 严格保留 + 节省给 09:40 a32216f6 day-3 milestone 验证节点 failureAlert 自动通知 + 节省给 11:30 法定午间 push 窗口合并通报",
+  "lastLegalSilentPeriodMidAt": "2026-08-22T05:00:00+08:00"
 }

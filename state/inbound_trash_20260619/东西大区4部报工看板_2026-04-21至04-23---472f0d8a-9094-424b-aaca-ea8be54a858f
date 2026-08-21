@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>东西大区4部 报工看板 2026-04-21 至 04-23</title>
+  <style>
+    :root {
+      --bg-primary: #0f0f23;
+      --bg-secondary: #1a1a3e;
+      --bg-card: #16213e;
+      --bg-card-hover: #1a2745;
+      --border: #2a2a5a;
+      --text-primary: #e8e8f0;
+      --text-secondary: #a0a0c0;
+      --text-muted: #6a6a8a;
+      --accent-red: #e94560;
+      --accent-blue: #00d4ff;
+      --accent-green: #2ecc71;
+      --accent-yellow: #f1c40f;
+      --accent-orange: #e67e22;
+      --accent-purple: #9b59b6;
+      --gradient-red: linear-gradient(135deg, #e94560, #c0392b);
+      --gradient-blue: linear-gradient(135deg, #00d4ff, #0984e3);
+      --gradient-green: linear-gradient(135deg, #2ecc71, #27ae60);
+      --gradient-orange: linear-gradient(135deg, #e67e22, #d35400);
+      --gradient-purple: linear-gradient(135deg, #9b59b6, #8e44ad);
+      --radius: 10px;
+      --shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      line-height: 1.6;
+      padding: 20px;
+    }
+    .container { max-width: 1200px; margin: 0 auto; }
+
+    /* ─── 报告头部 ─── */
+    .report-header {
+      text-align: center;
+      padding: 40px 20px;
+      background: linear-gradient(135deg, var(--bg-secondary) 0%, #0f3460 100%);
+      border-radius: var(--radius);
+      margin-bottom: 24px;
+      border: 1px solid var(--border);
+    }
+    .report-header h1 {
+      font-size: 28px;
+      background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 12px;
+    }
+    .report-header .meta-row {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+    .report-header .meta-row span { display: flex; align-items: center; gap: 6px; }
+
+    /* ─── 章节标题 ─── */
+    .section-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin: 32px 0 16px;
+      padding: 12px 20px;
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      border-left: 4px solid var(--accent-blue);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-title .icon { font-size: 22px; }
+
+    /* ─── 卡片网格 ─── */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      padding: 20px;
+      border: 1px solid var(--border);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+    .card .card-label { font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; }
+    .card .card-value { font-size: 32px; font-weight: 700; }
+    .card .card-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+    /* ─── 进度条 ─── */
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+    .progress-bar .fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.6s ease;
+    }
+    .fill-green { background: var(--gradient-green); }
+    .fill-orange { background: var(--gradient-orange); }
+    .fill-red { background: var(--gradient-red); }
+    .fill-blue { background: var(--gradient-blue); }
+
+    /* ─── 表格 ─── */
+    .table-wrapper {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      overflow-x: auto;
+      margin-bottom: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    thead { background: rgba(0,212,255,0.08); }
+    th {
+      padding: 12px 14px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--accent-blue);
+      white-space: nowrap;
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      white-space: nowrap;
+    }
+    tbody tr:nth-child(odd) { background: rgba(255,255,255,0.02); }
+    tbody tr:hover { background: rgba(0,212,255,0.06); }
+
+    /* ─── 热力图 ─── */
+    .heatmap-wrapper {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 20px;
+      overflow-x: auto;
+      margin-bottom: 20px;
+    }
+    .heatmap-table { width: 100%; border-collapse: collapse; }
+    .heatmap-table th {
+      padding: 8px 12px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      text-align: center;
+    }
+    .heatmap-table td {
+      padding: 6px 12px;
+      text-align: center;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 600;
+      min-width: 80px;
+    }
+    .heatmap-table td.name-cell {
+      text-align: left;
+      color: var(--text-primary);
+      font-weight: 500;
+      min-width: 100px;
+    }
+    .heat-0 { background: #2d2d2d; color: #666; }
+    .heat-low { background: #3d5a3d; color: #8fbc8f; }
+    .heat-mid { background: #4a7a4a; color: #98fb98; }
+    .heat-high { background: #2ecc71; color: #fff; }
+    .heat-over { background: #e94560; color: #fff; }
+
+    .heatmap-legend {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--text-muted);
+      align-items: center;
+    }
+    .heatmap-legend .swatch {
+      width: 16px; height: 16px; border-radius: 3px; display: inline-block;
+    }
+
+    /* ─── 评价卡片 ─── */
+    .eval-card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .eval-card .eval-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .eval-card .eval-summary {
+      font-size: 15px;
+      padding: 14px 18px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      border-left: 4px solid;
+    }
+    .eval-good { background: rgba(46,204,113,0.1); border-color: var(--accent-green); color: var(--accent-green); }
+    .eval-warn { background: rgba(230,126,34,0.1); border-color: var(--accent-orange); color: var(--accent-orange); }
+    .eval-bad { background: rgba(233,69,96,0.1); border-color: var(--accent-red); color: var(--accent-red); }
+    .eval-section h4 {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin: 14px 0 8px;
+    }
+    .eval-section ul { padding-left: 20px; color: var(--text-primary); font-size: 14px; }
+    .eval-section li { margin-bottom: 4px; }
+
+    /* ─── 状态标签 ─── */
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge-green { background: rgba(46,204,113,0.2); color: var(--accent-green); }
+    .badge-orange { background: rgba(230,126,34,0.2); color: var(--accent-orange); }
+    .badge-red { background: rgba(233,69,96,0.2); color: var(--accent-red); }
+    .badge-blue { background: rgba(0,212,255,0.2); color: var(--accent-blue); }
+    .badge-purple { background: rgba(155,89,182,0.2); color: var(--accent-purple); }
+    .text-red { color: var(--accent-red); font-weight: 700; }
+    .text-green { color: var(--accent-green); font-weight: 700; }
+    .text-orange { color: var(--accent-orange); font-weight: 700; }
+    .text-blue { color: var(--accent-blue); }
+
+    /* ─── 条形图（CSS） ─── */
+    .bar-chart { display: flex; flex-direction: column; gap: 10px; }
+    .bar-row { display: flex; align-items: center; gap: 10px; }
+    .bar-label { width: 80px; text-align: right; font-size: 13px; color: var(--text-secondary); flex-shrink: 0; }
+    .bar-track { flex: 1; height: 24px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; position: relative; }
+    .bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      padding-left: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+      min-width: fit-content;
+      transition: width 0.6s ease;
+    }
+
+    /* ─── Footer ─── */
+    .report-footer {
+      text-align: center;
+      padding: 20px;
+      color: var(--text-muted);
+      font-size: 12px;
+      margin-top: 32px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ─── 服务请求状态标签 ─── */
+    .status-closed { color: var(--accent-green); }
+    .status-recovered { color: var(--accent-blue); }
+    .status-processing { color: var(--accent-orange); }
+
+    /* ─── 折叠面板 ─── */
+    .collapsible-header {
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .collapsible-header .arrow { transition: transform 0.2s; display: inline-block; }
+    .collapsible-header.open .arrow { transform: rotate(90deg); }
+    .collapsible-content { display: none; }
+    .collapsible-content.open { display: block; }
+
+    /* ─── 评分详情展开 ─── */
+    .score-detail {
+      max-width: 500px;
+      white-space: normal;
+      word-break: break-all;
+      font-size: 12px;
+      color: var(--text-muted);
+      cursor: help;
+    }
+    .score-detail:hover { color: var(--text-secondary); }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ═══════ 报告头部 ═══════ -->
+  <div class="report-header">
+    <h1>📊 东西大区4部 · 报工看板</h1>
+    <div class="meta-row">
+      <span>📅 2026-04-21 ~ 2026-04-23</span>
+      <span>⏱ 3 个工作日</span>
+      <span>📋 标准 24h/人</span>
+      <span>🕐 生成时间：2026-04-23 20:30</span>
+    </div>
+  </div>
+
+  <!-- ═══════ 第一章：核心 KPI 卡片 ═══════ -->
+  <div class="section-title"><span class="icon">📈</span> 核心指标概览</div>
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-label">👥 团队人数</div>
+      <div class="card-value">20</div>
+      <div class="card-sub">全员已报工</div>
+    </div>
+    <div class="card">
+      <div class="card-label">⏱ 总工时</div>
+      <div class="card-value text-blue">388<span style="font-size:18px">h</span></div>
+      <div class="card-sub">人均 19.4h</div>
+    </div>
+    <div class="card">
+      <div class="card-label">✅ 满勤人数</div>
+      <div class="card-value text-green">9<span style="font-size:18px">/ 20</span></div>
+      <div class="card-sub">满勤率 45.0%</div>
+      <div class="progress-bar"><div class="fill fill-orange" style="width:45%"></div></div>
+    </div>
+    <div class="card">
+      <div class="card-label">🔥 加班工时</div>
+      <div class="card-value" style="color:var(--accent-orange)">2<span style="font-size:18px">h</span></div>
+      <div class="card-sub">1 人有加班</div>
+    </div>
+    <div class="card">
+      <div class="card-label">📝 平均评分</div>
+      <div class="card-value text-green">96.8</div>
+      <div class="card-sub">20 人参评</div>
+    </div>
+    <div class="card">
+      <div class="card-label">📄 文档产出</div>
+      <div class="card-value" style="color:var(--accent-purple)">2<span style="font-size:18px">篇</span></div>
+      <div class="card-sub">徐伟东 贡献 2 篇</div>
+    </div>
+    <div class="card">
+      <div class="card-label">🛠 服务请求</div>
+      <div class="card-value" style="color:var(--accent-yellow)">7<span style="font-size:18px">条</span></div>
+      <div class="card-sub">已关闭 4 / 业务恢复 3</div>
+    </div>
+    <div class="card">
+      <div class="card-label">📊 待处理工单</div>
+      <div class="card-value" style="color:var(--accent-red)">14</div>
+      <div class="card-sub">未关闭工单 49</div>
+    </div>
+  </div>
+
+  <!-- ═══════ 第二章：成员工时明细 ═══════ -->
+  <div class="section-title"><span class="icon">📋</span> 成员工时明细</div>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th><th>姓名</th><th>城市</th><th>总工时</th><th>售后</th><th>内部</th>
+          <th>加班</th><th>报工条数</th><th>评分</th><th>不足工时</th><th>状态</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td><td>杨丁娇</td><td>昆明</td><td class="text-green">31.5</td><td>31.5</td><td>0</td>
+          <td>0</td><td>4</td><td><span class="badge badge-blue">90</span></td><td>0</td>
+          <td><span class="badge badge-green">✅ 满勤</span></td>
+        </tr>
+        <tr>
+          <td>2</td><td>聂大爽</td><td>昆明</td><td class="text-green">26.0</td><td>26.0</td><td>0</td>
+          <td>0</td><td>4</td><td><span class="badge badge-blue">92</span></td><td>0</td>
+          <td><span class="badge badge-green">✅ 满勤</span></td>
+        </tr>
+        <tr>
+          <td>3</td><td>莫乾一</td><td>-</td><td class="text-green">24.0</td><td>24.0</td><td>0</td>
+          <td>0</td><td>3</td><td><span class="badge badge-blue">100</span></td><td>0</td>
+          <td><span class="badge badge-green">✅ 满勤</span></td>
+        </tr>
+        <tr>
+          <td>4</td><td>徐伟东</td><td>贵阳</td><td class="text-green">24.0</td><td>24.0</td><td>0</td>
+          <td>0</td><td>3</td><td><span class="badge badge-blue">100</span></td><td>0</td>
+          <td><span class="badge badge-green">✅ 满勤</span></td>
+        </tr>
+        <tr>
+          <td>5</td><td>李汶隆</td><td>昆明</td><td class="text-green">24.0</td><td>24.0</td><td>0</td>
+          <td>0</td><td>3</td><td><span class="badge badge-blue">87</span></td><td>0</td>
+          <td><span class="badge badge-green">✅ 满勤</span></td>
+        </tr>
+        <tr>
+          <td>6</td><td>张腾飞</td><td>昆明</td><td class="text-green">24.0</td><td>24.0</td><td>0</td>
+          <td>0</td><td>3</td><td><span class="badge badge-blue">84</span></td><td>0</td>
+          <td><span class="badge badge-green">✅ 满勤</span></td>
+        </tr>
+        <tr>
+          <td>7</td><td>冯彦苇</td><td>昆明</td><td class="text-green">24.0</td><td>24.0</td><td>0</td>
+          <td>0</td><td>3</td><td><span class="badge badge-blue">96</span></td><td>0</td>
+          <td><span class="badge badge-green">✅ 满勤</span></td>
+        </tr>
+        <tr>
+          <td>8</td><td>黄进</td><td>-</td><td class="text-green">24.0</td><td>24.0</td><td>0</td>
+          <td>0</td><td>7</td><td><span class="badge badge-blue">86</span></td><td>0</td>
+          <td><span class="badge badge-green">✅ 满勤</span></td>
+        </tr>
+        <tr>
+          <td>9</td><td>朱顶勋</td><td>昆明</td><td class="text-green">24.0</td><td>8.0</td><td>16.0</td>
+          <td>0</td><td>3</td><td><span class="badge badge-blue">89</span></td><td>0</td>
+          <td><span class="badge badge-green">✅ 满勤</span></td>
+        </tr>
+        <tr>
+          <td>10</td><td>陈星</td><td>成都</td><td>20.0</td><td>20.0</td><td>0</td>
+          <td>0</td><td>2</td><td><span class="badge badge-blue">82</span></td><td class="text-orange">4.0</td>
+          <td><span class="badge badge-orange">⚠ 不足</span></td>
+        </tr>
+        <tr>
+          <td>11</td><td>丁岩松</td><td>昆明</td><td>16.5</td><td>16.5</td><td>0</td>
+          <td>0</td><td>3</td><td><span class="badge badge-blue">92</span></td><td class="text-red">7.5</td>
+          <td><span class="badge badge-red">❌ 不足</span></td>
+        </tr>
+        <tr>
+          <td>12</td><td>石庆楠</td><td>贵阳</td><td>16.0</td><td>16.0</td><td>0</td>
+          <td>0</td><td>4</td><td><span class="badge badge-orange">74</span></td><td class="text-red">8.0</td>
+          <td><span class="badge badge-red">❌ 不足</span></td>
+        </tr>
+        <tr>
+          <td>13</td><td>陈伟棠</td><td>深圳</td><td>16.0</td><td>16.0</td><td>0</td>
+          <td>0</td><td>2</td><td><span class="badge badge-orange">83</span></td><td class="text-red">8.0</td>
+          <td><span class="badge badge-red">❌ 不足</span></td>
+        </tr>
+        <tr>
+          <td>14</td><td>张磊-昆明</td><td>昆明</td><td>16.0</td><td>16.0</td><td>0</td>
+          <td>0</td><td>2</td><td><span class="badge badge-blue">95</span></td><td class="text-red">8.0</td>
+          <td><span class="badge badge-red">❌ 不足</span></td>
+        </tr>
+        <tr>
+          <td>15</td><td>李晴晴</td><td>成都</td><td>16.0</td><td>16.0</td><td>0</td>
+          <td>0</td><td>2</td><td><span class="badge badge-blue">95</span></td><td class="text-red">8.0</td>
+          <td><span class="badge badge-red">❌ 不足</span></td>
+        </tr>
+        <tr>
+          <td>16</td><td>张懿骉</td><td>贵阳</td><td>16.0</td><td>16.0</td><td>0</td>
+          <td>0</td><td>5</td><td><span class="badge badge-blue">98</span></td><td class="text-red">8.0</td>
+          <td><span class="badge badge-red">❌ 不足</span></td>
+        </tr>
+        <tr>
+          <td>17</td><td>杨明翰</td><td>成都</td><td>14.0</td><td>10.0</td><td>4.0</td>
+          <td>0</td><td>5</td><td><span class="badge badge-red">66</span></td><td class="text-red">10.0</td>
+          <td><span class="badge badge-red">❌ 不足</span></td>
+        </tr>
+        <tr>
+          <td>18</td><td>罗海鸥</td><td>成都</td><td>13.0</td><td>13.0</td><td>0</td>
+          <td>0</td><td>4</td><td><span class="badge badge-red">20</span></td><td class="text-red">11.0</td>
+          <td><span class="badge badge-red">❌ 不足</span></td>
+        </tr>
+        <tr>
+          <td>19</td><td>刘明民</td><td>成都</td><td>10.0</td><td>10.0</td><td>0</td>
+          <td class="text-orange">2</td><td>3</td><td><span class="badge badge-red">51</span></td><td class="text-red">14.0</td>
+          <td><span class="badge badge-red">❌ 不足</span></td>
+        </tr>
+        <tr>
+          <td>20</td><td>薛瑞</td><td>昆明</td><td>9.0</td><td>9.0</td><td>0</td>
+          <td>0</td><td>1</td><td><span class="badge badge-orange">88</span></td><td class="text-red">15.0</td>
+          <td><span class="badge badge-red">❌ 不足</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════ 每日工时热力图 ═══════ -->
+  <div class="section-title"><span class="icon">🗓️</span> 每日工时热力图</div>
+  <div class="heatmap-wrapper">
+    <table class="heatmap-table">
+      <thead>
+        <tr>
+          <th style="text-align:left">姓名</th>
+          <th>04-21 周一</th>
+          <th>04-22 周二</th>
+          <th>04-23 周三</th>
+          <th>合计</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="name-cell">杨丁娇</td>
+          <td class="heat-over">15.5</td>
+          <td class="heat-high">8</td>
+          <td class="heat-high">8</td>
+          <td style="font-weight:700;color:var(--accent-green)">31.5</td>
+        </tr>
+        <tr>
+          <td class="name-cell">聂大爽</td>
+          <td class="heat-high">8</td>
+          <td class="heat-over">10</td>
+          <td class="heat-high">8</td>
+          <td style="font-weight:700;color:var(--accent-green)">26</td>
+        </tr>
+        <tr>
+          <td class="name-cell">莫乾一</td>
+          <td class="heat-high">8</td>
+          <td class="heat-high">8</td>
+          <td class="heat-high">8</td>
+          <td style="font-weight:700;color:var(--accent-green)">24</td>
+        </tr>
+        <tr>
+          <td class="name-cell">徐伟东</td>
+          <td class="heat-high">8</td>
+          <td class="heat-high">8</td>
+          <td class="heat-high">8</td>
+          <td style="font-weight:700;color:var(--accent-green)">24</td>
+        </tr>
+        <tr>
+          <td class="name-cell">李汶隆</td>
+          <td class="heat-high">8</td>
+          <td class="heat-high">8</td>
+          <td class="heat-high">8</td>
+          <td style="font-weight:700;color:var(--accent-green)">24</td>
+        </tr>
+        <tr>
+          <td class="name-cell">张腾飞</td>
+          <td class="heat-high">8</td>
+          <td class="heat-high">8</td>
+          <td class="heat-high">8</td>
+          <td style="font-weight:700;color:var(--accent-green)">24</td>
+        </tr>
+        <tr>
+          <td class="name-cell">冯彦苇</td>
+          <td class="heat-high">8</td>
+          <td class="heat-high">8</td>
+          <td class="heat-high">8</td>
+          <td style="font-weight:700;color:var(--accent-green)">24</td>
+        </tr>
+        <tr>
+          <td class="name-cell">黄进</td>
+          <td class="heat-high">8</td>
+          <td class="heat-high">8</td>
+          <td class="heat-high">8</td>
+          <td style="font-weight:700;color:var(--accent-green)">24</td>
+        </tr>
+        <tr>
+          <td class="name-cell">朱顶勋</td>
+          <td class="heat-high">8</td>
+          <td class="heat-high">8</td>
+          <td class="heat-high">8</td>
+          <td style="font-weight:700;color:var(--accent-green)">24</td>
+        </tr>
+        <tr>
+          <td class="name-cell">陈星</td>
+          <td class="heat-over">10</td>
+          <td class="heat-over">10</td>
+          <td class="heat-0">-</td>
+          <td style="font-weight:700;color:var(--accent-orange)">20</td>
+        </tr>
+        <tr>
+          <td class="name-cell">丁岩松</td>
+          <td class="heat-high">8</td>
+          <td class="heat-high">8</td>
+          <td class="heat-low">0.5</td>
+          <td style="font-weight:700;color:var(--accent-orange)">16.5</td>
+        </tr>
+        <tr>
+          <td class="name-cell">石庆楠</td>
+          <td class="heat-high">8</td>
+          <td class="heat-high">8</td>
+          <td class="heat-0">-</td>
+          <td style="font-weight:700;color:var(--accent-orange)">16</td>
+        </tr>
+        <tr>
+          <td class="name-cell">陈伟棠</td>
+          <td class="heat-high">8</td>
+          <td class="heat-high">8</td>
+          <td class="heat-0">-</td>
+          <td style="font-weight:700;color:var(--accent-orange)">16</td>
+        </tr>
+        <tr>
+          <td class="name-cell">张磊-昆明</td>
+          <td class="heat-high">8</td>
+          <td class="heat-high">8</td>
+          <td class="heat-0">-</td>
+          <td style="font-weight:700;color:var(--accent-orange)">16</td>
+        </tr>
+        <tr>
+          <td class="name-cell">李晴晴</td>
+          <td class="heat-high">8</td>
+          <td class="heat-high">8</td>
+          <td class="heat-0">-</td>
+          <td style="font-weight:700;color:var(--accent-orange)">16</td>
+        </tr>
+        <tr>
+          <td class="name-cell">张懿骉</td>
+          <td class="heat-high">8</td>
+          <td class="heat-high">8</td>
+          <td class="heat-0">-</td>
+          <td style="font-weight:700;color:var(--accent-orange)">16</td>
+        </tr>
+        <tr>
+          <td class="name-cell">杨明翰</td>
+          <td class="heat-mid">6</td>
+          <td class="heat-high">8</td>
+          <td class="heat-0">-</td>
+          <td style="font-weight:700;color:var(--accent-orange)">14</td>
+        </tr>
+        <tr>
+          <td class="name-cell">罗海鸥</td>
+          <td class="heat-mid">7</td>
+          <td class="heat-mid">6</td>
+          <td class="heat-0">-</td>
+          <td style="font-weight:700;color:var(--accent-orange)">13</td>
+        </tr>
+        <tr>
+          <td class="name-cell">刘明民</td>
+          <td class="heat-over">10</td>
+          <td class="heat-0">-</td>
+          <td class="heat-0">-</td>
+          <td style="font-weight:700;color:var(--accent-red)">10</td>
+        </tr>
+        <tr>
+          <td class="name-cell">薛瑞</td>
+          <td class="heat-high">9</td>
+          <td class="heat-0">-</td>
+          <td class="heat-0">-</td>
+          <td style="font-weight:700;color:var(--accent-red)">9</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="heatmap-legend">
+      <span><span class="swatch" style="background:#2d2d2d"></span> 未报工</span>
+      <span><span class="swatch" style="background:#3d5a3d"></span> 1-4h</span>
+      <span><span class="swatch" style="background:#4a7a4a"></span> 5-7h</span>
+      <span><span class="swatch" style="background:#2ecc71"></span> 8h（达标）</span>
+      <span><span class="swatch" style="background:#e94560"></span> >8h（加班）</span>
+    </div>
+  </div>
+
+  <!-- ═══════ 第三章：报工不足人员分析 ═══════ -->
+  <div class="section-title"><span class="icon">⚠️</span> 报工不足人员分析</div>
+  <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));">
+    <div class="card" style="border-left:3px solid var(--accent-red)">
+      <div class="card-label">❌ 不足人员</div>
+      <div class="card-value text-red">11</div>
+      <div class="card-sub">占比 55%</div>
+    </div>
+    <div class="card" style="border-left:3px solid var(--accent-orange)">
+      <div class="card-label">⚠ 缺勤 ≥1天</div>
+      <div class="card-value text-orange">7</div>
+      <div class="card-sub">仅 2 天报工</div>
+    </div>
+    <div class="card" style="border-left:3px solid var(--accent-purple)">
+      <div class="card-label">🟣 缺勤 ≥2天</div>
+      <div class="card-value" style="color:var(--accent-purple)">2</div>
+      <div class="card-sub">仅 1 天报工</div>
+    </div>
+  </div>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr><th>姓名</th><th>城市</th><th>实际工时</th><th>标准工时</th><th>不足工时</th><th>缺勤天数</th><th>严重程度</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>薛瑞</td><td>昆明</td><td>9.0</td><td>24</td><td class="text-red">15.0</td><td>2天</td>
+          <td><span class="badge badge-red">🔴 严重</span></td>
+        </tr>
+        <tr>
+          <td>刘明民</td><td>成都</td><td>10.0</td><td>24</td><td class="text-red">14.0</td><td>2天</td>
+          <td><span class="badge badge-red">🔴 严重</span></td>
+        </tr>
+        <tr>
+          <td>罗海鸥</td><td>成都</td><td>13.0</td><td>24</td><td class="text-red">11.0</td><td>1天</td>
+          <td><span class="badge badge-red">🔴 严重</span></td>
+        </tr>
+        <tr>
+          <td>杨明翰</td><td>成都</td><td>14.0</td><td>24</td><td class="text-red">10.0</td><td>1天</td>
+          <td><span class="badge badge-red">🔴 严重</span></td>
+        </tr>
+        <tr>
+          <td>石庆楠</td><td>贵阳</td><td>16.0</td><td>24</td><td class="text-red">8.0</td><td>1天</td>
+          <td><span class="badge badge-orange">🟠 偏少</span></td>
+        </tr>
+        <tr>
+          <td>陈伟棠</td><td>深圳</td><td>16.0</td><td>24</td><td class="text-red">8.0</td><td>1天</td>
+          <td><span class="badge badge-orange">🟠 偏少</span></td>
+        </tr>
+        <tr>
+          <td>张磊-昆明</td><td>昆明</td><td>16.0</td><td>24</td><td class="text-red">8.0</td><td>1天</td>
+          <td><span class="badge badge-orange">🟠 偏少</span></td>
+        </tr>
+        <tr>
+          <td>李晴晴</td><td>成都</td><td>16.0</td><td>24</td><td class="text-red">8.0</td><td>1天</td>
+          <td><span class="badge badge-orange">🟠 偏少</span></td>
+        </tr>
+        <tr>
+          <td>张懿骉</td><td>贵阳</td><td>16.0</td><td>24</td><td class="text-red">8.0</td><td>1天</td>
+          <td><span class="badge badge-orange">🟠 偏少</span></td>
+        </tr>
+        <tr>
+          <td>丁岩松</td><td>昆明</td><td>16.5</td><td>24</td><td class="text-red">7.5</td><td>0天*</td>
+          <td><span class="badge badge-orange">🟠 偏少</span></td>
+        </tr>
+        <tr>
+          <td>陈星</td><td>成都</td><td>20.0</td><td>24</td><td class="text-orange">4.0</td><td>1天</td>
+          <td><span class="badge badge-orange">🟠 偏少</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:12px;color:var(--text-muted);margin-bottom:20px">* 丁岩松 3 天均有报工，但 4/23 仅报 0.5h</p>
+
+  <!-- ═══════ 第四章：文档编写统计 ═══════ -->
+  <div class="section-title"><span class="icon">📄</span> 文档编写统计</div>
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>标题</th><th>作者</th><th>创建时间</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>磐维数据库磁盘空间耗尽导致数据库异常</td>
+          <td>徐伟东</td>
+          <td>2026-04-22 13:41</td>
+        </tr>
+        <tr>
+          <td>自动SQL优化顾问导致ora600报错</td>
+          <td>徐伟东</td>
+          <td>2026-04-22 13:28</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════ 第五章：工时类型分布 ═══════ -->
+  <div class="section-title"><span class="icon">📊</span> 工时类型分布</div>
+  <div class="eval-card">
+    <div class="bar-chart">
+      <div class="bar-row">
+        <div class="bar-label">售后</div>
+        <div class="bar-track">
+          <div class="bar-fill fill-blue" style="width:94.8%">368h (94.8%)</div>
+        </div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">内部</div>
+        <div class="bar-track">
+          <div class="bar-fill fill-green" style="width:5.2%">20h (5.2%)</div>
+        </div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">售前</div>
+        <div class="bar-track">
+          <div class="bar-fill fill-orange" style="width:0.5%">0h (0%)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ 第六章：报工质量分析 ═══════ -->
+  <div class="section-title"><span class="icon">🎯</span> 报工质量分析</div>
+  <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));">
+    <div class="card" style="border-left:3px solid var(--accent-green)">
+      <div class="card-label">🏆 ≥95 优秀</div>
+      <div class="card-value text-green">8</div>
+    </div>
+    <div class="card" style="border-left:3px solid var(--accent-blue)">
+      <div class="card-label">👍 85-94 良好</div>
+      <div class="card-value text-blue">6</div>
+    </div>
+    <div class="card" style="border-left:3px solid var(--accent-orange)">
+      <div class="card-label">⚠ 70-84 合格</div>
+      <div class="card-value text-orange">3</div>
+    </div>
+    <div class="card" style="border-left:3px solid var(--accent-red)">
+      <div class="card-label">❌ &lt;70 待改进</div>
+      <div class="card-value text-red">3</div>
+    </div>
+  </div>
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>姓名</th><th>评分</th><th>评级</th><th>改进建议摘要</th></tr></thead>
+      <tbody>
+        <tr><td>徐伟东</td><td class="text-green">100</td><td><span class="badge badge-green">优秀</span></td><td>各项维度满分</td></tr>
+        <tr><td>莫乾一</td><td class="text-green">100</td><td><span class="badge badge-green">优秀</span></td><td>各项维度满分</td></tr>
+        <tr><td>张懿骉</td><td class="text-green">98</td><td><span class="badge badge-green">优秀</span></td><td>内容重复度 75%，存在跨天重复报工</td></tr>
+        <tr><td>张磊-昆明</td><td class="text-green">95</td><td><span class="badge badge-green">优秀</span></td><td>工时利用率 53%，可能漏报</td></tr>
+        <tr><td>李晴晴</td><td class="text-green">95</td><td><span class="badge badge-green">优秀</span></td><td>工时利用率 50%，可能漏报</td></tr>
+        <tr><td>丁岩松</td><td>92</td><td><span class="badge badge-green">优秀</span></td><td>工时利用率 10%，严重不足</td></tr>
+        <tr><td>杨丁娇</td><td>90</td><td><span class="badge badge-green">优秀</span></td><td>存在跨天报工，工时利用率 44%</td></tr>
+        <tr><td>李汶隆</td><td>87</td><td><span class="badge badge-green">优秀</span></td><td>-</td></tr>
+        <tr><td>朱顶勋</td><td>89</td><td><span class="badge badge-blue">良好</span></td><td>工时利用率 67%，个别报工过短</td></tr>
+        <tr><td>聂大爽</td><td>89</td><td><span class="badge badge-blue">良好</span></td><td>工时利用率 47%，少量短报工</td></tr>
+        <tr><td>薛瑞</td><td>88</td><td><span class="badge badge-blue">良好</span></td><td>跨天报工，工时合理性 0 分</td></tr>
+        <tr><td>黄进</td><td>86</td><td><span class="badge badge-blue">良好</span></td><td>工时利用率 62%，有重复报工</td></tr>
+        <tr><td>冯彦苇</td><td>84</td><td><span class="badge badge-blue">良好</span></td><td>工时利用率 65%，内容重复+过短</td></tr>
+        <tr><td>张腾飞</td><td>84</td><td><span class="badge badge-blue">良好</span></td><td>跨天重复报工，内容重复度 70%</td></tr>
+        <tr><td>陈伟棠</td><td>83</td><td><span class="badge badge-blue">良好</span></td><td>报工长度 75%，部分内容过短</td></tr>
+        <tr><td>陈星</td><td>82</td><td><span class="badge badge-blue">良好</span></td><td>工时利用率 44%，明显不足</td></tr>
+        <tr><td>石庆楠</td><td>74</td><td><span class="badge badge-orange">合格</span></td><td>25%短报工，工时利用率 32%</td></tr>
+        <tr><td>杨明翰</td><td class="text-red">66</td><td><span class="badge badge-orange">合格</span></td><td>40%报工缺技术细节，工时利用率 15%</td></tr>
+        <tr><td>刘明民</td><td class="text-red">51</td><td><span class="badge badge-red">待改进</span></td><td>86%记录过短，内容质量差</td></tr>
+        <tr><td>罗海鸥</td><td class="text-red">20</td><td><span class="badge badge-red">待改进</span></td><td>60%报工过短，含无关内容，跨天报工</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════ 第七章：工时排名 TOP10 ═══════ -->
+  <div class="section-title"><span class="icon">🏅</span> 工时排名 TOP 10</div>
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>排名</th><th>姓名</th><th>总工时</th><th>占团队比</th><th>趋势</th></tr></thead>
+      <tbody>
+        <tr><td>🥇 1</td><td>杨丁娇</td><td class="text-green">31.5h</td><td>8.1%</td><td>⬆ 超额</td></tr>
+        <tr><td>🥈 2</td><td>聂大爽</td><td class="text-green">26.0h</td><td>6.7%</td><td>⬆ 超额</td></tr>
+        <tr><td>🥉 3</td><td>莫乾一</td><td class="text-green">24.0h</td><td>6.2%</td><td>➡ 达标</td></tr>
+        <tr><td>4</td><td>徐伟东</td><td class="text-green">24.0h</td><td>6.2%</td><td>➡ 达标</td></tr>
+        <tr><td>5</td><td>李汶隆</td><td class="text-green">24.0h</td><td>6.2%</td><td>➡ 达标</td></tr>
+        <tr><td>6</td><td>张腾飞</td><td class="text-green">24.0h</td><td>6.2%</td><td>➡ 达标</td></tr>
+        <tr><td>7</td><td>冯彦苇</td><td class="text-green">24.0h</td><td>6.2%</td><td>➡ 达标</td></tr>
+        <tr><td>8</td><td>黄进</td><td class="text-green">24.0h</td><td>6.2%</td><td>➡ 达标</td></tr>
+        <tr><td>9</td><td>朱顶勋</td><td class="text-green">24.0h</td><td>6.2%</td><td>➡ 达标</td></tr>
+        <tr><td>10</td><td>陈星</td><td>20.0h</td><td>5.2%</td><td>⬇ 不足</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════ 第八章：服务请求列表 ═══════ -->
+  <div class="section-title"><span class="icon">🛠️</span> 服务请求列表</div>
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>ID</th><th>标题</th><th>客户</th><th>等级</th><th>负责人</th><th>状态</th><th>申报时间</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>5528</td><td>Regulation 数据库克隆到测试环境验证</td><td>昆明电力交易中心</td>
+          <td><span class="badge badge-purple">P4</span></td><td>聂大爽</td>
+          <td class="status-closed">已关闭</td><td>04-22 19:00</td>
+        </tr>
+        <tr>
+          <td>5529</td><td>asm空间使用率高分析</td><td>京东方科技</td>
+          <td><span class="badge badge-purple">P4</span></td><td>李汶隆</td>
+          <td class="status-closed">已关闭</td><td>04-22 12:00</td>
+        </tr>
+        <tr>
+          <td>5508</td><td>京东方B7-log file switch (checkpoint incomplete)问题</td><td>京东方科技</td>
+          <td><span class="badge badge-orange">P5</span></td><td>罗海鸥</td>
+          <td class="status-recovered">业务已恢复</td><td>04-22 11:19</td>
+        </tr>
+        <tr>
+          <td>5502</td><td>成都铁路局18日17:02实例重启问题分析</td><td>成都铁路局</td>
+          <td><span class="badge badge-orange">P5</span></td><td>罗海鸥</td>
+          <td class="status-recovered">业务已恢复</td><td>04-22 09:06</td>
+        </tr>
+        <tr>
+          <td>5540</td><td>新网银行表新增列问题分析</td><td>四川新网银行</td>
+          <td><span class="badge badge-orange">P5</span></td><td>罗海鸥</td>
+          <td class="status-recovered">业务已恢复</td><td>04-23 17:22</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:12px;color:var(--text-muted);margin-bottom:20px">注：按申报人/负责人去重后展示 5 条独立工单（ID 5528/5529 各出现 2 次为重复记录）</p>
+
+  <!-- ═══════ 第九章：工时分布表 ═══════ -->
+  <div class="section-title"><span class="icon">👥</span> 团队人员分布</div>
+  <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));">
+    <div class="card">
+      <div class="card-label">团队总人数</div>
+      <div class="card-value">20</div>
+    </div>
+    <div class="card">
+      <div class="card-label">👨‍💼 专家</div>
+      <div class="card-value" style="color:var(--accent-purple)">3</div>
+    </div>
+    <div class="card">
+      <div class="card-label">🔧 备份</div>
+      <div class="card-value" style="color:var(--accent-blue)">17</div>
+    </div>
+    <div class="card">
+      <div class="card-label">🏖 请假</div>
+      <div class="card-value">0</div>
+    </div>
+  </div>
+  <div class="eval-card">
+    <h4 style="color:var(--text-secondary);margin-bottom:12px">任务等级分布</h4>
+    <div class="bar-chart">
+      <div class="bar-row">
+        <div class="bar-label">L1 简单</div>
+        <div class="bar-track"><div class="bar-fill" style="width:10%;background:var(--gradient-green)">2 人</div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">L2 基础</div>
+        <div class="bar-track"><div class="bar-fill" style="width:40%;background:var(--gradient-blue)">8 人</div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">L3 中等</div>
+        <div class="bar-track"><div class="bar-fill" style="width:40%;background:var(--gradient-orange)">8 人</div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">L4 复杂</div>
+        <div class="bar-track"><div class="bar-fill" style="width:5%;background:var(--gradient-purple)">1 人</div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">L5 专家</div>
+        <div class="bar-track"><div class="bar-fill" style="width:5%;background:var(--gradient-red)">1 人</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ 第十章：综合评价 ═══════ -->
+  <div class="section-title"><span class="icon">🔍</span> 综合评价</div>
+  <div class="eval-card">
+    <div class="eval-title" style="color:var(--accent-blue)">📊 东西大区4部</div>
+    <div class="eval-summary eval-warn">
+      整体良好，但需关注：满勤率 45%（9/20），55% 成员工时不足。报工质量平均分 96.8（优秀），但 3 人评分低于 70 分（刘明民 51 分、罗海鸥 20 分）需重点整改。售后工时占比 94.8%，团队核心聚焦客户交付。
+    </div>
+    <div class="eval-section">
+      <h4>🌟 亮点</h4>
+      <ul>
+        <li>工时 TOP3：<strong>杨丁娇 31.5h</strong>（超额 7.5h）、聂大爽 26h、莫乾一/徐伟东/李汶隆/张腾飞/冯彦苇/黄进/朱顶勋 均达 24h 满勤</li>
+        <li>报工质量 TOP3：徐伟东、莫乾一（100分），张懿骉（98分）</li>
+        <li>文档贡献：徐伟东产出 2 篇技术文档（磐维数据库磁盘空间、自动SQL优化顾问 ora600）</li>
+        <li>全员已报工，无漏报人员</li>
+      </ul>
+    </div>
+    <div class="eval-section">
+      <h4>⚠️ 待改进</h4>
+      <ul>
+        <li><strong class="text-red">刘明民</strong>：仅 1 天报工（10h），评分 51 分（86% 记录过短），需立即整改</li>
+        <li><strong class="text-red">罗海鸥</strong>：仅 2 天报工（13h），评分 20 分（含无关内容、60% 过短），需立即整改</li>
+        <li><strong class="text-orange">薛瑞</strong>：仅 1 天报工（9h），跨天报工问题</li>
+        <li><strong class="text-orange">杨明翰</strong>：2 天报工（14h），评分 66 分，40% 报工缺技术细节</li>
+        <li>7 人仅 2 天报工（缺勤 1 天）：石庆楠、陈伟棠、张磊-昆明、李晴晴、张懿骉、陈星、罗海鸥</li>
+        <li>2 人仅 1 天报工（缺勤 2 天）：刘明民、薛瑞</li>
+      </ul>
+    </div>
+    <div class="eval-section">
+      <h4>📈 服务运营概况</h4>
+      <ul>
+        <li>本周处理服务请求 5 条（去重后），全部已关闭或业务恢复</li>
+        <li>全局待处理工单 14 条、待处理咨询 60 条、未关闭工单 49 条</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ═══════ 第十一章：未报工分析 ═══════ -->
+  <div class="section-title"><span class="icon">✅</span> 未报工分析</div>
+  <div class="eval-card" style="text-align:center;padding:32px;">
+    <div style="font-size:40px;margin-bottom:12px">✅</div>
+    <div style="font-size:18px;font-weight:700;color:var(--accent-green);margin-bottom:8px">本周期所有团队成员已完成报工</div>
+    <div style="font-size:14px;color:var(--text-secondary)">20/20 人已提交报工记录，报工覆盖率 100%</div>
+  </div>
+
+  <!-- ═══════ Footer ═══════ -->
+  <div class="report-footer">
+    <p>数据来源：MES 报工系统 · 东西大区4部（team-id: 23）</p>
+    <p>本看板由 WorkBuddy AI 自动生成，仅供参考。如有疑问请联系团队负责人。</p>
+  </div>
+
+</div>
+</body>
+</html>

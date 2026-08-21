@@ -1,0 +1,7 @@
+Tue Jul 28 02:01:00 CST 2026 (周二首次cron:media_cleanup，无新增媒体文件，noop)
+Tue Aug 04 02:01:16 CST 2026 (8/4 inbound cleanup, removed 15 staged dirs > 24h, freed ~728K, after: 4.0K)
+Thu Aug 06 02:00:00 CST 2026 (cron:media_cleanup, noop, inbound 8.0K / tmp upload_extracted 44K, no staged dirs, no files > 24h, freed: 0)
+Sun Aug 09 02:00:42 CST 2026 (cron:media_cleanup, noop, inbound 8.0K / tmp upload_extracted 44K, staged_dirs>24h=3, old_files=0, freed: 0)
+Tue Aug 11 02:05:03 CST 2026 (cron:media_cleanup, cleaned 13 orphan UUID jpg mtime 2026-08-02 > 9 days, freed: 628K, after media/inbound: 9.0M)
+Sat Aug 15 02:00:30 CST 2026 (cron:media_cleanup, noop, inbound 8.0K / tmp upload_extracted 44K, no staged dirs, no files > 24h, freed: 0)
+Sat Aug 22 02:00:00 CST 2026 (cron:media_cleanup, cleaned 3 staged dirs in /tmp/upload_extracted (>24h, total ~0B staged), freed: 0B, after: inbound=761 cleanup.log / tmp upload_extracted=0 / media/inbound=0 / trash_batch=0)

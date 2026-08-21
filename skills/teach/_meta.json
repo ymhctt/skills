@@ -1,0 +1,29 @@
+{
+  "name": "teach",
+  "source": "https://github.com/mattpocock/skills/tree/main/skills/productivity/teach",
+  "version": "1.0.0",
+  "installed": "2026-06-28",
+  "description": "Multi-session teaching framework. Creates MISSION.md, lessons/*.html, learning-records/, reference/*.html in a teaching workspace.",
+  "trigger_keywords": [
+    "教我",
+    "学习",
+    "想学",
+    "teach me",
+    "I want to learn",
+    "学习计划",
+    "课程"
+  ],
+  "files": [
+    "SKILL.md",
+    "MISSION-FORMAT.md",
+    "LEARNING-RECORD-FORMAT.md",
+    "RESOURCES-FORMAT.md",
+    "GLOSSARY-FORMAT.md"
+  ],
+  "workspace_dirs": [
+    "lessons/",
+    "reference/",
+    "learning-records/",
+    "assets/"
+  ]
+}

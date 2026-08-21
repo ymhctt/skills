@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{PROJECT_NAME}} - 项目进展分析</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f5f3ee;color:#1f1a14;font-family:Arial,'PingFang SC','Microsoft YaHei',sans-serif;">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;border-collapse:collapse;background-color:#f5f3ee;">
+    <tr>
+      <td align="center" style="padding:24px 12px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="960" style="width:960px;max-width:960px;border-collapse:collapse;background-color:#ffffff;">
+          <tr>
+            <td style="padding:32px 36px;border-bottom:1px solid #e7e0d7;background-color:#fffaf4;">
+              <div style="font-size:12px;line-height:18px;letter-spacing:1.6px;text-transform:uppercase;color:#c96442;font-weight:bold;">ENMOTECH · Progress Analysis</div>
+              <div style="font-size:32px;line-height:40px;font-weight:bold;color:#15140f;margin-top:8px;">{{PROJECT_NAME}}</div>
+              <div style="font-size:14px;line-height:22px;color:#5a564e;margin-top:12px;">{{PROJECT_DESCRIPTION}}</div>
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;border-collapse:collapse;margin-top:16px;">
+                <tr>
+                  <td style="font-size:13px;line-height:20px;color:#5a564e;padding:0 16px 0 0;">客户：<span style="color:#15140f;font-weight:bold;">{{CLIENT_NAME}}</span></td>
+                  <td style="font-size:13px;line-height:20px;color:#5a564e;padding:0 16px 0 0;">启动时间：<span style="color:#15140f;font-weight:bold;">{{START_DATE}}</span></td>
+                  <td style="font-size:13px;line-height:20px;color:#5a564e;">更新时间：<span style="color:#15140f;font-weight:bold;">{{UPDATE_DATE}}</span></td>
+                </tr>
+              </table>
+              <div style="font-size:13px;line-height:20px;color:#5a564e;margin-top:12px;">当前状态：<span style="color:#15140f;font-weight:bold;">{{STATUS}}</span></div>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:24px 36px 0 36px;">
+              <div style="font-size:12px;line-height:18px;letter-spacing:1.2px;text-transform:uppercase;color:#5a564e;font-weight:bold;margin-bottom:12px;">核心指标 · KPI</div>
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;border-collapse:separate;border-spacing:12px 0;margin:0 -12px;">
+                <tr>
+                  <td width="25%" valign="top" style="background-color:#fffaf4;border:1px solid #e7e0d7;padding:18px;">
+                    <div style="font-size:12px;line-height:18px;color:#5a564e;">服务请求</div>
+                    <div style="font-size:28px;line-height:34px;font-weight:bold;color:#15140f;margin-top:6px;">{{TOTAL_REQUESTS}}</div>
+                  </td>
+                  <td width="25%" valign="top" style="background-color:#fffaf4;border:1px solid #e7e0d7;padding:18px;">
+                    <div style="font-size:12px;line-height:18px;color:#5a564e;">已完成</div>
+                    <div style="font-size:28px;line-height:34px;font-weight:bold;color:#15140f;margin-top:6px;">{{CLOSED_REQUESTS}}</div>
+                  </td>
+                  <td width="25%" valign="top" style="background-color:#fffaf4;border:1px solid #e7e0d7;padding:18px;">
+                    <div style="font-size:12px;line-height:18px;color:#5a564e;">总报工工时</div>
+                    <div style="font-size:28px;line-height:34px;font-weight:bold;color:#15140f;margin-top:6px;">{{TOTAL_HOURS}}h</div>
+                  </td>
+                  <td width="25%" valign="top" style="background-color:#fffaf4;border:1px solid #e7e0d7;padding:18px;">
+                    <div style="font-size:12px;line-height:18px;color:#5a564e;">参与人员</div>
+                    <div style="font-size:28px;line-height:34px;font-weight:bold;color:#15140f;margin-top:6px;">{{TOTAL_PERSONS}}</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:24px 36px 0 36px;">
+              <div style="font-size:12px;line-height:18px;letter-spacing:1.2px;text-transform:uppercase;color:#5a564e;font-weight:bold;margin-bottom:12px;">执行团队 · Team</div>
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;border-collapse:collapse;border:1px solid #e7e0d7;">
+                <tr>
+                  <td style="padding:10px 12px;background-color:#f4f1ec;font-size:12px;font-weight:bold;color:#5a564e;">姓名</td>
+                  <td style="padding:10px 12px;background-color:#f4f1ec;font-size:12px;font-weight:bold;color:#5a564e;">角色</td>
+                  <td style="padding:10px 12px;background-color:#f4f1ec;font-size:12px;font-weight:bold;color:#5a564e;">说明</td>
+                  <td style="padding:10px 12px;background-color:#f4f1ec;font-size:12px;font-weight:bold;color:#5a564e;">工时</td>
+                </tr>
+                {{#TEAM_MEMBERS}}
+                <tr>
+                  <td style="padding:10px 12px;border-top:1px solid #e7e0d7;font-size:13px;color:#15140f;">{{NAME}}</td>
+                  <td style="padding:10px 12px;border-top:1px solid #e7e0d7;font-size:13px;color:#15140f;">{{DEPT}}</td>
+                  <td style="padding:10px 12px;border-top:1px solid #e7e0d7;font-size:13px;color:#5a564e;">{{TASKS}}</td>
+                  <td style="padding:10px 12px;border-top:1px solid #e7e0d7;font-size:13px;color:#15140f;">{{HOURS}}h</td>
+                </tr>
+                {{/TEAM_MEMBERS}}
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:24px 36px 0 36px;">
+              <div style="font-size:12px;line-height:18px;letter-spacing:1.2px;text-transform:uppercase;color:#5a564e;font-weight:bold;margin-bottom:12px;">服务请求明细 · Requests</div>
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;border-collapse:collapse;border:1px solid #e7e0d7;">
+                <tr>
+                  <td style="padding:10px 12px;background-color:#f4f1ec;font-size:12px;font-weight:bold;color:#5a564e;">标题</td>
+                  <td style="padding:10px 12px;background-color:#f4f1ec;font-size:12px;font-weight:bold;color:#5a564e;">类型</td>
+                  <td style="padding:10px 12px;background-color:#f4f1ec;font-size:12px;font-weight:bold;color:#5a564e;">状态</td>
+                  <td style="padding:10px 12px;background-color:#f4f1ec;font-size:12px;font-weight:bold;color:#5a564e;">执行人</td>
+                  <td style="padding:10px 12px;background-color:#f4f1ec;font-size:12px;font-weight:bold;color:#5a564e;">创建时间</td>
+                </tr>
+                {{#REQUESTS}}
+                <tr>
+                  <td style="padding:10px 12px;border-top:1px solid #e7e0d7;font-size:13px;color:#15140f;">{{TITLE}}</td>
+                  <td style="padding:10px 12px;border-top:1px solid #e7e0d7;font-size:13px;color:#15140f;">{{TYPE}}</td>
+                  <td style="padding:10px 12px;border-top:1px solid #e7e0d7;font-size:13px;color:#15140f;">{{STATUS}}</td>
+                  <td style="padding:10px 12px;border-top:1px solid #e7e0d7;font-size:13px;color:#15140f;">{{EXECUTOR}}</td>
+                  <td style="padding:10px 12px;border-top:1px solid #e7e0d7;font-size:13px;color:#15140f;">{{CREATED}}</td>
+                </tr>
+                {{/REQUESTS}}
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:24px 36px 0 36px;">
+              <div style="font-size:12px;line-height:18px;letter-spacing:1.2px;text-transform:uppercase;color:#5a564e;font-weight:bold;margin-bottom:12px;">实施进度时间线 · Timeline</div>
+              {{#TIMELINE}}
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;border-collapse:collapse;border-left:4px solid #c96442;background-color:#fffaf4;margin-bottom:10px;">
+                <tr>
+                  <td style="padding:12px 14px;">
+                    <div style="font-size:12px;line-height:18px;color:#8a857d;">{{DATE}}</div>
+                    <div style="font-size:14px;line-height:22px;color:#15140f;font-weight:bold;margin-top:4px;">{{EXECUTOR}}</div>
+                    <div style="font-size:13px;line-height:20px;color:#5a564e;margin-top:6px;">{{CONTENT}}</div>
+                  </td>
+                </tr>
+              </table>
+              {{/TIMELINE}}
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:24px 36px 0 36px;">
+              <div style="font-size:12px;line-height:18px;letter-spacing:1.2px;text-transform:uppercase;color:#5a564e;font-weight:bold;margin-bottom:12px;">当前风险点 · Risks</div>
+              {{#RISKS}}
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;border-collapse:collapse;border:1px solid #e7e0d7;background-color:#ffffff;margin-bottom:10px;">
+                <tr>
+                  <td style="padding:14px 16px;">
+                    <div style="font-size:15px;line-height:22px;color:#15140f;font-weight:bold;">{{RISK_TITLE}}</div>
+                    <div style="font-size:13px;line-height:20px;color:#5a564e;margin-top:6px;">{{RISK_DESC}}</div>
+                  </td>
+                </tr>
+              </table>
+              {{/RISKS}}
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:24px 36px 0 36px;">
+              <div style="font-size:12px;line-height:18px;letter-spacing:1.2px;text-transform:uppercase;color:#5a564e;font-weight:bold;margin-bottom:12px;">报工详情 · Work Hours</div>
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;border-collapse:collapse;border:1px solid #e7e0d7;table-layout:fixed;">
+                <tr>
+                  <td width="120" style="width:120px;padding:10px 12px;background-color:#f4f1ec;font-size:12px;font-weight:bold;color:#5a564e;white-space:nowrap;">日期</td>
+                  <td width="96" style="width:96px;padding:10px 12px;background-color:#f4f1ec;font-size:12px;font-weight:bold;color:#5a564e;white-space:nowrap;">执行人</td>
+                  <td style="padding:10px 12px;background-color:#f4f1ec;font-size:12px;font-weight:bold;color:#5a564e;">内容</td>
+                  <td width="88" style="width:88px;padding:10px 12px;background-color:#f4f1ec;font-size:12px;font-weight:bold;color:#5a564e;white-space:nowrap;">工时(h)</td>
+                </tr>
+                {{#WORK_LOGS}}
+                <tr>
+                  <td style="width:120px;padding:10px 12px;border-top:1px solid #e7e0d7;font-size:13px;color:#15140f;white-space:nowrap;">{{WORK_DATE}}</td>
+                  <td style="width:96px;padding:10px 12px;border-top:1px solid #e7e0d7;font-size:13px;color:#15140f;white-space:nowrap;">{{WORK_PERSON}}</td>
+                  <td style="padding:10px 12px;border-top:1px solid #e7e0d7;font-size:13px;color:#5a564e;text-align:justify;text-justify:inter-ideograph;">{{WORK_CONTENT}}</td>
+                  <td style="width:88px;padding:10px 12px;border-top:1px solid #e7e0d7;font-size:13px;color:#15140f;white-space:nowrap;">{{WORK_HOURS}}</td>
+                </tr>
+                {{/WORK_LOGS}}
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:24px 36px 32px 36px;">
+              <div style="font-size:12px;line-height:18px;letter-spacing:1.2px;text-transform:uppercase;color:#5a564e;font-weight:bold;margin-bottom:12px;">下一步建议 · Next Steps</div>
+              {{#ACTIONS}}
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;border-collapse:collapse;background-color:#15140f;margin-bottom:10px;">
+                <tr>
+                  <td style="padding:14px 16px;">
+                    <div style="font-size:20px;line-height:26px;font-weight:bold;color:#c96442;">{{NUMBER}}</div>
+                    <div style="font-size:13px;line-height:20px;color:#fafaf7;margin-top:6px;">{{TEXT}}</div>
+                  </td>
+                </tr>
+              </table>
+              {{/ACTIONS}}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

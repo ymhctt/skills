@@ -1,0 +1,399 @@
+#!/usr/bin/env python3
+"""
+recov - 文件恢复与 IBD 解析工具 CLI 入口
+
+vibe coding v0：先跑起来看感觉，再迭代。
+"""
+import argparse
+import json
+import sys
+from pathlib import Path
+
+# 添加 src 到路径
+HERE = Path(__file__).parent
+sys.path.insert(0, str(HERE / "src"))
+
+import ext4
+import xfs
+import xfs_restore
+import ibd
+import magic_scan
+
+
+def cmd_ext4_scan(args):
+    """扫描 ext4 镜像中的已删除文件"""
+    print(f"🔍 扫描 ext4 镜像: {args.image}")
+    sb, deleted = ext4.scan_ext4(args.image, max_groups=args.max_groups)
+    print(f"")
+    print(f"📦 ext4 超级块:")
+    print(f"  - Block size:    {sb.block_size:,} bytes")
+    print(f"  - Total blocks:  {sb.s_blocks_count:,}")
+    print(f"  - Total inodes:  {sb.s_inodes_count:,}")
+    print(f"  - Inode size:    {sb.s_inode_size} bytes")
+    print(f"  - Extents:       {'✓' if sb.is_extents else '✗'}")
+    print(f"")
+    print(f"🗑️  发现 {len(deleted)} 个已删除文件:")
+    print(f"")
+    print(f"  {'Inode':>10}  {'Size':>12}  {'Mode':>6}  {'Extents':>4}  {'Del Time':>10}")
+    print(f"  {'-'*10}  {'-'*12}  {'-'*6}  {'-'*4}  {'-'*10}")
+    for d in deleted[:args.limit]:
+        import datetime
+        del_time = datetime.datetime.fromtimestamp(d.deletion_time).strftime("%Y-%m-%d")
+        print(f"  {d.inode_num:>10}  {d.size:>12,}  {oct(d.mode & 0o777):>6}  {'✓' if d.is_extents else '✗':>4}  {del_time:>10}")
+
+    if len(deleted) > args.limit:
+        print(f"")
+        print(f"  ... (还有 {len(deleted) - args.limit} 个，用 --limit 0 查看全部)")
+
+    if args.output:
+        with open(args.output, "w") as f:
+            json.dump({
+                "filesystem": "ext4",
+                "superblock": {
+                    "block_size": sb.block_size,
+                    "blocks_count": sb.s_blocks_count,
+                    "inodes_count": sb.s_inodes_count,
+                    "inode_size": sb.s_inode_size,
+                    "is_extents": sb.is_extents,
+                },
+                "deleted_files": [
+                    {
+                        "inode": d.inode_num,
+                        "size": d.size,
+                        "mode": oct(d.mode),
+                        "is_extents": d.is_extents,
+                        "deletion_time": d.deletion_time,
+                    }
+                    for d in deleted
+                ],
+            }, f, indent=2)
+        print(f"")
+        print(f"✅ 报告已保存到: {args.output}")
+
+
+def cmd_ext4_restore(args):
+    """恢复指定 inode 的文件"""
+    print(f"♻️  恢复 inode {args.inode} 从 {args.image}")
+    sb, deleted = ext4.scan_ext4(args.image, max_groups=args.max_groups)
+    target = next((d for d in deleted if d.inode_num == args.inode), None)
+    if not target:
+        print(f"❌ 没找到 inode {args.inode}（可能已被覆盖或不属于已删除文件）")
+        sys.exit(1)
+
+    output = Path(args.output)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    ok = ext4.restore_inode_extents(args.image, sb, target, output)
+    if ok:
+        print(f"✅ 已恢复到: {output} ({target.size:,} bytes)")
+    else:
+        print(f"❌ 恢复失败（暂仅支持 extents 格式）")
+
+
+def cmd_xfs_scan(args):
+    """扫描 XFS 镜像中的已删除 inode"""
+    print(f"🔍 扫描 XFS 镜像: {args.image}")
+    sb, deleted = xfs.scan_xfs(args.image, max_ags=args.max_ags, inode_scan_limit=args.limit)
+    print(f"")
+    print(f"📦 XFS 超级块:")
+    print(f"  - Block size:    {sb.sb_blocksize:,} bytes")
+    print(f"  - Total blocks:  {sb.sb_dblocks:,}")
+    print(f"  - AG count:      {sb.sb_agcount}")
+    print(f"  - Inode size:    {sb.sb_inodesize} bytes")
+    print(f"  - Magic:         {sb.sb_magicnum}")
+    print(f"")
+    print(f"🗑️  发现 {len(deleted)} 个已删除 inode:")
+    for d in deleted[:args.limit]:
+        fmt = {0: "dev", 1: "local", 2: "extents", 3: "btree"}.get(d.format, "?")
+        print(f"  Inode {d.inode_num:>10}  size={d.size:>12,}  fmt={fmt:>8}  mode={oct(d.mode & 0o777)}")
+
+    if args.output:
+        with open(args.output, "w") as f:
+            json.dump({
+                "filesystem": "xfs",
+                "deleted_inodes": [
+                    {
+                        "inode": d.inode_num,
+                        "size": d.size,
+                        "mode": oct(d.mode),
+                        "format": d.format,
+                    }
+                    for d in deleted
+                ],
+            }, f, indent=2)
+        print(f"")
+        print(f"✅ 报告已保存到: {args.output}")
+
+
+def cmd_ibd_info(args):
+    """显示 IBD 文件摘要"""
+    print(ibd.ibd_summary_report(args.file, page_size=args.page_size))
+
+
+def cmd_ibd_pages(args):
+    """列出 IBD 中所有页面的元信息"""
+    summary = ibd.list_pages(args.file, page_size=args.page_size)
+    print(f"📑 {args.file}: {summary.page_count} pages")
+    print(f"")
+    print(f"  {'PageNo':>8}  {'Type':>16}  {'Level':>5}  {'Prev':>10}  {'Next':>10}  {'LSN':>20}")
+    print(f"  {'-'*8}  {'-'*16}  {'-'*5}  {'-'*10}  {'-'*10}  {'-'*20}")
+    for p in summary.pages[:args.limit]:
+        prev_str = f"{p.prev_page}" if p.prev_page != 0xFFFFFFFF else "-"
+        next_str = f"{p.next_page}" if p.next_page != 0xFFFFFFFF else "-"
+        print(f"  {p.page_no:>8}  {p.page_type_name:>16}  {p.level:>5}  {prev_str:>10}  {next_str:>10}  {p.lsn:>20}")
+
+    if len(summary.pages) > args.limit:
+        print(f"")
+        print(f"  ... (还有 {len(summary.pages) - args.limit} 页，用 --limit 0 查看全部)")
+
+
+def cmd_ibd_extract(args):
+    """从 IBD 抽取指定页面到文件"""
+    extracted = ibd.extract_pages(
+        args.file,
+        args.output_dir,
+        page_types=args.page_types,
+        page_indices=args.pages,
+        page_size=args.page_size,
+    )
+    print(f"✅ 已抽取 {extracted} 个页面到: {args.output_dir}")
+
+
+def cmd_ext4_deep_scan(args):
+    """ext4 深度扫描：扫描被删 inode + 幽灵 extent + journal 残留"""
+    print(f"🕵️ ext4 深度扫描: {args.image}")
+    print(f"")
+
+    # 1. 标准扫描（已删除文件 inode）
+    sb, deleted = ext4.scan_ext4(args.image, max_groups=args.max_groups)
+    print(f"📦 超级块:")
+    print(f"  - Block size:    {sb.block_size:,}")
+    print(f"  - Inode size:    {sb.s_inode_size}")
+    print(f"  - Extents:       {'✓' if sb.is_extents else '✗'}")
+    print(f"")
+
+    # 2. Orphan inode 链追踪
+    start_ino = ext4.get_orphan_inode_start(args.image)
+    if start_ino:
+        orphans = ext4.walk_orphan_list(args.image, start_ino, max_count=50)
+        print(f"🔗 Orphan inode 链 (s_last_orphan={start_ino}): {len(orphans)} 个")
+        print(f"     {orphans[:20]}{'...' if len(orphans) > 20 else ''}")
+    else:
+        orphans = []
+        print(f"🔗 Orphan inode 链: 无")
+    print(f"")
+
+    # 3. 幽灵 inode 扫描（i_block 残留 extent）
+    ghosts = ext4.scan_ghost_inodes(args.image, max_groups=args.max_groups)
+    print(f"👻 幽灵 inode (extent header 残留): {len(ghosts)} 个")
+    if ghosts:
+        print(f"     {'Inode':>10}  {'Entries':>8}  {'Depth':>5}")
+        for g in ghosts[:args.limit]:
+            print(f"     {g.inode_num:>10}  {g.eh_entries:>8}  {g.eh_depth:>5}")
+    print(f"")
+
+    # 4. 已删除 inode 列表
+    print(f"🗑️  已删除文件: {len(deleted)} 个")
+    for d in deleted[:args.limit]:
+        import datetime
+        del_time = datetime.datetime.fromtimestamp(d.deletion_time).strftime("%Y-%m-%d %H:%M")
+        print(f"     inode {d.inode_num:>6}  size={d.size:>10}  mode={oct(d.mode & 0o777)}  {del_time}")
+    print(f"")
+
+    # 5. Magic 头扫描（可选）
+    if args.scan_magic:
+        print(f"🔬 文件 magic 头扫描中（可能较慢）...")
+        hits = magic_scan.scan_magic(args.image, max_hits=50)
+        print(f"     找到 {len(hits)} 个文件 magic 命中")
+        by_type: dict[str, int] = {}
+        for h in hits:
+            by_type[h["type"]] = by_type.get(h["type"], 0) + 1
+        for t, c in by_type.items():
+            print(f"       - {t}: {c}")
+        # 展示前 5 个
+        for h in hits[:5]:
+            print(f"       offset={h['offset']:>10,}  type={h['type']}")
+        print(f"")
+
+    # 6. 文本串扫描（可选）
+    if args.scan_strings:
+        print(f"📜 可打印字符串扫描中...")
+        strings = magic_scan.extract_text_strings(args.image, min_len=20, max_hits=30)
+        print(f"     找到 {len(strings)} 个字符串")
+        for s in strings[:10]:
+            preview = s["text"][:80]
+            print(f"       offset={s['offset']:>10,}  {preview!r}")
+        print(f"")
+
+
+def cmd_ext4_restore_ghost(args):
+    """恢复幽灵 inode 残留文件"""
+    ghosts = ext4.scan_ghost_inodes(args.image)
+    target = next((g for g in ghosts if g.inode_num == args.inode), None)
+    if not target:
+        print(f"❌ 没找到幽灵 inode {args.inode}")
+        sys.exit(1)
+
+    output = Path(args.output)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    written = ext4.restore_ghost_inode(args.image, target, output)
+    print(f"✅ 恢复 inode {args.inode} → {output} ({written:,} bytes)")
+
+
+def cmd_xfs_restore(args):
+    """XFS inode 恢复（按 inode 号）"""
+    print(f"♻️  XFS inode {args.inode} 恢复")
+    sb = xfs.parse_superblock(args.image)
+
+    # 算 inode 在 AG 中的偏移
+    inodes_per_ag = sb.sb_dblocks  # 简化估算
+    # 实际需要从 AGI 读，这里用估算
+    ag_idx = (args.inode - 1) // inodes_per_ag
+    ino_off = (args.inode - 1) % inodes_per_ag
+
+    ag_start = ag_idx * sb.sb_agblocks * sb.sb_blocksize
+    blk_off = ino_off // sb.sb_inopblock
+    offset_in_blk = (ino_off % sb.sb_inopblock) * sb.sb_inodesize
+    inode_block = (2 if ag_idx == 0 else 1) + blk_off
+
+    with open(args.image, "rb") as f:
+        f.seek(ag_start + inode_block * sb.sb_blocksize + offset_in_blk)
+        ino_data = f.read(sb.sb_inodesize)
+
+    output = Path(args.output)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    written = xfs_restore.restore_xfs_inode_extents(
+        args.image,
+        sb.sb_blocksize,
+        offset_in_blk,
+        ino_data,
+        output,
+        rec_format=args.rec_format,
+    )
+    print(f"✅ 恢复 → {output} ({written:,} bytes)")
+
+
+def cmd_magic_scan(args):
+    """扫描磁盘字节流找文件 magic 头"""
+    print(f"🔬 Magic 扫描: {args.image}")
+    hits = magic_scan.scan_magic(args.image, max_hits=args.limit, min_block=args.min_offset)
+    print(f"   找到 {len(hits)} 个文件 magic 命中")
+    by_type: dict[str, int] = {}
+    for h in hits:
+        by_type[h["type"]] = by_type.get(h["type"], 0) + 1
+    for t, c in by_type.items():
+        print(f"     - {t}: {c}")
+    print()
+    for h in hits[:args.limit]:
+        print(f"   offset={h['offset']:>12,}  type={h['type']:>10}  magic={h['magic_hex']}")
+
+    if args.output:
+        with open(args.output, "w") as f:
+            json.dump([{"offset": h["offset"], "type": h["type"]} for h in hits], f, indent=2)
+        print(f"\n✅ 保存到: {args.output}")
+
+
+def cmd_string_scan(args):
+    """扫描磁盘可打印字符串"""
+    print(f"📜 字符串扫描: {args.image}")
+    strings = magic_scan.extract_text_strings(
+        args.image, min_len=args.min_len, max_hits=args.limit, utf8_only=args.utf8,
+    )
+    print(f"   找到 {len(strings)} 个字符串")
+    for s in strings[:args.limit]:
+        preview = s["text"][:100]
+        print(f"   offset={s['offset']:>12,}  {preview!r}")
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="文件恢复 & IBD 解析工具",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    sub = parser.add_subparsers(dest="cmd", required=True)
+
+    # ext4
+    p = sub.add_parser("ext4-scan", help="扫描 ext4 镜像中的已删除文件")
+    p.add_argument("image", help="ext4 设备/镜像路径")
+    p.add_argument("--max-groups", type=int, default=None, help="最多扫描几个块组")
+    p.add_argument("--limit", type=int, default=20, help="显示几个结果（0=全部）")
+    p.add_argument("--output", "-o", help="保存报告 JSON 路径")
+    p.set_defaults(func=cmd_ext4_scan)
+
+    p = sub.add_parser("ext4-restore", help="恢复 ext4 inode")
+    p.add_argument("image", help="ext4 设备/镜像路径")
+    p.add_argument("inode", type=int, help="要恢复的 inode 号")
+    p.add_argument("output", help="恢复输出路径")
+    p.add_argument("--max-groups", type=int, default=None)
+    p.set_defaults(func=cmd_ext4_restore)
+
+    p = sub.add_parser("ext4-deep", help="ext4 深度扫描（orphan+幽灵+magic+字符串）")
+    p.add_argument("image")
+    p.add_argument("--max-groups", type=int, default=None)
+    p.add_argument("--limit", type=int, default=20)
+    p.add_argument("--scan-magic", action="store_true", help="同时扫描文件 magic 头")
+    p.add_argument("--scan-strings", action="store_true", help="同时扫描可打印字符串")
+    p.set_defaults(func=cmd_ext4_deep_scan)
+
+    p = sub.add_parser("ext4-restore-ghost", help="恢复幽灵 inode 残留")
+    p.add_argument("image")
+    p.add_argument("inode", type=int)
+    p.add_argument("output")
+    p.set_defaults(func=cmd_ext4_restore_ghost)
+
+    # xfs
+    p = sub.add_parser("xfs-scan", help="扫描 XFS 镜像中的已删除 inode")
+    p.add_argument("image", help="XFS 设备/镜像路径")
+    p.add_argument("--max-ags", type=int, default=None)
+    p.add_argument("--limit", type=int, default=100)
+    p.add_argument("--output", "-o")
+    p.set_defaults(func=cmd_xfs_scan)
+
+    p = sub.add_parser("xfs-restore", help="恢复 XFS inode 内容")
+    p.add_argument("image")
+    p.add_argument("inode", type=int)
+    p.add_argument("output")
+    p.add_argument("--rec-format", type=int, default=0, choices=[0, 1],
+                    help="0=v4 ext4 格式, 1=v5 默认")
+    p.set_defaults(func=cmd_xfs_restore)
+
+    # ibd
+    p = sub.add_parser("ibd-info", help="显示 IBD 文件摘要")
+    p.add_argument("file", help=".ibd 文件路径")
+    p.add_argument("--page-size", type=int, default=16*1024)
+    p.set_defaults(func=cmd_ibd_info)
+
+    p = sub.add_parser("ibd-pages", help="列出 IBD 所有页面")
+    p.add_argument("file")
+    p.add_argument("--page-size", type=int, default=16*1024)
+    p.add_argument("--limit", type=int, default=30)
+    p.set_defaults(func=cmd_ibd_pages)
+
+    p = sub.add_parser("ibd-extract", help="抽取 IBD 页面")
+    p.add_argument("file")
+    p.add_argument("output_dir")
+    p.add_argument("--page-size", type=int, default=16*1024)
+    p.add_argument("--pages", type=int, nargs="*", help="指定 page no 列表")
+    p.add_argument("--page-types", type=int, nargs="*", help="按 page type 过滤")
+    p.set_defaults(func=cmd_ibd_extract)
+
+    # 通用扫描
+    p = sub.add_parser("magic-scan", help="扫磁盘文件 magic 头")
+    p.add_argument("image")
+    p.add_argument("--limit", type=int, default=50)
+    p.add_argument("--min-offset", type=int, default=1024*1024, help="跳过前 N 字节")
+    p.add_argument("--output", "-o")
+    p.set_defaults(func=cmd_magic_scan)
+
+    p = sub.add_parser("string-scan", help="扫磁盘可打印字符串")
+    p.add_argument("image")
+    p.add_argument("--limit", type=int, default=50)
+    p.add_argument("--min-len", type=int, default=8)
+    p.add_argument("--utf8", action="store_true")
+    p.set_defaults(func=cmd_string_scan)
+
+    args = parser.parse_args()
+    args.func(args)
+
+
+if __name__ == "__main__":
+    main()

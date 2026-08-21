@@ -1,0 +1,6 @@
+{
+  "staff": [
+    {"name": "侯志清", "monthly_salary": 23000, "role": "项目经理"},
+    {"name": "高卫", "monthly_salary": 19000, "role": "实施工程师"}
+  ]
+}

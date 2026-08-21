@@ -1,0 +1,17 @@
+[Thu May 21 07:20:57 AM CST 2026] 早间简报发送成功 - 2026-05-21
+[Thu Jun 11 07:20:57 AM CST 2026] 早间汇总发送成功 - 2026-06-11
+MES CLI: 0.5.0 (up to date) | mes-cli-terminal: synced
+[Wed Jun 24 04:18:00 PM CST 2026] 早间汇总发送成功 - 2026-06-24
+[Wed Jun 24 22:02:30 CST 2026] 每小时提炼完成 - 2026-06-24 (FIO/gsql/processlist)
+[Tue Jun 30 07:20:08 AM CST 2026] 早间汇总发送失败 - 2026-06-30 (sendMessage ret=-2 微信通道异常；本轮结果以 plain-text 自动回传兜底)
+[Fri Jul  3 07:20:57 AM CST 2026] 早间汇总发送成功 - 2026-07-03
+[Tue Jul 14 07:20:32 CST 2026] 早间汇总发送失败 - 2026-07-14 (sendMessage ret=-2 微信通道异常；本轮结果以 plain-text 自动回传兜底)
+[Thu Jul 23 13:00:00 CST 2026] 每小时提炼完成 - 2026-07-23 (13:00 cron-event memory_refine;7/23 09:00 报工 streak=23 升级节点命中预期;7:20 早间汇总自愈 streak=2→0)
+[Mon Aug  3 03:00:00 CST 2026] 每小时提炼完成 - 2026-08-03 (cron-event memory_refine; MES CLI 0.5.3 健康; MEMORY.md 2255 行无增量; 8/2 回顾零增量; 00:00 已完成关键决策沉淀)
+[Mon Aug  3 05:00:00 CST 2026] 每小时提炼完成 - 2026-08-03 (cron-event memory_refine; 法定静默期凌晨深睡段; 零增量节点; 03:00 已确认 3h 窗口无新内容; 故障 F 持续 ~47h+; 故障 E 100% 周期性确认; MEMORY.md 2255 行无增量; 使用 edit 追加 heartbeat 符合 2026-07-07 22:00 事故后固化写入规范)
+[Mon Aug  3 09:10:00 CST 2026] 每小时提炼完成 - 2026-08-03 (cron-event memory_refine 09:00 trigger; 故障 F 通道 dead 终结确认 08:00 简报成功 + 08:02 主动探针; 故障 E 第四次失败 a32216f6 error(8x); 升级行动 (a)+(b) 错峰 09:30 + --primary M3 即将执行 09:15-09:30; cron 总健康度 5/8 → 6/8 ok; MEMORY.md 2255 → 2257 行; 使用 cat >> 追加 heartbeat 符合 2026-07-07 22:00 事故后固化写入规范)
+[Mon Aug  3 21:00:00 CST 2026] 每小时提炼完成 - 2026-08-03 (cron-event memory_refine; 工作日傍晚静默时段; 零增量节点; 状态延续 20:00; 故障 F 通道 dead 终结持续 ~13h; 故障 E 升级行动执行 ~11.5h; day-7 milestone 距 ~3h; 推送额度用尽; cron 6/8 ok 持续; MEMORY.md 2257 行无增量; 使用 cat >> 追加 heartbeat 符合 2026-07-07 22:00 事故后固化写入规范)
+[Mon Aug  4 08:10:00 CST 2026] 每小时提炼完成 - 2026-08-04 (cron-event memory_refine; 法定静默期结束 + 升级行动 (a)+(b) 已执行 08:04; 故障 F 通道 dead 复发确认 7:20+8:00+主动探针 ret=-2; fallback 队列 /tmp/fallback_push_0804.txt 保存 4 条待重发消息; 推送额度 0/1 严格保留; 升级后第一次验证 8/4 09:30 报工 cron = 故障 E 第五次观察点; cron 健康度 6/8 ok; MEMORY.md 2257 行无增量; 使用 cat >> 追加 heartbeat 符合 2026-07-07 22:00 事故后固化写入规范)
+[2026-08-14 08:03:18] Fri Aug 14 08:03:18 CST 2026 | 8:00 AM CST 周五早晨 | 法定静默期刚结束 + 推送层仍阻断（cron list 9fc7ca81+f730b7b4 error 实证 day-8 ~172h+）+ 故障 C day-4 持续 + 故障 A 17 天整数里程碑稳定 | cron 7/8 ok | 推送额度 0/1 严格保留 | silent HEARTBEAT_OK
+[Fri Aug 14 19:00:00 CST 2026] 每小时提炼完成 - 2026-08-14 (cron-event memory_refine; 法定晚间静默期 18:00-22:00 启动 1h; 零增量节点; 故障 G day-8 ~184h+ 7.67 天; 故障 C day-4 实证 ~32h+; day-17 milestone 18h+; 故障 A ~419h+ 17 天稳定 ⭐; MEMORY.md 2398 行无增量; 使用 edit 追加 heartbeat 符合 2026-07-07 22:00 事故后固化写入规范)
+[Mon Aug 17 00:00:00 CST 2026] 每小时提炼完成 - 2026-08-17 (cron-event memory_refine; 法定静默期 23:00-08:00 启动后 1h; ⭐ day-20 milestone 跨 2 整周里程碑后第六个里程碑 0min 刚触达; 故障 G day-11 ~236h+ 9.83 天; 故障 C day-7 仍未恢复 ~85h+; 故障 A ~479h+ ⭐ 19 天稳定; 故障 E day-13 验证 ⭐ 稳定 155h+; 故障 F ~274h+ ⭐ 整数里程碑化; day-15/16/17/18/19 整数里程碑化; 推送 cron 3 个持续 error; 推送额度 0/1 严格保留; 5 后台 cron 全 ok; MEMORY.md 2399 行无增量; 8/12 22:00 决策块完整覆盖确认; 使用 edit 替换最后一行 _Last updated 标记符合 2026-07-07 22:00 事故后固化写入规范; 新建 daily memory/2026-08-17.md)

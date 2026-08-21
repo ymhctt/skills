@@ -1,0 +1,672 @@
+{
+  "version": 1,
+  "updatedAt": "2026-05-29T23:20:11.891Z",
+  "entries": {
+    "memory:memory/daily-learn/2026-04-19.md:103:122": {
+      "key": "memory:memory/daily-learn/2026-04-19.md:103:122",
+      "path": "memory/daily-learn/2026-04-19.md",
+      "startLine": 103,
+      "endLine": 122,
+      "source": "memory",
+      "snippet": "last_committed, sequence_number, may_have_sbr_stmts ? \"no\" : \"yes\"); } /* The applier thread can always use \"READ COMMITTED\" isolation for transactions containing only RBR events (Table_map + Rows). --- ## 📄 MogDB高可用配置及测试----MogHA部署.md [TOC] ### 一、MogHA简介 在前一篇文章中我们搭建了一主两备的MogDB集群，基于主备同步复制技术MogDB集群能够满足数据的多副本存储需求，防止单点故障的发生。 作为企业级的数据库软件，MogDB需要保证数据库尽可能提供不间断的服务，满足上层业务稳定运行的需求。要实现数据库服务的高可用，就需要一套高可用系统，当服务器宕机、实例宕机等多种异常情况出现后能及时发现问题，并通过主备自动切换和虚拟IP的自动漂移等方式快速回复业务。",
+      "recallCount": 1,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 1,
+      "maxScore": 1,
+      "firstRecalledAt": "2026-05-21T11:01:34.819Z",
+      "lastRecalledAt": "2026-05-21T11:01:34.819Z",
+      "queryHashes": [
+        "af813edb5038"
+      ],
+      "recallDays": [
+        "2026-05-21"
+      ],
+      "conceptTags": [
+        "last-committed",
+        "sequence-number",
+        "may-have-sbr-stmts",
+        "table-map",
+        "mogha部署.md",
+        "yes",
+        "applier",
+        "thread"
+      ]
+    },
+    "memory:memory/daily-learn/2026-04-19.md:76:118": {
+      "key": "memory:memory/daily-learn/2026-04-19.md:76:118",
+      "path": "memory/daily-learn/2026-04-19.md",
+      "startLine": 76,
+      "endLine": 118,
+      "source": "memory",
+      "snippet": "​ 当事务隔离级是RR且binlog为ROW格式时，MySQL会在binlog中增加设置事务隔离级为RC的操作，简单测试如下： ![image-20210325110352291](MySQL binlog中事务隔离级不一样.assets/image-20210325110352291.png) ![image-20210311230332564](Untitled.assets/image-20210311230332564.png) ​ 这其实是MySQL 5.7.18以后的一个优化措施，当一个事务仅包含RBR events（table map+row）时，回放binlog时可以一直使用RC隔离级来提高回放速度，降低锁开销，减少一些死锁问题。相关代码如下： ``` #sql/log_event.cc #ifdef MYSQL_CLIENT void Gtid_log_event::print(FILE *file, PRINT_EVENT_INFO *print_event_info) { char buffer[MAX_SET_STRING_LENGTH + 1]; IO_CACHE *const head= &print_event_info->head_cache; if (!print_event_info->short_form) { print_header(head, print_event_info, FALSE); my_b_printf(head, \"\\t%s\\tlast_commit",
+      "recallCount": 1,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 1,
+      "maxScore": 1,
+      "firstRecalledAt": "2026-05-21T11:01:34.819Z",
+      "lastRecalledAt": "2026-05-21T11:01:34.819Z",
+      "queryHashes": [
+        "af813edb5038"
+      ],
+      "recallDays": [
+        "2026-05-21"
+      ],
+      "conceptTags": [
+        "image-20210325110352291",
+        "image-20210311230332564",
+        "5.7.18以后的一个优化措施",
+        "sql/log-event.cc",
+        "mysql-client",
+        "gtid-log-event",
+        "print-event-info",
+        "max-set-string-length"
+      ]
+    },
+    "memory:memory/daily-learn/2026-04-13.md:117:163": {
+      "key": "memory:memory/daily-learn/2026-04-13.md:117:163",
+      "path": "memory/daily-learn/2026-04-13.md",
+      "startLine": 117,
+      "endLine": 163,
+      "source": "memory",
+      "snippet": "客户某业务使用的MySQL单实例运行，存在较大的安全风险，需要搭建主备架构满足高可用的要求。由于业务的特殊性，需要确保数据不丢失。考虑到当前版本为5.7，决定采用半同步方案。 ## 二、步骤 1、安装备库 ``` rpm -ivh mysql-community-common-5.7.41-1.el7.x86_64.rpm rpm -ivh mysql-community-libs-5.7.41-1.el7.x86_64.rpm rpm -ivh mysql-community-libs-compat-5.7.41-1.el7.x86_64.rpm rpm -ivh mysql-community-devel-5.7.41-1.el7.x86_64.rpm rpm -ivh mysql-community-client-5.7.41-1.el7.x86_64.rpm rpm -ivh mysql-community-server-5.7.41-1.el7.x86_64.rpm ``` 2、修改配置文件 ``` [mysqld] #innodb_buffer_pool_size = 2G #innodb_buffer_pool_instances = 2 enforce_gtid_consistency = ON gtid_mode = ON #innodb_log_file_size=512MB #innodb_log_files_in_group=3 #log-bin=mysql-bin server_id=2 #同",
+      "recallCount": 1,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 0.9360582653084839,
+      "maxScore": 0.9360582653084839,
+      "firstRecalledAt": "2026-05-21T11:01:34.819Z",
+      "lastRecalledAt": "2026-05-21T11:01:34.819Z",
+      "queryHashes": [
+        "af813edb5038"
+      ],
+      "recallDays": [
+        "2026-05-21"
+      ],
+      "conceptTags": [
+        "考虑到当前版本为5.7",
+        "innodb-buffer-pool-size",
+        "innodb-buffer-pool-instances",
+        "enforce-gtid-consistency",
+        "gtid-mode",
+        "innodb-log-file-size",
+        "innodb-log-files-in-group",
+        "log-bin"
+      ]
+    },
+    "memory:memory/daily-learn/2026-04-20.md:27:74": {
+      "key": "memory:memory/daily-learn/2026-04-20.md:27:74",
+      "path": "memory/daily-learn/2026-04-20.md",
+      "startLine": 27,
+      "endLine": 74,
+      "source": "memory",
+      "snippet": "实验环境共三台服务器：172.16.71.30(mogdb)/31(mogdb1)/32(mogdb2)；接下来我们演示如何一步步的搭建一个一主两从的MogDB集群。 - 实例信息 | 主机名 | IP | 角色 | | ------ | ------------ | ---- | | mogdb | 172.16.71.30 | 主 | | Mogdb1 | 172.16.71.31 | 备 | | Mogdb2 | 172.16.71.32 | 备 | #### 1、操作系统配置修改 - 检查防火墙是否关闭 ``` systemctl status firewalld ``` 若防火墙状态显示为active (running)，则表示防火墙未关闭，请执行以下步骤 ``` #关闭防火墙并禁止开机重启 --- ## 📄 四川电信周报.md # 四川电信数据库运维周报【20220221-20220227】 - 本周（11月23日-11月29日）突发事件2件 - 网络问题导致。。。。。； - 慢查询导致。。。。。。 - 本周（11月23日-11月29日）线上故障1件 - 数据库服务器宕机。。。。。。。。； - 11月23到11月29日共处理巡检 XX次，工单XXX单，工具及能力建设XXX ，变更XXX次。。。。。。。。 | 工作类别 | 工作量 | 工作耗时 | | -------------- | ------- | -------- | | 巡检 | XX次",
+      "recallCount": 3,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 3,
+      "maxScore": 1,
+      "firstRecalledAt": "2026-05-21T14:02:00.152Z",
+      "lastRecalledAt": "2026-05-28T23:20:17.715Z",
+      "queryHashes": [
+        "377373ae8b14",
+        "a185de357f28",
+        "1181bb027df0"
+      ],
+      "recallDays": [
+        "2026-05-21",
+        "2026-05-28",
+        "2026-05-29"
+      ],
+      "conceptTags": [
+        "网络",
+        "172.16.71.30",
+        "172.16.71.31",
+        "172.16.71.32",
+        "四川电信周报.md",
+        "20220221-20220227",
+        "11月23日-11月29日",
+        "实验"
+      ]
+    },
+    "memory:memory/daily-learn/2026-04-20.md:69:102": {
+      "key": "memory:memory/daily-learn/2026-04-20.md:69:102",
+      "path": "memory/daily-learn/2026-04-20.md",
+      "startLine": 69,
+      "endLine": 102,
+      "source": "memory",
+      "snippet": "| 工作类别 | 工作量 | 工作耗时 | | -------------- | ------- | -------- | | 巡检 | XX次 | 3人天 | | 变更及技术支持 | 次/项 | 5人天 | | 工单处理 | XXX单 | 人天 | | 工具及能力建设 | | 人天 | | SQL优化 | X个项目 | 人天 | ## 一、突发事件 - 11月25日，16:56 业务完全恢复； - XXXXXX。。。。。。。。。。。。。。。。 ## 二、线上故障 - 11月24日 。。。。。。。。。。。。。重做备机恢复。 ## 三、巡检发现的问题 | 巡检时间 | 数据库IP/类型 | 项目 | 说明 | 状态 | | ---------- | ------------------------ | ---- | ------------------------------------------------------------ | ------ | | 2月28日7点 | 1.1.1.1：3306 （TeleDB） | 出账 | 一主一备重做备机失败；<br/>原因分析：备机一个bxt库没有被删除,经客户确认手动删除bxt库后,再次重做成功. | 已修复 | | 3月2日10点 | 2.2.",
+      "recallCount": 5,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 5,
+      "maxScore": 1,
+      "firstRecalledAt": "2026-05-21T14:02:00.152Z",
+      "lastRecalledAt": "2026-05-28T23:20:17.715Z",
+      "queryHashes": [
+        "377373ae8b14",
+        "a185de357f28",
+        "dcaad75f43fd",
+        "bceba2d59206",
+        "1181bb027df0"
+      ],
+      "recallDays": [
+        "2026-05-21",
+        "2026-05-28",
+        "2026-05-29"
+      ],
+      "conceptTags": [
+        "次/项",
+        "数据库ip/类型",
+        "1.1.1.1",
+        "2.2",
+        "工作",
+        "类别",
+        "变更",
+        "技术"
+      ]
+    },
+    "memory:memory/daily-learn/2026-04-14.md:73:94": {
+      "key": "memory:memory/daily-learn/2026-04-14.md:73:94",
+      "path": "memory/daily-learn/2026-04-14.md",
+      "startLine": 73,
+      "endLine": 94,
+      "source": "memory",
+      "snippet": "### 基于 InnoDB 的外键的局限性 随着 MySQL 部署规模和复杂性的增长，这种传统方法暴露出以下局限性： - **隐藏的数据更改**：在 InnoDB 内部执行的级联父子更改对 SQL 层是不可见的，并且没有在更高级别上被捕获。 - **系统日志不完整**：二进制日志中经常缺少子行更改，导致复制和审计不完整。 - **数据捕获差距**：依赖二进制日志或完整变更历史记录的数据工具和下游系统无法始终跟踪与外键相关的每个更新或删除。 - **复制风险**： 在复杂的复制设置中，这些静默的更改可能会导致主服务器和副本之间的数据出现差异，从而导致操作上的挑战。 ## 2. 新模型：SQL 引擎管理的外键强制执行 为了解决这些问题，MySQL 现在强制执行外键，并在 SQL 引擎内部管理级联操作。通过这项更改，父表和子表上的所有外键操作对 SQL 层都是完全可见的。 ![img](https://pic2.zhimg.com/v2-991772d25aaf9351440f9d9b4a7d67d7_1440w.jpg) **主要优势：** - **完整日志记录**：所有更改（包括级联更改）现在都可见、可审计，并完整记录在二进制日志中。",
+      "recallCount": 1,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 1,
+      "maxScore": 1,
+      "firstRecalledAt": "2026-05-22T11:23:38.568Z",
+      "lastRecalledAt": "2026-05-22T11:23:38.568Z",
+      "queryHashes": [
+        "65a61331896c"
+      ],
+      "recallDays": [
+        "2026-05-22"
+      ],
+      "conceptTags": [
+        "基于",
+        "innodb",
+        "局限性",
+        "随着",
+        "mysql",
+        "部署",
+        "规模",
+        "复杂"
+      ]
+    },
+    "memory:memory/daily-learn/2026-04-14.md:64:77": {
+      "key": "memory:memory/daily-learn/2026-04-14.md:64:77",
+      "path": "memory/daily-learn/2026-04-14.md",
+      "startLine": 64,
+      "endLine": 77,
+      "source": "memory",
+      "snippet": "历史上，MySQL 在存储引擎层（特别是 InnoDB 数据库）强制执行外键约束和级联。其工作原理如下： - **外键级联**：当对父表执行 DELETE 或 UPDATE 等语句时，InnoDB 会检查外键约束。如果定义了级联操作（例如 ON DELETE CASCADE ），InnoDB 会处理子表中相应行的更新或删除操作。 - **InnoDB 内部执行**：所有级联操作均由 InnoDB 内部执行。SQL 引擎仅发起父级操作；所有对子表的依赖操作均由 InnoDB 管理。 重要的是，这些子行更改对 SQL 层是不可见的。因此，在基于行的复制 (RBR) 模式下，InnoDB 内部执行的级联操作不会出现在 MySQL 二进制日志中。 - **运行影响**：由于这些变更对 SQL 引擎和二进制日志隐藏，下游系统（例如 CDC 管道和分析平台）可能无法检测到这些变更。这可能导致数据不一致、分析结果不可靠以及复制问题。 ### 基于 InnoDB 的外键的局限性 随着 MySQL 部署规模和复杂性的增长，这种传统方法暴露出以下局限性： - **隐藏的数据更改**：在 InnoDB 内部执行的级联父子更改对 SQL 层是不可见的，并且没有在更高级别上被捕获。",
+      "recallCount": 1,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 1,
+      "maxScore": 1,
+      "firstRecalledAt": "2026-05-22T11:23:38.568Z",
+      "lastRecalledAt": "2026-05-22T11:23:38.568Z",
+      "queryHashes": [
+        "65a61331896c"
+      ],
+      "recallDays": [
+        "2026-05-22"
+      ],
+      "conceptTags": [
+        "历史",
+        "mysql",
+        "存储",
+        "引擎",
+        "特别",
+        "innodb",
+        "数据",
+        "强制"
+      ]
+    },
+    "memory:memory/daily-learn/2026-04-14.md:97:109": {
+      "key": "memory:memory/daily-learn/2026-04-14.md:97:109",
+      "path": "memory/daily-learn/2026-04-14.md",
+      "startLine": 97,
+      "endLine": 109,
+      "source": "memory",
+      "snippet": "- **创新基础**：这种架构使得跨存储引擎扩展外键支持以及未来的复制和可观测性功能变得更加容易。 *注意：对于除 InnoDB 之外的其他支持外键的存储引擎，强制执行和级联操作仍由相应的存储引擎管理。* ### 性能比较 我们理解，对于考虑将外键强制执行机制从 InnoDB 迁移到 SQL 引擎的 MySQL 用户而言，性能是首要考虑因素。针对常见事务工作负载的大量基准测试证实，基于 SQL 引擎的外键强制执行和级联机制的性能与 InnoDB 方法 **几乎完全相同**。外键检查和级联的成本基本保持不变，因此 **吞吐量和延迟方面没有出现任何可观察到的下降**。 这使得即使在高吞吐量和关键任务部署中，采用新的实现方案也是安全的。 ### 向后兼容性 SQL 引擎的外键强制执行和级联机制旨在 **完全向后兼容**，保留 InnoDB 外键强制执行的语义和行为。虽然整体用户体验保持不变，但仍有一些值得注意的改进和细微的行为差异： - **错误信息**：虽然错误代码与以前的版本一致，但由于检查执行顺序不同，具体的错误信息文本（包括外键名称）可能会有所不同。",
+      "recallCount": 1,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 1,
+      "maxScore": 1,
+      "firstRecalledAt": "2026-05-22T11:23:38.568Z",
+      "lastRecalledAt": "2026-05-22T11:23:38.568Z",
+      "queryHashes": [
+        "65a61331896c"
+      ],
+      "recallDays": [
+        "2026-05-22"
+      ],
+      "conceptTags": [
+        "创新",
+        "基础",
+        "这种",
+        "架构",
+        "使得",
+        "存储",
+        "引擎",
+        "扩展"
+      ]
+    },
+    "memory:memory/daily-learn/2026-04-14.md:84:102": {
+      "key": "memory:memory/daily-learn/2026-04-14.md:84:102",
+      "path": "memory/daily-learn/2026-04-14.md",
+      "startLine": 84,
+      "endLine": 102,
+      "source": "memory",
+      "snippet": "为了解决这些问题，MySQL 现在强制执行外键，并在 SQL 引擎内部管理级联操作。通过这项更改，父表和子表上的所有外键操作对 SQL 层都是完全可见的。 ![img](https://pic2.zhimg.com/v2-991772d25aaf9351440f9d9b4a7d67d7_1440w.jpg) **主要优势：** - **完整日志记录**：所有更改（包括级联更改）现在都可见、可审计，并完整记录在二进制日志中。 - **可靠的复制**：不再有隐藏的数据更改；复制现在更加值得信赖和准确。 - **更佳的分析**：数据采集和分析工具现在可以获得所有数据变化的完整、实时视图。 - **创新基础**：这种架构使得跨存储引擎扩展外键支持以及未来的复制和可观测性功能变得更加容易。 *注意：对于除 InnoDB 之外的其他支持外键的存储引擎，强制执行和级联操作仍由相应的存储引擎管理。* ### 性能比较",
+      "recallCount": 1,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 1,
+      "maxScore": 1,
+      "firstRecalledAt": "2026-05-22T11:23:38.568Z",
+      "lastRecalledAt": "2026-05-22T11:23:38.568Z",
+      "queryHashes": [
+        "65a61331896c"
+      ],
+      "recallDays": [
+        "2026-05-22"
+      ],
+      "conceptTags": [
+        "为了",
+        "解决",
+        "这些",
+        "问题",
+        "mysql",
+        "现在",
+        "强制",
+        "执行"
+      ]
+    },
+    "memory:memory/daily-learn/2026-04-27.md:51:73": {
+      "key": "memory:memory/daily-learn/2026-04-27.md:51:73",
+      "path": "memory/daily-learn/2026-04-27.md",
+      "startLine": 51,
+      "endLine": 73,
+      "source": "memory",
+      "snippet": "以读带宽为例，测试Fio是否可以正常使用。 执行以下命令： --- ## 📄 opengauss命令行工具使用.md - gsql连接参数 ``` -d 选项: 指定 gsql 客户端连接的数据库 -h 选项: 指定 gsql 客户端连接的服务器 IP -U 选项: 指定 gsql 客户端连接数据库的用户名 -p 选项: 指定 gsql 客户端连接的服务器端口号 -W 选项: 指定 gsql 客户端连接的用户密码 *-r 选项：use libedit， 设置后 在命令行中方面的进行删除、粘贴、上翻等操作 *-E 让 gsql 客户端程序执行元命令的时候，显示其对应的 SQL 语句 -t 让 gsql 客户端程序在执行 SQL 查询语句的时候，返回的结果不显示列名及返 回结果的行数。 -A 让 gsql 客户端程序在执行 SQL 查询语句的时候，不对齐显示查询返回的行数 一般和-t同时使用 -At -v 让 gsql 客户端程序在命令行中设置 gsql 环境变量； eg gsql -d studentdb -h 192.168.100.91 -U student -p 26000 -W student@ustb2020 -v -r *-c 让 gsql 客户端程序直接在命令行中运行 SQL 语句 ； eg gsql -d studentdb -h 192.168.100.91 -U student -p 26000 -W student@ustb2020 -c \"select * from instructor where salary=80000\"",
+      "recallCount": 1,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 1,
+      "maxScore": 1,
+      "firstRecalledAt": "2026-05-22T11:23:38.568Z",
+      "lastRecalledAt": "2026-05-22T11:23:38.568Z",
+      "queryHashes": [
+        "65a61331896c"
+      ],
+      "recallDays": [
+        "2026-05-22"
+      ],
+      "conceptTags": [
+        "opengauss命令行工具使用.md",
+        "一般和-t同时使用",
+        "192.168.100.91",
+        "测试",
+        "fio",
+        "是否",
+        "可以",
+        "正常"
+      ]
+    },
+    "memory:memory/daily-learn/2026-05-16.md:133:164": {
+      "key": "memory:memory/daily-learn/2026-05-16.md:133:164",
+      "path": "memory/daily-learn/2026-05-16.md",
+      "startLine": 133,
+      "endLine": 164,
+      "source": "memory",
+      "snippet": "栈帧如下: ```cpp #0 Gtid_table_persistor::save (this=0x2f9f9c0, gtid_set=0x7ffff03595a0) at /root/mysql5.7.14/percona-server-5.7.14-7/sql/rpl_gtid_persist.cc:425 #1 0x0000000001803dbe in Gtid_state::save (this=0x2ff8bb0, gtid_set=0x7ffff03595a0) at /root/mysql5.7.14/percona-server-5.7.14-7/sql/rpl_gtid_state.cc:796 #2 0x0000000001803f62 in Gtid_state::save_gtids_of_last_binlog_into_table (this=0x2ff8bb0, on_rotation=true) at /root/mysql5.7.14/percona-server-5.7.14-7/sql/rpl_gtid_state.cc:835 #3 0x000000000185266d in MYSQL_BIN_LOG::new_file_impl (this=0x2dffc80, need_lock_log=false, extra_description_event=0x0) at /root/mysql5.7.14/percona-server-5.7.14-7/sql/binlog.cc:6751 #4 0x0",
+      "recallCount": 1,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 1,
+      "maxScore": 1,
+      "firstRecalledAt": "2026-05-22T11:23:38.568Z",
+      "lastRecalledAt": "2026-05-22T11:23:38.568Z",
+      "queryHashes": [
+        "65a61331896c"
+      ],
+      "recallDays": [
+        "2026-05-22"
+      ],
+      "conceptTags": [
+        "gtid-table-persistor",
+        "gtid-set",
+        "gtid-state",
+        "on-rotation",
+        "mysql-bin-log",
+        "new-file-impl",
+        "need-lock-log",
+        "extra-description-event"
+      ]
+    },
+    "memory:memory/daily-learn/2026-04-20.md:93:122": {
+      "key": "memory:memory/daily-learn/2026-04-20.md:93:122",
+      "path": "memory/daily-learn/2026-04-20.md",
+      "startLine": 93,
+      "endLine": 122,
+      "source": "memory",
+      "snippet": "| 3月2日10点 | 2.2.2.2：9527（AntDB） | 基调 | 刷新页面开启的备份设置再次变成关闭<br/>原因分析：运营端显示问题，实际策略生效了。 | 处理中 | ## 四、变更及技术支持 1、XXXX 2月24号 2：00-3：00 XXXXXXX； 2、XXX，2月26号：12：00-13：00 XXXX ## 五、工单处理 - 11月23到11月29日处理工单5单，3单XXX，1单XXX，1单XXX；详情如下： --- ## 📄 【网络】MySQL Binlog 源码入门.md MySQL主从节点之间同步数据，备份点还原，会用到binary log，其负责记录数据更改的操作。因为Binlog在运用到数据页之前需要经过复杂的过程，没有redolog直接，所以性能比不上直接使用redo复制的方式（[物理复制的优势](https://www.bookstack.cn/read/aliyun-rds-core/30b78cf21d82e781.md)），但是它也有不可或缺的作用。本文重点介绍MySQL Binlog的作用、记录的内容、组织结构、写入方式、主备复制等内容，基于MySQL 8.0的代码。因为网上对Binlog各个知识点的介绍都非常详细，但是知识点非常杂，所以给本人初学Binlog的时候带来很多困难，因此本文的目的是总结这些知识点。 > 本文内容基于 MySQL Community 8.0.13 Version ## 1、为什么要有Binlog",
+      "recallCount": 2,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 2,
+      "maxScore": 1,
+      "firstRecalledAt": "2026-05-28T07:05:45.266Z",
+      "lastRecalledAt": "2026-05-28T07:05:50.134Z",
+      "queryHashes": [
+        "dcaad75f43fd",
+        "bceba2d59206"
+      ],
+      "recallDays": [
+        "2026-05-28"
+      ],
+      "conceptTags": [
+        "备份",
+        "网络",
+        "2.2.2.2",
+        "00-3",
+        "00-13",
+        "源码入门.md",
+        "8.0的代码",
+        "8.0.13"
+      ]
+    },
+    "memory:memory/daily-learn/2026-04-09.md:1:38": {
+      "key": "memory:memory/daily-learn/2026-04-09.md:1:38",
+      "path": "memory/daily-learn/2026-04-09.md",
+      "startLine": 1,
+      "endLine": 38,
+      "source": "memory",
+      "snippet": "# 每日学习笔记 - 2026-04-09 ## 📄 MySQL MGR最优化配置推荐.md 写本篇文章的动机有三点： 1. 希望给想用MGR的朋友提供一个参数配置参考 2. 知数堂的学生更加需要一份MGR的参数手册 3. 在3306π社区广州站听了万里DB CTO娄帅关于《MGR Best Practice》的分享觉得也是时候总结一下了。 本次内容整理参考了3306π社区广州站《MGR Best Practice》万里DB CTO娄帅分享和一些个人的理解认识。本次总结内容如下： - 一、MySQL InnoDB Cluster架构 - 二、MGR配置 - - 功能需求配置 - MGR核心配置 - 性能优化类参数 - 配合使用的配置 - InnoDB配置优化 - 三、MGR监控注意事项 - 四、MGR使用上的限制 ``` group_replication_single_primary_mode=ON log_error_verbosity=3 group_replication_bootstrap_group=OFF group_replication_start_on_boot=OFF group_replication_transaction_size_limit=<默认值150MB，但建议调低在20MB以内，不要使用大事务> group_replication_communication_max_message_size=10M group_replication_flow_control_mode=\"DISABLED\" #官",
+      "recallCount": 2,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 2,
+      "maxScore": 1,
+      "firstRecalledAt": "2026-05-28T07:05:45.266Z",
+      "lastRecalledAt": "2026-05-28T07:05:50.134Z",
+      "queryHashes": [
+        "dcaad75f43fd",
+        "bceba2d59206"
+      ],
+      "recallDays": [
+        "2026-05-28"
+      ],
+      "conceptTags": [
+        "mgr最优化配置推荐.md",
+        "log-error-verbosity",
+        "group-replication-start-on-boot",
+        "每日",
+        "学习",
+        "笔记",
+        "mysql",
+        "mgr"
+      ]
+    },
+    "memory:memory/daily-learn/2026-05-17.md:99:129": {
+      "key": "memory:memory/daily-learn/2026-05-17.md:99:129",
+      "path": "memory/daily-learn/2026-05-17.md",
+      "startLine": 99,
+      "endLine": 129,
+      "source": "memory",
+      "snippet": "| 索引清理时间（12索引） | ~45 分钟 | ~12 分钟 | | 总体 vacuum 时间 | 60+ 分钟 | ~30 分钟 | | 死元组清理延迟 | 3-4 天 | 1 天内 | | 表膨胀程度 | 2x 正常大小 | 1.2x 以内 | > 具体效果取决于索引数量、大小及 `maintenanceWork_mem` 配置。 --- ## 四、如何配置 --- ## 📄 MySQL错误日志Got an error reading communication packet.md 经常收到客户关于通信故障错误的问题—客户面临间歇性的”Got an error reading communication packet”错误 这里分析这个错误出现的原因，以及如何解决这个问题。 > 官方解释 首先，当通信故障错误出现时，MySQL的状态变量Aborted_clients和Aborted_connects的计数会增加。这两个状态变量描述了由于客户端没有正确关闭连接而导致中断的连接数以及那些尝试登录MySQL失败的连接数量（分别）。两个错误出现的可能原因很多 下面看看官网怎么说： Aborted_connects： If a client is unable even to connect, the server increments the Aborted_connects status variable. - A client attempts to access a database but has no privileges for it. \\",
+      "recallCount": 2,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 2,
+      "maxScore": 1,
+      "firstRecalledAt": "2026-05-28T07:05:45.266Z",
+      "lastRecalledAt": "2026-05-28T07:05:50.134Z",
+      "queryHashes": [
+        "dcaad75f43fd",
+        "bceba2d59206"
+      ],
+      "recallDays": [
+        "2026-05-28"
+      ],
+      "conceptTags": [
+        "3-4",
+        "1.2x",
+        "maintenancework-mem",
+        "packet.md",
+        "aborted-connects",
+        "索引",
+        "清理",
+        "时间"
+      ]
+    },
+    "memory:memory/archive/2026-04-21.md:96:158": {
+      "key": "memory:memory/archive/2026-04-21.md:96:158",
+      "path": "memory/archive/2026-04-21.md",
+      "startLine": 96,
+      "endLine": 158,
+      "source": "memory",
+      "snippet": "- MEMORY.md 已最新，无新增内容 ✅ ## 提炼结果（12:03） - MEMORY.md 已最新，无新增内容 ✅ ## 提炼结果（13:03） - MEMORY.md 已最新，无新增内容 ✅ ## 提炼结果（14:03） - MEMORY.md 已最新，无新增内容 ✅ ## 提炼结果（15:03） - MEMORY.md 已最新，无新增内容 ✅ ## 提炼结果（16:03） - MEMORY.md 已最新，无新增内容 ✅ ## 提炼结果（17:03） - MEMORY.md 已最新，无新增内容 ✅ ## 提炼结果（18:03） - MEMORY.md 已最新，无新增内容 ✅ ## 提炼结果（19:03） - MEMORY.md 已最新，无新增内容 ✅ ## 提炼结果（19:03） - MEMORY.md 已最新，无新增内容 ✅ - 系统运行稳定 ✅ _Last updated: 2026-04-21 20:03 ## 提炼结果（17:03） - MEMORY.md 已最新，无新增内容 ✅ - 2026-04-20 无新决策/技能/待办 - 系统运行稳定 ✅ _Last updated: 2026-04-21 17:03 ## 提炼结果（20:03） - MEMORY.md 已最新，无新增内容 ✅ - 系统运行稳定 ✅ _Last updated: 2026-04-21 20:03 ## 提炼结果（00:03） - MEMORY.md 已最新，无新增内容 ✅ - 系统运行稳定 ✅ _Last updated: 2026-04-22 01",
+      "recallCount": 2,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 2,
+      "maxScore": 1,
+      "firstRecalledAt": "2026-05-28T23:20:17.715Z",
+      "lastRecalledAt": "2026-05-29T23:20:11.891Z",
+      "queryHashes": [
+        "1181bb027df0",
+        "2daafb694754"
+      ],
+      "recallDays": [
+        "2026-05-29",
+        "2026-05-30"
+      ],
+      "conceptTags": [
+        "memory.md",
+        "无新决策/技能/待办",
+        "最新",
+        "新增",
+        "内容",
+        "提炼",
+        "结果",
+        "系统"
+      ]
+    },
+    "memory:memory/daily-learn/2026-04-23.md:37:84": {
+      "key": "memory:memory/daily-learn/2026-04-23.md:37:84",
+      "path": "memory/daily-learn/2026-04-23.md",
+      "startLine": 37,
+      "endLine": 84,
+      "source": "memory",
+      "snippet": "| 8 | xiaole | english | 90 | | 8 | xiaole | math | 100 | | 8 | xiaole | chinese | 90 | | 8 | xiaoyun | english | 95 | | 8 | xiaoyun | math | 95 | | 8 | xiaoyun | chinese | 70 | +----------+---------+---------+-------+ 9 rows in set (0.00 sec) #不指定分组 mysql> select class_id,student,subject,score,row_number()over() from subject_score; +----------+---------+---------+-------+--------------------+ | class_id | student | subject | score | row_number()over() | +----------+---------+---------+-------+--------------------+ | 8 | lee | english | 60 | 1 | | 8 | lee | math | 50 |",
+      "recallCount": 1,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 1,
+      "maxScore": 1,
+      "firstRecalledAt": "2026-05-28T23:34:53.287Z",
+      "lastRecalledAt": "2026-05-28T23:34:53.287Z",
+      "queryHashes": [
+        "5086ce60eeab"
+      ],
+      "recallDays": [
+        "2026-05-29"
+      ],
+      "conceptTags": [
+        "0.00",
+        "class-id",
+        "row-number",
+        "subject-score",
+        "xiaole",
+        "english",
+        "math",
+        "chinese"
+      ]
+    },
+    "memory:memory/daily-learn/2026-05-27.md:30:48": {
+      "key": "memory:memory/daily-learn/2026-05-27.md:30:48",
+      "path": "memory/daily-learn/2026-05-27.md",
+      "startLine": 30,
+      "endLine": 48,
+      "source": "memory",
+      "snippet": "- `SAVEPOINT savepoint_name` ([doc](https://www.postgresql.org/docs/current/sql-savepoint.html)) - `ROLLBACK [ WORK | TRANSACTION ] TO [ SAVEPOINT ] savepoint_name` ([doc](https://www.postgresql.org/docs/current/sql-rollback-to.html)) - `RELEASE [ SAVEPOINT ] savepoint_name` ([doc](https://www.postgresql.org/docs/current/sql-release-savepoint.html)) Here is a simple demonstration: [![Example: SAVEPOINT and ROLLBACK TO SAVEPOINT](PG::PostgreSQL%20Subtransactions%20Considered%20Harmful.assets/1-savepoint-example.png)](https://v2.postgres.ai/assets/blog/20210831/1-savepoint-example.png) ## Who is using subtransactions?[#](https://v2.postgres.ai/blog/20210831-postgresql-subtransactions-consi",
+      "recallCount": 1,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 1,
+      "maxScore": 1,
+      "firstRecalledAt": "2026-05-28T23:34:53.287Z",
+      "lastRecalledAt": "2026-05-28T23:34:53.287Z",
+      "queryHashes": [
+        "5086ce60eeab"
+      ],
+      "recallDays": [
+        "2026-05-29"
+      ],
+      "conceptTags": [
+        "savepoint-name",
+        "savepoint",
+        "doc",
+        "https",
+        "www.postgresql.org",
+        "docs",
+        "current",
+        "sql"
+      ]
+    },
+    "memory:memory/daily-learn/2026-05-14.md:1:53": {
+      "key": "memory:memory/daily-learn/2026-05-14.md:1:53",
+      "path": "memory/daily-learn/2026-05-14.md",
+      "startLine": 1,
+      "endLine": 53,
+      "source": "memory",
+      "snippet": "# 每日学习笔记 - 2026-05-14 ## 📄 PostgreSQL备份常见问题.md # PostgreSQL 备份常见问题解答 > 来源：微信文章 - AustinDatabases > 整理时间：2026-04-10 --- ## 一、PG 备份原理（物理备份） ### 1.1 备份流程 PostgreSQL 物理备份主要依赖两个函数： ```sql -- 标记备份起点 SELECT pg_start_backup('label', true); -- 执行文件系统级别的备份（如 rsync、tar） -- 复制整个数据目录 -- 标记备份终点 SELECT pg_stop_backup(); ``` **原理说明：** - `pg_start_backup`：创建 `backup_label` 文件，强制写入检查点，标记 WAL 起点 - `pg_stop_backup`：记录 WAL 终点，清理备份状态 - 备份期间可复制数据文件和日志文件 ### 1.2 归档日志的作用 基于全量备份 + WAL 日志，可以将数据库恢复到**任意全备之后的时刻**。 --- ## 二、WAL 获取方式差异（stream vs fetch） 使用 `pg_basebackup` 命令时，`--wal-method` 有两种选择： | 模式 | 说明 | 适用场景 | |------|------|----------| | `stream` | 通过 replication 协议实时传输 WAL | 搭建从节点 | | `fetch` |",
+      "recallCount": 1,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 1,
+      "maxScore": 1,
+      "firstRecalledAt": "2026-05-28T23:34:53.287Z",
+      "lastRecalledAt": "2026-05-28T23:34:53.287Z",
+      "queryHashes": [
+        "5086ce60eeab"
+      ],
+      "recallDays": [
+        "2026-05-29"
+      ],
+      "conceptTags": [
+        "backup",
+        "备份",
+        "postgresql备份常见问题.md",
+        "1.1",
+        "pg-start-backup",
+        "pg-stop-backup",
+        "backup-label",
+        "1.2"
+      ]
+    },
+    "memory:memory/daily-learn/2026-05-27.md:11:35": {
+      "key": "memory:memory/daily-learn/2026-05-27.md:11:35",
+      "path": "memory/daily-learn/2026-05-27.md",
+      "startLine": 11,
+      "endLine": 35,
+      "source": "memory",
+      "snippet": "[The SQL standard](https://www.iso.org/standard/63556.html) defines two basic instructions describing this mechanism: `SAVEPOINT` and extension to the `ROLLBACK` statement – `ROLLBACK TO SAVEPOINT`: ```undefined <savepoint statement> ::= SAVEPOINT <savepoint specifier> <savepoint specifier> ::= <savepoint name> <rollback statement> ::= ROLLBACK [ WORK ] [ AND [ NO ] CHAIN ] [ <savepoint clause> ]<savepoint clause> ::= TO SAVEPOINT <savepoint specifier> ``` Copy It also defines `RELEASE SAVEPOINT` that allows erasing information about an \"active\" savepoint: ```undefined <release savepoint statement> ::= RELEASE SAVEPOINT <savepoint specifier> ``` Copy PostgreSQL supp",
+      "recallCount": 1,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 1,
+      "maxScore": 1,
+      "firstRecalledAt": "2026-05-28T23:34:53.287Z",
+      "lastRecalledAt": "2026-05-28T23:34:53.287Z",
+      "queryHashes": [
+        "5086ce60eeab"
+      ],
+      "recallDays": [
+        "2026-05-29"
+      ],
+      "conceptTags": [
+        "www.iso.org/standard/63556.html",
+        "sql",
+        "standard",
+        "https",
+        "www.iso.org",
+        "html",
+        "defines",
+        "two"
+      ]
+    },
+    "memory:memory/daily-learn/2026-05-04.md:58:86": {
+      "key": "memory:memory/daily-learn/2026-05-04.md:58:86",
+      "path": "memory/daily-learn/2026-05-04.md",
+      "startLine": 58,
+      "endLine": 86,
+      "source": "memory",
+      "snippet": "## 📄 postgresql出错could not create semaphores: No space left on device.md 在postgres中，当max_connect设置过大，启动的时候会报错: FATAL: could not create semaphores: No space left on device 创建semaphores时空间参数不够，查询官网，有这么一段解释： HINT: This error does *not* mean that you have run out of disk space. It occurs when either the system limit for the maximum number of semaphore sets (SEMMNI), or the system wide maximum number of semaphores (SEMMNS), would be exceeded. You need to raise the respective kernel parameter. Alternatively, reduce PostgreSQL‘s consumption of semaphores by reducing its max_connections parameter. The PostgreSQL documentation contains more information about configuring your system for Post",
+      "recallCount": 1,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 1,
+      "maxScore": 1,
+      "firstRecalledAt": "2026-05-28T23:34:53.287Z",
+      "lastRecalledAt": "2026-05-28T23:34:53.287Z",
+      "queryHashes": [
+        "5086ce60eeab"
+      ],
+      "recallDays": [
+        "2026-05-29"
+      ],
+      "conceptTags": [
+        "device.md",
+        "当max-connect设置过大",
+        "max-connections",
+        "postgresql",
+        "not",
+        "create",
+        "semaphores",
+        "space"
+      ]
+    },
+    "memory:memory/daily-learn/2026-05-05.md:33:50": {
+      "key": "memory:memory/daily-learn/2026-05-05.md:33:50",
+      "path": "memory/daily-learn/2026-05-05.md",
+      "startLine": 33,
+      "endLine": 50,
+      "source": "memory",
+      "snippet": "Although this endpoint was impacted the most, the whole database cluster appeared to be affected as many other, unrelated queries timed out. This same pattern would rear its head on random days. A week would pass by without incident, and then it would show up for 15 minutes and disappear for days. Were we chasing the Loch Ness Monster? Let's call these stalled queries Nessie for fun and profit. ### What is a `SAVEPOINT`? To understand `SubtransControlLock` ([PostgreSQL 13](https://www.postgresql.org/docs/13/monitoring-stats.html#MONITORING-PG-STAT-ACTIVITY-VIEW) renamed this to `SubtransSLRU`), we first must understand how subtransactions work in PostgreSQL. In PostgreSQL, a transaction",
+      "recallCount": 1,
+      "dailyCount": 0,
+      "groundedCount": 0,
+      "totalScore": 1,
+      "maxScore": 1,
+      "firstRecalledAt": "2026-05-28T23:34:53.287Z",
+      "lastRecalledAt": "2026-05-28T23:34:53.287Z",
+      "queryHashes": [
+        "5086ce60eeab"
+      ],
+      "recallDays": [
+        "2026-05-29"
+      ],
+      "conceptTags": [
+        "monitoring-pg-stat-activity-view",
+        "although",
+        "endpoint",
+        "was",
+        "impacted",
+        "whole",
+        "database",
+        "cluster"
+      ]
+    }
+  }
+}

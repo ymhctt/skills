@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{PROJECT_NAME}} - 服务总结报告</title>
+  <style> .sb-pill{display:inline-block;padding:2px 10px;border-radius:999px;background:#d4e9e2;color:#006241;font-weight:bold;} </style>
+</head>
+<body style="margin:0;padding:0;background-color:#f2f0eb;color:rgba(0,0,0,0.87);font-family:Arial,'PingFang SC','Microsoft YaHei',sans-serif;">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;border-collapse:collapse;background-color:#f2f0eb;">
+    <tr>
+      <td align="center" style="padding:24px 12px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="960" style="width:960px;max-width:960px;border-collapse:collapse;background-color:#ffffff;">
+          <tr>
+            <td style="padding:32px 36px;border-bottom:1px solid #d7d2cb;background-color:#edebe9;">
+              <div style="font-size:12px;line-height:18px;letter-spacing:1.6px;text-transform:uppercase;color:#006241;font-weight:bold;">ENMOTECH · Starbucks Service Summary</div>
+              <div style="font-size:34px;line-height:42px;font-weight:bold;color:rgba(0,0,0,0.87);margin-top:8px;">{{PROJECT_NAME}}</div>
+              <div style="font-size:14px;line-height:22px;color:rgba(0,0,0,0.58);margin-top:12px;">{{PROJECT_DESCRIPTION}}</div>
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;border-collapse:collapse;margin-top:16px;">
+                <tr>
+                  <td style="font-size:13px;line-height:20px;color:rgba(0,0,0,0.58);padding:0 16px 0 0;">客户：<span style="color:rgba(0,0,0,0.87);font-weight:bold;">{{CLIENT_NAME}}</span></td>
+                  <td style="font-size:13px;line-height:20px;color:rgba(0,0,0,0.58);padding:0 16px 0 0;">周期：<span style="color:rgba(0,0,0,0.87);font-weight:bold;">{{REPORT_PERIOD}}</span></td>
+                  <td style="font-size:13px;line-height:20px;color:rgba(0,0,0,0.58);">生成时间：<span style="color:rgba(0,0,0,0.87);font-weight:bold;">{{GENERATED_DATE}}</span></td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:24px 36px 0 36px;">
+              <div style="font-size:12px;line-height:18px;letter-spacing:1.2px;text-transform:uppercase;color:rgba(0,0,0,0.58);font-weight:bold;margin-bottom:12px;">核心指标 · KPI</div>
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;border-collapse:separate;border-spacing:12px 0;margin:0 -12px;">
+                <tr>
+                  <td width="25%" valign="top" style="background-color:#ffffff;border:1px solid #d7d2cb;border-radius:18px;padding:18px;">
+                    <div style="font-size:12px;line-height:18px;color:rgba(0,0,0,0.58);">服务请求</div>
+                    <div style="font-size:28px;line-height:34px;font-weight:bold;color:rgba(0,0,0,0.87);margin-top:6px;">{{TOTAL_REQUESTS}}</div>
+                  </td>
+                  <td width="25%" valign="top" style="background-color:#ffffff;border:1px solid #d7d2cb;border-radius:18px;padding:18px;">
+                    <div style="font-size:12px;line-height:18px;color:rgba(0,0,0,0.58);">总报工工时</div>
+                    <div style="font-size:28px;line-height:34px;font-weight:bold;color:rgba(0,0,0,0.87);margin-top:6px;">{{TOTAL_HOURS}}h</div>
+                  </td>
+                  <td width="25%" valign="top" style="background-color:#ffffff;border:1px solid #d7d2cb;border-radius:18px;padding:18px;">
+                    <div style="font-size:12px;line-height:18px;color:rgba(0,0,0,0.58);">参与人员</div>
+                    <div style="font-size:28px;line-height:34px;font-weight:bold;color:rgba(0,0,0,0.87);margin-top:6px;">{{TOTAL_PERSONS}}</div>
+                  </td>
+                  <td width="25%" valign="top" style="background-color:#ffffff;border:1px solid #d7d2cb;border-radius:18px;padding:18px;">
+                    <div style="font-size:12px;line-height:18px;color:rgba(0,0,0,0.58);">合同完成率</div>
+                    <div style="font-size:28px;line-height:34px;font-weight:bold;color:rgba(0,0,0,0.87);margin-top:6px;">{{COMPLETION_RATE}}%</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:24px 36px 0 36px;">
+              <div style="font-size:12px;line-height:18px;letter-spacing:1.2px;text-transform:uppercase;color:rgba(0,0,0,0.58);font-weight:bold;margin-bottom:12px;">合同执行 · Contract</div>
+              {{#CONTRACT_ITEMS}}
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;border-collapse:collapse;border:1px solid #d7d2cb;border-radius:18px;background-color:#ffffff;margin-bottom:12px;">
+                <tr>
+                  <td style="padding:16px 18px;">
+                    <div style="font-size:16px;line-height:24px;font-weight:bold;color:rgba(0,0,0,0.87);">{{ACC_NAME}}</div>
+                    <div style="font-size:13px;line-height:20px;color:rgba(0,0,0,0.58);margin-top:4px;">工时：<span style="color:rgba(0,0,0,0.87);font-weight:bold;">{{ITEM_HOURS}}h</span>　服务请求：<span style="color:rgba(0,0,0,0.87);font-weight:bold;">{{ITEM_REQUESTS}}个</span>　状态：<span style="color:rgba(0,0,0,0.87);font-weight:bold;">{{STATUS}}</span></div>
+                    <div style="font-size:13px;line-height:20px;color:rgba(0,0,0,0.58);margin-top:10px;">进度：<span style="color:rgba(0,0,0,0.87);font-weight:bold;">{{ITEM_PROGRESS}}%</span></div>
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;border-collapse:collapse;margin-top:6px;background-color:#d7d2cb;">
+                      <tr>
+                        <td style="height:10px;font-size:0;line-height:0;background-color:#d7d2cb;">
+                          <div style="height:10px;width:{{ITEM_PROGRESS}}%;background-color:{{PROGRESS_COLOR}};"></div>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              {{/CONTRACT_ITEMS}}
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:24px 36px 0 36px;">
+              <div style="font-size:12px;line-height:18px;letter-spacing:1.2px;text-transform:uppercase;color:rgba(0,0,0,0.58);font-weight:bold;margin-bottom:12px;">服务清单 · Services</div>
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;border-collapse:collapse;border:1px solid #d7d2cb;border-radius:18px;">
+                <tr>
+                  <td style="padding:10px 12px;background-color:#edebe9;font-size:12px;font-weight:bold;color:rgba(0,0,0,0.58);">序号</td>
+                  <td style="padding:10px 12px;background-color:#edebe9;font-size:12px;font-weight:bold;color:rgba(0,0,0,0.58);">服务请求</td>
+                  <td style="padding:10px 12px;background-color:#edebe9;font-size:12px;font-weight:bold;color:rgba(0,0,0,0.58);">类型</td>
+                  <td style="padding:10px 12px;background-color:#edebe9;font-size:12px;font-weight:bold;color:rgba(0,0,0,0.58);">执行人</td>
+                  <td style="padding:10px 12px;background-color:#edebe9;font-size:12px;font-weight:bold;color:rgba(0,0,0,0.58);">工时(h)</td>
+                  <td style="padding:10px 12px;background-color:#edebe9;font-size:12px;font-weight:bold;color:rgba(0,0,0,0.58);">状态</td>
+                </tr>
+                {{#SERVICES}}
+                <tr>
+                  <td style="padding:10px 12px;border-top:1px solid #e7e0d7;font-size:13px;color:rgba(0,0,0,0.87);">{{INDEX}}</td>
+                  <td style="padding:10px 12px;border-top:1px solid #e7e0d7;font-size:13px;color:rgba(0,0,0,0.87);">{{TITLE}}</td>
+                  <td style="padding:10px 12px;border-top:1px solid #e7e0d7;font-size:13px;color:rgba(0,0,0,0.87);">{{TYPE}}</td>
+                  <td style="padding:10px 12px;border-top:1px solid #e7e0d7;font-size:13px;color:rgba(0,0,0,0.87);">{{EXECUTOR}}</td>
+                  <td style="padding:10px 12px;border-top:1px solid #e7e0d7;font-size:13px;color:rgba(0,0,0,0.87);">{{HOURS}}</td>
+                  <td style="padding:10px 12px;border-top:1px solid #e7e0d7;font-size:13px;color:rgba(0,0,0,0.87);">{{STATUS}}</td>
+                </tr>
+                {{/SERVICES}}
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:24px 36px 0 36px;">
+              <div style="font-size:12px;line-height:18px;letter-spacing:1.2px;text-transform:uppercase;color:rgba(0,0,0,0.58);font-weight:bold;margin-bottom:12px;">交付文档 · Deliverables</div>
+              {{#DOCUMENTS}}
+              <div style="font-size:14px;line-height:22px;color:rgba(0,0,0,0.87);padding:10px 12px;border:1px solid #d7d2cb;border-radius:18px;border-top:none;">{{DOC_NAME}}<span style="color:#8a857d;">（{{DOC_DATE}}）</span></div>
+              {{/DOCUMENTS}}
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:24px 36px 0 36px;">
+              <div style="font-size:12px;line-height:18px;letter-spacing:1.2px;text-transform:uppercase;color:rgba(0,0,0,0.58);font-weight:bold;margin-bottom:12px;">交付团队 · Team</div>
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;border-collapse:separate;border-spacing:12px 0;margin:0 -12px;">
+                <tr>
+                  {{#TEAM_MEMBERS}}
+                  <td width="25%" valign="top" style="border:1px solid #d7d2cb;border-radius:18px;background-color:#ffffff;padding:14px;">
+                    <div style="font-size:16px;line-height:22px;font-weight:bold;color:rgba(0,0,0,0.87);">{{NAME}}</div>
+                    <div style="font-size:12px;line-height:18px;color:#8a857d;margin-top:4px;">{{ROLE}}</div>
+                    <div style="font-size:22px;line-height:28px;font-weight:bold;color:#006241;margin-top:10px;">{{HOURS}}h</div>
+                  </td>
+                  {{/TEAM_MEMBERS}}
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:24px 36px 0 36px;">
+              <div style="font-size:12px;line-height:18px;letter-spacing:1.2px;text-transform:uppercase;color:rgba(0,0,0,0.58);font-weight:bold;margin-bottom:12px;">故障处理成果 · Cases</div>
+              {{#FAULT_CASES}}
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;border-collapse:collapse;border:1px solid #d7d2cb;border-radius:18px;background-color:#ffffff;margin-bottom:10px;">
+                <tr>
+                  <td style="padding:14px 16px;">
+                    <div style="font-size:12px;line-height:18px;color:#006241;font-weight:bold;">{{CASE_LEVEL}}</div>
+                    <div style="font-size:15px;line-height:22px;color:rgba(0,0,0,0.87);font-weight:bold;margin-top:4px;">{{CASE_TITLE}}</div>
+                    <div style="font-size:13px;line-height:20px;color:rgba(0,0,0,0.58);margin-top:6px;">{{CASE_DESC}}</div>
+                  </td>
+                </tr>
+              </table>
+              {{/FAULT_CASES}}
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:24px 36px 32px 36px;">
+              <div style="font-size:12px;line-height:18px;letter-spacing:1.2px;text-transform:uppercase;color:rgba(0,0,0,0.58);font-weight:bold;margin-bottom:12px;">价值总结 · Insights</div>
+              {{#CONCLUSIONS}}
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="width:100%;border-collapse:collapse;background-color:#edebe9;margin-bottom:10px;">
+                <tr>
+                  <td style="padding:14px 16px;">
+                    <div style="font-size:18px;line-height:24px;">{{CONCLUSION_EMOJI}}</div>
+                    <div style="font-size:15px;line-height:22px;color:rgba(0,0,0,0.87);font-weight:bold;margin-top:4px;">{{CONCLUSION_TITLE}}</div>
+                    <div style="font-size:13px;line-height:20px;color:rgba(0,0,0,0.58);margin-top:6px;">{{CONCLUSION_DESC}}</div>
+                  </td>
+                </tr>
+              </table>
+              {{/CONCLUSIONS}}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026年云南移动数智化部数据库管理优化项目 - 服务总结报告</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:-apple-system,"PingFang SC","Microsoft YaHei","Helvetica Neue",sans-serif; background:#f0f2f5; color:#333; line-height:1.6; }
+.container { max-width:1200px; margin:0 auto; padding:20px; }
+.header { background:linear-gradient(135deg,#0d47a1 0%,#1976d2 50%,#42a5f5 100%); color:#fff; padding:36px 40px; border-radius:14px; margin-bottom:22px; box-shadow:0 4px 20px rgba(13,71,161,0.25); position:relative; overflow:hidden; }
+.header::before { content:''; position:absolute; top:-50%; right:-20%; width:300px; height:300px; background:rgba(255,255,255,0.05); border-radius:50%; }
+.header::after { content:''; position:absolute; bottom:-30%; left:-10%; width:200px; height:200px; background:rgba(255,255,255,0.03); border-radius:50%; }
+.header h1 { font-size:28px; margin-bottom:8px; position:relative; z-index:1; }
+.header .subtitle { font-size:16px; opacity:0.92; margin-bottom:14px; position:relative; z-index:1; }
+.header .meta-row { display:flex; gap:12px; flex-wrap:wrap; position:relative; z-index:1; }
+.header .meta-item { font-size:12px; background:rgba(255,255,255,0.15); padding:5px 12px; border-radius:16px; backdrop-filter:blur(4px); }
+.nav-bar { background:rgba(255,255,255,0.95); backdrop-filter:blur(10px); padding:10px 18px; border-radius:10px; margin-bottom:18px; box-shadow:0 2px 12px rgba(0,0,0,0.06); display:flex; gap:8px; flex-wrap:wrap; align-items:center; position:sticky; top:10px; z-index:100; border:1px solid rgba(227,242,253,0.5); }
+.nav-bar a { color:#1565c0; text-decoration:none; font-size:12px; padding:5px 12px; border-radius:14px; background:linear-gradient(135deg,#e3f2fd,#f3f8ff); transition:all 0.2s; border:1px solid transparent; font-weight:500; }
+.nav-bar a:hover { background:linear-gradient(135deg,#bbdefb,#e3f2fd); border-color:#90caf9; transform:translateY(-1px); }
+.card { background:#fff; border-radius:12px; padding:26px; margin-bottom:18px; box-shadow:0 2px 10px rgba(0,0,0,0.04); border:1px solid rgba(0,0,0,0.04); transition:box-shadow 0.2s; }
+.card:hover { box-shadow:0 4px 16px rgba(0,0,0,0.08); }
+.card h2 { font-size:20px; color:#0d47a1; margin-bottom:16px; padding-bottom:10px; border-bottom:2px solid #e3f2fd; display:flex; align-items:center; gap:10px; }
+.card h2::after { content:''; flex:1; height:2px; background:linear-gradient(90deg,#e3f2fd,transparent); margin-left:10px; }
+.card h3 { font-size:16px; color:#1565c0; margin:16px 0 10px; font-weight:600; }
+.card p { font-size:14px; line-height:1.8; margin-bottom:10px; }
+.kpi-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:16px; margin-bottom:24px; }
+.kpi { background:linear-gradient(135deg,#1565c0,#42a5f5); color:#fff; padding:24px; border-radius:10px; text-align:center; box-shadow:0 3px 10px rgba(21,101,192,0.3); }
+.kpi.green { background:linear-gradient(135deg,#2e7d32,#66bb6a); }
+.kpi.orange { background:linear-gradient(135deg,#ef6c00,#ffa726); }
+.kpi.blue { background:linear-gradient(135deg,#0277bd,#4fc3f7); }
+.kpi.purple { background:linear-gradient(135deg,#6a1b9a,#ab47bc); }
+.kpi.red { background:linear-gradient(135deg,#c62828,#ef5350); }
+.kpi.teal { background:linear-gradient(135deg,#00695c,#26a69a); }
+.kpi .value { font-size:36px; font-weight:700; margin-bottom:6px; }
+.kpi .label { font-size:14px; opacity:0.9; }
+table { width:100%; border-collapse:collapse; font-size:12px; margin:12px 0; }
+th { background:linear-gradient(135deg,#e3f2fd,#f3f8ff); color:#0d47a1; padding:10px; text-align:left; font-weight:600; border-bottom:2px solid #bbdefb; }
+td { padding:8px 10px; border-bottom:1px solid #f0f0f0; }
+tr:hover { background:#f8faff; }
+.text-right { text-align:right; }
+.text-center { text-align:center; }
+.contract-card { background:#f5f9ff; border:1px solid #e3f2fd; border-left:4px solid #1565c0; border-radius:8px; padding:18px; margin:14px 0; }
+.contract-card h3 { color:#0d47a1; margin-top:0; margin-bottom:10px; font-size:17px; }
+.contract-info { display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:10px; margin-bottom:14px; }
+.contract-info .item { background:#fff; padding:10px; border-radius:6px; }
+.contract-info .item .label { font-size:11px; color:#888; margin-bottom:3px; }
+.contract-info .item .value { font-size:15px; font-weight:600; color:#0d47a1; }
+.progress-bar { margin:10px 0; }
+.progress-item { margin-bottom:14px; }
+.progress-header { display:flex; justify-content:space-between; margin-bottom:5px; }
+.progress-label { font-size:12px; color:#333; font-weight:600; }
+.progress-value { font-size:12px; color:#1565c0; font-weight:700; }
+.progress-track { height:22px; background:#e8eaf6; border-radius:11px; overflow:hidden; }
+.progress-fill { height:100%; background:linear-gradient(90deg,#1565c0,#42a5f5); border-radius:11px; display:flex; align-items:center; justify-content:flex-end; padding-right:10px; color:#fff; font-size:10px; font-weight:700; }
+.chart-container { position:relative; height:280px; margin:16px 0; }
+.chart-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:16px 0; }
+.chart-grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin:16px 0; }
+.chart-card { background:linear-gradient(135deg,#fafbff,#f5f9ff); border:1px solid #e8eaf6; border-radius:10px; padding:16px; }
+.chart-card h4 { font-size:14px; color:#0d47a1; margin-bottom:12px; font-weight:600; text-align:center; }
+.doc-section { background:#f5f9ff; border-left:4px solid #1565c0; padding:18px; border-radius:0 8px 8px 0; margin:14px 0; }
+.doc-section h4 { color:#0d47a1; margin-bottom:8px; font-size:15px; }
+.doc-section ul { padding-left:18px; }
+.doc-section li { margin-bottom:5px; line-height:1.7; font-size:13px; color:#444; }
+.value-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:14px; margin-top:18px; }
+.deliverable-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px; margin:18px 0; }
+.deliverable-card { background:linear-gradient(135deg,#ffffff 0%,#fafbff 100%); border:1px solid #e8eaf6; border-radius:12px; padding:18px 16px; text-align:center; transition:transform 0.25s, box-shadow 0.25s, border-color 0.25s; position:relative; overflow:hidden; }
+.deliverable-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,#1565c0,#42a5f5,#1565c0); opacity:0; transition:opacity 0.25s; }
+.deliverable-card:hover { transform:translateY(-4px); box-shadow:0 8px 24px rgba(21,101,192,0.15); border-color:#90caf9; }
+.deliverable-card:hover::before { opacity:1; }
+.deliverable-card .icon { font-size:32px; margin-bottom:8px; display:block; }
+.deliverable-card .number { font-size:34px; font-weight:800; background:linear-gradient(135deg,#0d47a1,#1565c0); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:4px; line-height:1.1; }
+.deliverable-card .title { font-size:14px; font-weight:700; color:#0d47a1; margin-bottom:6px; letter-spacing:0.5px; }
+.deliverable-card .desc { font-size:11px; color:#888; line-height:1.5; }
+.value-card { background:linear-gradient(135deg,#f5f9ff,#fafbff); border:1px solid #e3f2fd; border-radius:10px; padding:18px; transition:transform 0.2s, box-shadow 0.2s; }
+.value-card:hover { transform:translateY(-2px); box-shadow:0 4px 14px rgba(0,0,0,0.06); }
+.value-card h4 { color:#0d47a1; font-size:15px; margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+.value-card p, .value-card ul { font-size:13px; color:#555; line-height:1.7; }
+.value-card ul { padding-left:18px; }
+.value-card li { margin-bottom:4px; }
+ul, ol { margin-left:18px; margin-bottom:10px; }
+li { margin-bottom:5px; line-height:1.8; font-size:13px; }
+.footer { background:linear-gradient(135deg,#0d47a1 0%,#1976d2 100%); color:#fff; padding:28px 36px; border-radius:12px; margin-top:24px; text-align:center; position:relative; overflow:hidden; }
+.footer::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,#42a5f5,#bbdefb,#42a5f5); }
+.footer p { color:rgba(255,255,255,0.88); margin-bottom:5px; font-size:13px; }
+.tag { display:inline-block; background:linear-gradient(135deg,#e3f2fd,#f3f8ff); color:#1565c0; padding:3px 10px; border-radius:12px; font-size:11px; margin:2px; border:1px solid #bbdefb; }
+@media print { .container { padding:10px; } .card { box-shadow:none; border:1px solid #ddd; page-break-inside:avoid; } body { background:#fff; } .nav-bar { display:none; } }
+@media (max-width:768px) { .chart-grid, .chart-grid-3 { grid-template-columns:1fr; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>2026年云南移动数智化部数据库管理优化项目</h1>
+            <div class="subtitle">项目交付成果总结报告</div>
+            <div class="meta-row">
+                <div class="meta-item">📅 2026.04.01 - 至今</div>
+                <div class="meta-item">🏢 云南移动</div>
+                <div class="meta-item">📊 报告日期：2026-05-27</div>
+            </div>
+        </div>
+
+        <div class="nav-bar">
+            <a href="#overview">📋 服务概述</a>
+            <a href="#deliverables">🏆 量化交付成果</a>
+            <a href="#contract">📑 合同执行</a>
+            <a href="#charts">📈 人天分析</a>
+            <a href="#team">👥 交付团队</a>
+            <a href="#service-list">📋 服务清单</a>
+            <a href="#ai-recommendations">🤖 AI建议</a>
+            <a href="#value">🏆 交付价值</a>
+        </div>
+
+        <div class="card" id="overview">
+            <h2>📋 1. 服务报告概述</h2>
+            <p>本报告对2026年云南移动数智化部数据库管理优化项目交付成果进行总结。项目自2026年4月启动，服务周期覆盖Oracle、AntDB、磐维DB、GoldenDB等多套异构数据库的日常代维与性能优化。截至2026年5月27日，累计完成 <strong>305条</strong> 报工记录，总工时 <strong>2,504.5小时</strong>（约313人天），涉及 <strong>10种</strong> 数据库类型，服务覆盖日常巡检、故障处理、迁移升级、安全加固、性能优化等核心运维场景。</p>
+        </div>
+
+        <!-- KPI Summary -->
+        <div class="kpi-grid">
+            <div class="kpi"><div class="value">305</div><div class="label">报工记录</div></div>
+            <div class="kpi green"><div class="value">2,504.5h</div><div class="label">总工时 (313人天)</div></div>
+            <div class="kpi orange"><div class="value">10</div><div class="label">纳管数据库类型</div></div>
+            <div class="kpi blue"><div class="value">8</div><div class="label">交付团队成员</div></div>
+            <div class="kpi purple"><div class="value">150</div><div class="label">巡检报工条数</div></div>
+            <div class="kpi teal"><div class="value">138</div><div class="label">故障处理次数</div></div>
+        </div>
+
+        <div class="card" id="deliverables">
+            <h2>🏆 2. 量化交付成果一览</h2>
+            <p>以下数据来自MES系统真实报工记录，经逐条核对汇总：</p>
+            <div class="deliverable-grid">
+                <div class="deliverable-card">
+                    <div class="icon">🔍</div>
+                    <div class="number">35</div>
+                    <div class="title">日常巡检覆盖</div>
+                    <div class="desc">覆盖35个巡检日期，150条巡检报工记录，每日4次全覆盖</div>
+                </div>
+                <div class="deliverable-card">
+                    <div class="icon">🗄️</div>
+                    <div class="number">10</div>
+                    <div class="title">纳管数据库总数</div>
+                    <div class="desc">Oracle / AntDB / 磐维DB / GoldenDB / MySQL / OceanBase / 达梦DB / Barman / Param / BDC</div>
+                </div>
+                <div class="deliverable-card">
+                    <div class="icon">🔧</div>
+                    <div class="number">138</div>
+                    <div class="title">故障处理</div>
+                    <div class="desc">处理告警、异常、报错、会话中断、ORA错误等各类故障138次</div>
+                </div>
+                <div class="deliverable-card">
+                    <div class="icon">🚀</div>
+                    <div class="number">72</div>
+                    <div class="title">部署交付</div>
+                    <div class="desc">安装部署数据库实例、初始化环境、创建集群等72次操作</div>
+                </div>
+                <div class="deliverable-card">
+                    <div class="icon">📦</div>
+                    <div class="number">100</div>
+                    <div class="title">迁移升级</div>
+                    <div class="desc">数据迁移、版本升级、割接切换、同步导入导出等100次作业</div>
+                </div>
+                <div class="deliverable-card">
+                    <div class="icon">🔒</div>
+                    <div class="number">68</div>
+                    <div class="title">安全漏洞修复</div>
+                    <div class="desc">白名单整改、基线整改、口令策略、安全加固、等保整改68项</div>
+                </div>
+                <div class="deliverable-card">
+                    <div class="icon">💾</div>
+                    <div class="number">36</div>
+                    <div class="title">备份恢复</div>
+                    <div class="desc">Barman备份方案、逻辑备份、物理备份、恢复验证36次操作</div>
+                </div>
+                <div class="deliverable-card">
+                    <div class="icon">⚡</div>
+                    <div class="number">84</div>
+                    <div class="title">性能优化</div>
+                    <div class="desc">慢SQL调优、参数优化、执行计划优化、TPS/QPS统计等84次</div>
+                </div>
+                <div class="deliverable-card">
+                    <div class="icon">🎯</div>
+                    <div class="number">7</div>
+                    <div class="title">专家服务</div>
+                    <div class="desc">深度分析、专项优化、复杂问题根因分析7次</div>
+                </div>
+                <div class="deliverable-card">
+                    <div class="icon">📝</div>
+                    <div class="number">60</div>
+                    <div class="title">产出文档</div>
+                    <div class="desc">巡检报告、方案文档、清单梳理、PPT整理等60份交付文档</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" id="contract">
+            <h2>📑 3. 合同执行情况</h2>
+            <h3>3.1 合同基本信息</h3>
+            <table>
+                <tr><th width="20%">项目</th><th>内容</th></tr>
+                <tr><td>合同名称</td><td>2026年云南移动数智化部数据库管理优化项目</td></tr>
+                <tr><td>甲方名称</td><td>云南移动</td></tr>
+                <tr><td>乙方名称</td><td>云和恩墨（北京）信息技术有限公司</td></tr>
+                <tr><td>服务周期</td><td>2026年04月01日 至 2027年03月31日（12个月）</td></tr>
+                <tr><td>驻场城市</td><td>西区</td></tr>
+            </table>
+
+            <h3>3.2 合同子项执行情况</h3>
+            <div class="contract-card">
+                <h3>📋 云南移动2026年数据库代维驻场 (2026033012716)</h3>
+                <div class="contract-info">
+                    <div class="item"><div class="label">计划工时</div><div class="value">14,292h (6人天)</div></div>
+                    <div class="item"><div class="label">已用工时</div><div class="value">1,882h</div></div>
+                    <div class="item"><div class="label">完成率</div><div class="value">13.18%</div></div>
+                    <div class="item"><div class="label">服务类型</div><div class="value">驻场服务</div></div>
+                </div>
+                <div class="progress-bar"><div class="progress-item"><div class="progress-header"><span class="progress-label">工时消耗进度</span><span class="progress-value">1,882 / 14,292 (13.18%)</span></div><div class="progress-track"><div class="progress-fill" style="width: 13.18%;">13.18%</div></div></div></div>
+            </div>
+            <div class="contract-card">
+                <h3>📋 云南移动2026年数据库优化驻场 (2026033012717)</h3>
+                <div class="contract-info">
+                    <div class="item"><div class="label">计划工时</div><div class="value">7,146h (3人天)</div></div>
+                    <div class="item"><div class="label">已用工时</div><div class="value">622.5h</div></div>
+                    <div class="item"><div class="label">完成率</div><div class="value">8.73%</div></div>
+                    <div class="item"><div class="label">服务类型</div><div class="value">驻场服务</div></div>
+                </div>
+                <div class="progress-bar"><div class="progress-item"><div class="progress-header"><span class="progress-label">工时消耗进度</span><span class="progress-value">622.5 / 7,146 (8.73%)</span></div><div class="progress-track"><div class="progress-fill" style="width: 8.73%;">8.73%</div></div></div></div>
+            </div>
+        </div>
+
+        <div class="card" id="charts">
+            <h2>📈 4. 服务分类分析</h2>
+            <div class="chart-grid">
+                <div class="chart-card">
+                    <h4>服务类型占比</h4>
+                    <div class="chart-container" style="height:260px;"><canvas id="pieChart"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <h4>服务人天消耗</h4>
+                    <div class="chart-container" style="height:260px;"><canvas id="barChart"></canvas></div>
+                </div>
+            </div>
+
+            <div class="chart-grid">
+                <div class="chart-card">
+                    <h4>月度工时分布</h4>
+                    <div class="chart-container" style="height:260px;"><canvas id="monthChart"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <h4>人员工时分布</h4>
+                    <div class="chart-container" style="height:260px;"><canvas id="personChart"></canvas></div>
+                </div>
+            </div>
+
+            <h3>服务类型明细表</h3>
+            <table>
+                <thead><tr><th>服务类型</th><th class="text-center">报工数量</th><th class="text-center">占比</th><th class="text-center">预估人天</th><th>说明</th></tr></thead>
+                <tbody>
+                    <tr><td>🔧 故障处理</td><td class="text-center">138</td><td class="text-center">45.2%</td><td class="text-center">~22人天</td><td>告警处理、异常排查、ORA错误、会话中断等</td></tr>
+                    <tr><td>🔍 巡检服务</td><td class="text-center">150</td><td class="text-center">49.2%</td><td class="text-center">~19人天</td><td>每日4次全覆盖巡检，覆盖10种数据库</td></tr>
+                    <tr><td>📦 迁移升级</td><td class="text-center">100</td><td class="text-center">32.8%</td><td class="text-center">~13人天</td><td>数据迁移、版本升级、割接切换、同步导入导出</td></tr>
+                    <tr><td>⚡ 性能优化</td><td class="text-center">84</td><td class="text-center">27.5%</td><td class="text-center">~11人天</td><td>慢SQL调优、参数优化、执行计划优化</td></tr>
+                    <tr><td>🚀 部署交付</td><td class="text-center">72</td><td class="text-center">23.6%</td><td class="text-center">~9人天</td><td>安装部署、初始化环境、创建集群</td></tr>
+                    <tr><td>🔒 安全加固</td><td class="text-center">68</td><td class="text-center">22.3%</td><td class="text-center">~9人天</td><td>白名单整改、基线整改、口令策略</td></tr>
+                    <tr><td>💾 备份恢复</td><td class="text-center">36</td><td class="text-center">11.8%</td><td class="text-center">~5人天</td><td>Barman备份、逻辑/物理备份、恢复验证</td></tr>
+                    <tr><td>📝 产出文档</td><td class="text-center">60</td><td class="text-center">19.7%</td><td class="text-center">~8人天</td><td>巡检报告、方案、清单梳理、PPT整理</td></tr>
+                    <tr><td>🎯 专家服务</td><td class="text-center">7</td><td class="text-center">2.3%</td><td class="text-center">~1人天</td><td>深度分析、专项优化、根因分析</td></tr>
+                    <tr style="background:#0d47a1;color:#fff;font-weight:700;"><td>合计</td><td class="text-center">305</td><td class="text-center">—</td><td class="text-center">~97人天</td><td>项目启动至今（2026.04-05）</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card" id="team">
+            <h2>👥 5. 交付团队与工时分布</h2>
+            <table>
+                <thead><tr><th>交付人员</th><th>所属团队</th><th class="text-center">工单数量</th><th class="text-center">总工时</th><th class="text-center">占比</th><th>主要职责</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>张腾飞</strong></td><td>东西大区4部</td><td class="text-center">45</td><td class="text-center">400h</td><td class="text-center">16.0%</td><td>备份方案沟通、SQL审核、数据迁移、逻辑备份协调</td></tr>
+                    <tr><td><strong>李汶隆</strong></td><td>东西大区4部</td><td class="text-center">46</td><td class="text-center">368h</td><td class="text-center">14.7%</td><td>Oracle核心库性能监控、DB Time分析、等待事件排查</td></tr>
+                    <tr><td><strong>丁岩松</strong></td><td>东西大区4部</td><td class="text-center">44</td><td class="text-center">354h</td><td class="text-center">14.1%</td><td>GoldenDB割接模拟、版本更新、权限授予、一体机维护</td></tr>
+                    <tr><td><strong>冯彦苇</strong></td><td>东西大区4部</td><td class="text-center">42</td><td class="text-center">347h</td><td class="text-center">13.9%</td><td>验收整改、白名单方案、基线整改、权限申请处理</td></tr>
+                    <tr><td><strong>莫乾一</strong></td><td>东西大区4部</td><td class="text-center">41</td><td class="text-center">343h</td><td class="text-center">13.7%</td><td>日常巡检（AntDB/磐维/Oracle/GoldenDB）、巡检报告输出</td></tr>
+                    <tr><td><strong>聂大爽</strong></td><td>东西大区4部</td><td class="text-center">41</td><td class="text-center">322h</td><td class="text-center">12.9%</td><td>数据库迁移（AntDB→GoldenDB/Oracle）、白名单管理</td></tr>
+                    <tr><td><strong>张磊-昆明</strong></td><td>东西大区4部</td><td class="text-center">31</td><td class="text-center">254.5h</td><td class="text-center">10.2%</td><td>SQL上线审核、ETL数据迁移、OceanBase数据转换</td></tr>
+                    <tr><td><strong>陈伟棠</strong></td><td>东西大区4部</td><td class="text-center">15</td><td class="text-center">116h</td><td class="text-center">4.6%</td><td>日常巡检、Barman备份方案、TPS/QPS统计</td></tr>
+                    <tr style="background:#0d47a1;color:#fff;font-weight:700;"><td colspan="3" class="text-right">合计</td><td class="text-center">2,504.5h</td><td class="text-center">100%</td><td>8人驻场团队</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card" id="service-list">
+            <h2>📋 6. 服务清单明细</h2>
+            <p>以下是服务期内部分代表性服务请求的明细清单（抽样展示）：</p>
+            <table>
+                <thead><tr><th class="text-center">序号</th><th class="text-center">服务时间</th><th>服务内容</th><th class="text-center">服务人员</th><th class="text-center">服务工时</th></tr></thead>
+                <tbody>
+                    <tr><td class="text-center">1</td><td class="text-center">2026-04-15</td><td>免考核事件上会审核评价</td><td class="text-center">丁岩松</td><td class="text-center">8</td></tr>
+                    <tr><td class="text-center">2</td><td class="text-center">2026-04-15</td><td>年度验收证书整改处理；呈贡一体机计算节点内存维修配合；枢纽存储2节点内存维修配合；华为存储高可用演练配合</td><td class="text-center">冯彦苇</td><td class="text-center">8</td></tr>
+                    <tr><td class="text-center">3</td><td class="text-center">2026-04-15</td><td>云南移动数据库（AntDB、磐维、Oracle、GoldenDB）日常4次巡检</td><td class="text-center">莫乾一</td><td class="text-center">8</td></tr>
+                    <tr><td class="text-center">4</td><td class="text-center">2026-04-16</td><td>Oracle核心库性能指标监控，检查业务高峰时段DB Time、CPU Time、等待事件、长事务</td><td class="text-center">李汶隆</td><td class="text-center">8</td></tr>
+                    <tr><td class="text-center">5</td><td class="text-center">2026-04-17</td><td>磐维4A数据库联调账号统一纳管业务需求白名单添加；AntDB短厅数据库使用MTK反向同步至Oracle</td><td class="text-center">聂大爽</td><td class="text-center">8</td></tr>
+                    <tr><td class="text-center">6</td><td class="text-center">2026-04-18</td><td>处理SQL上线邮件审核工作，审核各业务系统提交的SQL变更脚本，评估语法正确性和性能影响</td><td class="text-center">张磊-昆明</td><td class="text-center">8</td></tr>
+                    <tr><td class="text-center">7</td><td class="text-center">2026-04-20</td><td>与创意备份沟通远程导出的相关问题；barman物理备份脚本迁移至新服相关事宜</td><td class="text-center">张腾飞</td><td class="text-center">8</td></tr>
+                    <tr><td class="text-center">8</td><td class="text-center">2026-04-22</td><td>Oracle、AntDB、PanweiDB、GoldenDB数据库及一体机日常巡检及巡检报告；Barman备份恢复方案</td><td class="text-center">陈伟棠</td><td class="text-center">8</td></tr>
+                    <tr><td class="text-center">9</td><td class="text-center">2026-05-10</td><td>配合GoldenDB模拟割接param数据库；清理param数据库超时会话；一体机维护</td><td class="text-center">丁岩松</td><td class="text-center">8</td></tr>
+                    <tr><td class="text-center">10</td><td class="text-center">2026-05-15</td><td>AntDB迁移至OceanBase数据库，部署Oracle测试环境用于AntDB回退数据至Oracle</td><td class="text-center">聂大爽</td><td class="text-center">8</td></tr>
+                    <tr><td class="text-center">11</td><td class="text-center">2026-05-20</td><td>AntDB数据库白名单增加备份主机的IP，进行AntDB数据库导表备份；一体机白名单方案上会过审</td><td class="text-center">冯彦苇</td><td class="text-center">8</td></tr>
+                    <tr><td class="text-center">12</td><td class="text-center">2026-05-22</td><td>Oracle数据库TPS和QPS信息统计；AntDB版本统计</td><td class="text-center">陈伟棠</td><td class="text-center">8</td></tr>
+                    <tr><td class="text-center">13</td><td class="text-center">2026-05-25</td><td>政企工作台版本更新，授予对版本涉及中心表进行备份和修改表结构等操作权限</td><td class="text-center">丁岩松</td><td class="text-center">8</td></tr>
+                    <tr><td class="text-center">14</td><td class="text-center">2026-05-26</td><td>完成SQL上线邮件审核工作，对现网一级BOSS、携号转网库的用户数据及对象数据进行抽取转换，导入至OceanBase</td><td class="text-center">张磊-昆明</td><td class="text-center">8</td></tr>
+                    <tr><td class="text-center">15</td><td class="text-center">2026-05-27</td><td>免考核操作配合；业务侧白名单整改配合；AntDB主机口令批量重置申请</td><td class="text-center">冯彦苇</td><td class="text-center">8</td></tr>
+                    <tr style="background:#0d47a1;color:#fff;font-weight:700;"><td colspan="4" class="text-right">展示合计</td><td class="text-center">113h</td></tr>
+                </tbody>
+            </table>
+            <p style="margin-top:12px; font-size:12px; color:#888;">* 以上为代表性抽样（15/305条），完整数据以MES系统记录为准</p>
+        </div>
+
+        <div class="card" id="value">
+            <h2>🏆 8. 服务结论 - 交付价值总结</h2>
+            <div class="value-grid">
+                <div class="value-card"><h4>🛡️ 多库全面纳管</h4><p>纳管Oracle、AntDB、磐维DB、GoldenDB、MySQL、OceanBase、达梦DB等10种数据库/技术，实现异构数据库统一运维管理。</p></div>
+                <div class="value-card"><h4>📊 巡检体系完善</h4><ul><li>每日4次全覆盖巡检（Oracle/AntDB/磐维/GoldenDB）</li><li>覆盖35个巡检日期，150条巡检记录</li><li>输出标准化巡检报告</li></ul></div>
+                <div class="value-card"><h4>🔧 高效故障响应</h4><p>累计处理138次故障，涵盖告警排查、ORA错误、会话中断、异常修复等场景，保障业务连续性。</p></div>
+                <div class="value-card"><h4>📦 大规模迁移升级</h4><ul><li>AntDB→GoldenDB/Oracle/OceanBase多向迁移</li><li>数据同步、割接切换、导入导出</li><li>累计100次迁移升级作业</li></ul></div>
+                <div class="value-card"><h4>🔒 安全合规保障</h4><ul><li>白名单整改68项</li><li>基线整改、口令批量重置</li><li>安全加固、等保整改</li></ul></div>
+                <div class="value-card"><h4>👥 专业驻场团队</h4><p>8人东西大区4部团队，总计2,504.5小时（313人天），覆盖Oracle性能专家、AntDB/GoldenDB专项工程师。</p></div>
+            </div>
+            <p style="margin-top:24px; font-size:15px; line-height:2;">在项目交付过程中，团队始终秉持"客户至上"的服务理念，通过7×24小时驻场服务、每日4次全覆盖巡检、快速故障响应机制，为云南移动异构数据库集群的安全稳定运行提供了强有力的技术保障，切实履行了合同约定的各项服务内容。</p>
+        </div>
+
+        <div class="card" id="ai-recommendations">
+            <h2>🤖 7. AI 综合分析与改进建议</h2>
+            <p>基于 MES 报工数据的多维度分析，从项目管理、人员工作、能力提升、客户沟通四个维度提出以下建议：</p>
+
+            <div class="chart-grid">
+                <div class="chart-card">
+                    <h4>技能覆盖雷达图</h4>
+                    <div class="chart-container" style="height:260px;"><canvas id="radarChart"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <h4>工作负荷热力分布</h4>
+                    <div class="chart-container" style="height:260px;"><canvas id="workloadChart"></canvas></div>
+                </div>
+            </div>
+
+            <h3>📋 7.1 项目管理建议</h3>
+            <div class="value-grid">
+                <div class="value-card">
+                    <h4>🔴 工时分布不均，需优化任务分配</h4>
+                    <p>团队 8 人中，张腾飞（400h）与李汶隆（368h）工时最高，陈伟棠（116h）仅占张腾飞的 29%。建议建立<strong>工时均衡机制</strong>，将部分巡检、备份等常规工作向工时偏低人员倾斜，避免核心人员过度疲劳。</p>
+                </div>
+                <div class="value-card">
+                    <h4>🟡 巡检占比过高（49.2%），需自动化提效</h4>
+                    <p>150 条巡检报工占总量近一半，人工巡检效率低且易遗漏。建议引入<strong>自动化巡检脚本</strong>，将每日 4 次人工巡检压缩为自动化采集 + 人工复核模式，预计可释放 30%-40% 巡检工时用于优化和迁移等高价值工作。</p>
+                </div>
+                <div class="value-card">
+                    <h4>🟢 工时消耗与项目周期匹配正常</h4>
+                    <p>两个子项合同期均为 <strong>2026-04-01 至 2027-03-31（12个月）</strong>。截至 5月27日已过 <strong>57天（约占项目周期 15.6%）</strong>，工时完成率分别为 13.18% 和 8.73%，与时间进度基本匹配或略偏保守。建议按<strong>月度工时消耗速率</strong>持续跟踪，确保全年工时均匀释放，避免前松后紧或后期集中消耗。</p>
+                </div>
+                <div class="value-card">
+                    <h4>🟢 多库异构管理能力突出</h4>
+                    <p>团队已实现 Oracle、AntDB、磐维DB、GoldenDB 等 10 种数据库的统一运维，具备较强的异构数据库管理能力。建议沉淀为<strong>标准化运维手册</strong>，形成可复制的服务产品。</p>
+                </div>
+            </div>
+
+            <h3>👥 7.2 人员工作建议</h3>
+            <div class="value-grid">
+                <div class="value-card">
+                    <h4>🔴 单日超负荷报工严重</h4>
+                    <p>305 条报工中，有 <strong>68 条单日超过 8h</strong>，其中 <strong>66 条超过 10h</strong>，部分人员单日最高报工达 16h。长期超负荷工作将导致疲劳操作、故障误判风险上升。建议实行<strong>每日报工上限管控</strong>（建议不超过 10h），超限需项目负责人审批。</p>
+                </div>
+                <div class="value-card">
+                    <h4>🟡 报工备注质量参差，建议规范化</h4>
+                    <p>部分报工备注仅含"处理问题"、"配合工作"等模糊描述，无法有效追溯工作内容和价值产出。建议推行<strong>结构化报工模板</strong>，强制包含：工作类型 + 涉及数据库 + 操作内容 + 结果状态，提升数据可追溯性。</p>
+                </div>
+                <div class="value-card">
+                    <h4>🟢 技能覆盖度高，具备全栈能力</h4>
+                    <p>莫乾一、聂大爽、张磊-昆明 3 人已覆盖 8 大工作类型中的全部 8 项，张腾飞同样具备全栈能力。建议建立<strong>技能标签体系</strong>，在工单分配时根据技能标签精准匹配，提升响应效率。</p>
+                </div>
+                <div class="value-card">
+                    <h4>🟢 陈伟棠可作为梯队培养对象</h4>
+                    <p>陈伟棠工时最少（116h），但已覆盖 6 项工作类型。建议安排其与莫乾一结对，增加 GoldenDB 迁移、故障排查等高阶场景的实操机会，3 个月内提升至全栈水平。</p>
+                </div>
+            </div>
+
+            <h3>📈 7.3 能力提升建议</h3>
+            <div class="value-grid">
+                <div class="value-card">
+                    <h4>🟡 性能优化深度不足</h4>
+                    <p>84 次性能优化中，多为参数调整、索引优化等常规操作，缺少<strong>AWR 深度分析、执行计划绑定、SQL Plan Baseline</strong> 等高阶手段。建议每月组织一次<strong>性能优化案例复盘会</strong>，由张腾飞或李汶隆分享 Oracle 深度调优经验，提升团队整体优化能力。</p>
+                </div>
+                <div class="value-card">
+                    <h4>🔴 国产数据库专项能力待加强</h4>
+                    <p>GoldenDB 涉及 102 次、AntDB 93 次，但团队对国产数据库的内部机制（如 GoldenDB 的分片策略、AntDB 的 MTK 同步）理解深度不如 Oracle。建议开展<strong>GoldenDB/AntDB 专项培训</strong>，邀请原厂或内部专家进行深度授课，并建立常见问题知识库。</p>
+                </div>
+                <div class="value-card">
+                    <h4>🟡 备份恢复场景覆盖不足</h4>
+                    <p>备份恢复仅 36 次（11.8%），且主要依赖 Barman。缺少 RMAN 恢复演练、逻辑备份验证、容灾切换等场景。建议每季度组织一次<strong>备份恢复演练</strong>，覆盖 Oracle RMAN、AntDB 逻辑备份、GoldenDB 容灾等核心场景。</p>
+                </div>
+                <div class="value-card">
+                    <h4>🟢 文档产出有基础，建议知识沉淀</h4>
+                    <p>60 份文档产出是良好基础，但多为巡检报告等标准化文档。建议将高价值的<strong>故障处理案例、迁移方案、安全整改经验</strong>整理为知识文章，发布到内部知识库，形成团队知识资产。</p>
+                </div>
+            </div>
+
+            <h3>💬 7.4 客户沟通建议</h3>
+            <div class="value-grid">
+                <div class="value-card">
+                    <h4>🟡 服务请求仅 1 个，沟通渠道需拓宽</h4>
+                    <p>2 个月仅 1 个正式服务请求（P4-咨询），大量工作通过报工体现但未见服务请求记录。建议建立<strong>定期周报/月报机制</strong>，每月向客户输出服务月报，包含：巡检统计、故障处理清单、性能优化成果、安全整改进展，提升服务可见度。</p>
+                </div>
+                <div class="value-card">
+                    <h4>🟢 白名单整改等合规工作，建议主动汇报</h4>
+                    <p>68 次安全加固中大量涉及白名单整改、基线整改、口令重置等合规类工作。这类工作客户感知度低但价值高，建议<strong>每次安全整改后输出简短通报</strong>（1页A4），包含整改内容、影响范围、验证结果，让客户充分感知团队价值。</p>
+                </div>
+                <div class="value-card">
+                    <h4>🟡 迁移升级频次高，需提前与客户对齐风险</h4>
+                    <p>100 次迁移升级是最高频的工作类型之一（AntDB→GoldenDB/Oracle/OceanBase）。每次迁移涉及数据一致性、业务中断等风险，建议建立<strong>迁移审批 SOP</strong>：迁移方案评审 → 客户签字确认 → 回退方案演练 → 执行窗口确认 → 迁移后验证报告。</p>
+                </div>
+                <div class="value-card">
+                    <h4>🟢 建议建立季度服务回顾机制</h4>
+                    <p>建议在项目满 3 个月（2026 年 7 月）时组织首次<strong>季度服务回顾会</strong>，向客户管理层汇报：SLA 达成情况、故障趋势分析、优化成果量化、下季度工作计划，增强客户信任度和续约意愿。</p>
+                </div>
+            </div>
+
+            <h3>📊 综合评分矩阵</h3>
+            <table>
+                <thead><tr><th>维度</th><th class="text-center">评分</th><th>关键指标</th><th>改进方向</th></tr></thead>
+                <tbody>
+                    <tr><td>📋 项目管理</td><td class="text-center"><strong>7.5/10</strong></td><td>工时利用率偏低，自动化巡检缺失</td><td>建立工时规划、引入自动化巡检</td></tr>
+                    <tr><td>👥 人员工作</td><td class="text-center"><strong>6.0/10</strong></td><td>单日超负荷 68 次，报工质量参差</td><td>报工上限管控、结构化报工模板</td></tr>
+                    <tr><td>📈 能力提升</td><td class="text-center"><strong>7.0/10</strong></td><td>国产数据库深度不足，备份场景覆盖少</td><td>专项培训、季度备份恢复演练</td></tr>
+                    <tr><td>💬 客户沟通</td><td class="text-center"><strong>6.5/10</strong></td><td>服务请求少，合规工作可见度低</td><td>服务月报、安全整改通报、季度回顾</td></tr>
+                    <tr style="background:#0d47a1;color:#fff;font-weight:700;"><td>综合评分</td><td class="text-center"><strong>6.8/10</strong></td><td>基础扎实，提升空间大</td><td>聚焦自动化、规范化、知识沉淀三大方向</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            <p><strong>云和恩墨（北京）信息技术有限公司</strong></p>
+            <p>专业数据库服务商 | 7×24小时驻场技术支持</p>
+            <p>报告生成时间：2026-05-27</p>
+            <p>数据来源：MES服务请求系统</p>
+        </div>
+    </div>
+
+    <script>
+        const commonLegend = { position: 'right', labels: { font: { size: 10 }, padding: 6, boxWidth: 12, boxHeight: 12 } };
+        const commonScaleFont = { ticks: { font: { size: 10 } }, title: { font: { size: 10 } } };
+
+        // 服务类型占比 - Pie
+        const svcLabels = ['巡检服务','故障处理','迁移升级','性能优化','部署交付','安全加固','备份恢复','产出文档','专家服务'];
+        const svcData = [150, 138, 100, 84, 72, 68, 36, 60, 7];
+        const svcColors = ['#3498db','#e74c3c','#f39c12','#9b59b6','#2ecc71','#e67e22','#1abc9c','#34495e','#c0392b'];
+
+        new Chart(document.getElementById('pieChart'), {
+            type: 'pie',
+            data: { labels: svcLabels, datasets: [{ data: svcData, backgroundColor: svcColors, borderWidth: 1.5, borderColor: '#fff' }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: commonLegend }, layout: { padding: 4 } }
+        });
+
+        // 服务人天消耗 - Bar
+        const manDays = [19, 22, 13, 11, 9, 9, 5, 8, 1];
+        new Chart(document.getElementById('barChart'), {
+            type: 'bar',
+            data: { labels: svcLabels, datasets: [{ label: '预估人天', data: manDays, backgroundColor: svcColors, borderWidth: 0, borderRadius: 4, barThickness: 18 }] },
+            options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ...commonScaleFont, grid: { color: 'rgba(0,0,0,0.04)' } }, y: { ...commonScaleFont, grid: { display: false } } }, layout: { padding: 4 } }
+        });
+
+        // 月度工时分布
+        new Chart(document.getElementById('monthChart'), {
+            type: 'bar',
+            data: { labels: ['2026-04','2026-05'], datasets: [{ label: '工时(h)', data: [1296.5, 1208.0], backgroundColor: ['#1565c0','#42a5f5'], borderWidth: 0, borderRadius: 6, barThickness: 50 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: commonScaleFont, y: { beginAtZero: true, ...commonScaleFont, grid: { color: 'rgba(0,0,0,0.04)' } } }, layout: { padding: 4 } }
+        });
+
+        // 人员工时分布 - Horizontal bar
+        const personNames = ['张腾飞','李汶隆','丁岩松','冯彦苇','莫乾一','聂大爽','张磊-昆明','陈伟棠'];
+        const personHours = [400, 368, 354, 347, 343, 322, 254.5, 116];
+        const personColors = ['#0d47a1','#1565c0','#1976d2','#1e88e5','#42a5f5','#64b5f6','#90caf9','#bbdefb'];
+        new Chart(document.getElementById('personChart'), {
+            type: 'bar',
+            data: { labels: personNames, datasets: [{ label: '工时(h)', data: personHours, backgroundColor: personColors, borderWidth: 0, borderRadius: 4, barThickness: 20 }] },
+            options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ...commonScaleFont, grid: { color: 'rgba(0,0,0,0.04)' } }, y: { ...commonScaleFont, grid: { display: false } } }, layout: { padding: 4 } }
+        });
+
+        // 技能雷达图
+        const radarLabels = ['张腾飞','李汶隆','丁岩松','冯彦苇','莫乾一','聂大爽','张磊-昆明','陈伟棠'];
+        const radarSkills = ['巡检','故障','优化','安全','迁移','部署','备份','文档'];
+        const radarData = {
+            '张腾飞': [1,1,1,1,1,1,1,1],
+            '李汶隆': [1,1,1,0,0,1,0,1],
+            '丁岩松': [1,0,1,1,1,1,1,1],
+            '冯彦苇': [1,1,0,1,1,1,1,1],
+            '莫乾一': [1,1,1,1,1,1,1,1],
+            '聂大爽': [1,1,1,1,1,1,1,1],
+            '张磊-昆明': [1,1,1,1,1,1,1,1],
+            '陈伟棠': [1,0,0,1,1,1,1,1]
+        };
+
+        const radarDatasets = radarLabels.map((name, i) => ({
+            label: name,
+            data: radarData[name],
+            borderColor: ['#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6','#1abc9c','#e67e22','#34495e'][i],
+            backgroundColor: ['rgba(231,76,60,0.1)','rgba(52,152,219,0.1)','rgba(46,204,113,0.1)','rgba(243,156,18,0.1)','rgba(155,89,182,0.1)','rgba(26,188,156,0.1)','rgba(230,126,34,0.1)','rgba(52,73,94,0.1)'][i],
+            borderWidth: 1.5,
+            pointRadius: 2
+        }));
+
+        new Chart(document.getElementById('radarChart'), {
+            type: 'radar',
+            data: { labels: radarSkills, datasets: radarDatasets.slice(0, 4) },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: { r: { beginAtZero: true, max: 1, ticks: { display: false }, grid: { color: 'rgba(0,0,0,0.08)' } } },
+                plugins: { legend: { position: 'bottom', labels: { font: { size: 9 }, padding: 4, boxWidth: 10 } } }
+            }
+        });
+
+        // 工作负荷分布 - grouped bar
+        new Chart(document.getElementById('workloadChart'), {
+            type: 'bar',
+            data: {
+                labels: ['≤8h','9-10h','>10h'],
+                datasets: [
+                    { label: '报工条数', data: [237, 2, 66], backgroundColor: ['#2ecc71','#f39c12','#e74c3c'], borderWidth: 0, borderRadius: 4, barThickness: 40 },
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { x: commonScaleFont, y: { beginAtZero: true, ...commonScaleFont, grid: { color: 'rgba(0,0,0,0.04)' }, title: { display: true, text: '报工条数', font: { size: 11 } } } },
+                layout: { padding: 4 }
+            }
+        });
+    </script>
+</body>
+</html>

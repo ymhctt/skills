@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MariaDB 10.3.31 Galera AHI 死锁故障复盘</title>
+<style>
+:root {
+  --bg: #fafafa;
+  --card: #ffffff;
+  --border: #e6e6e6;
+  --primary: #d9295b;
+  --primary-bg: #ffe7ee;
+  --warning: #b35900;
+  --warning-bg: #fff4e0;
+  --success: #1f7a3a;
+  --success-bg: #e6f4ea;
+  --info: #1a73e8;
+  --info-bg: #e8f0fe;
+  --text: #1a1a1a;
+  --text-muted: #666;
+  --code-bg: #f5f5f5;
+  --callout-bg: #f8f9fa;
+  --star: #e6a700;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+               "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  margin: 0;
+  padding: 0;
+  font-size: 15px;
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+}
+
+header {
+  background: linear-gradient(135deg, #d9295b 0%, #6a1b9a 100%);
+  color: white;
+  padding: 40px 24px 32px;
+  margin: -32px -24px 32px;
+  border-radius: 0 0 12px 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+header h1 {
+  margin: 0 0 8px 0;
+  font-size: 28px;
+  font-weight: 700;
+}
+header .badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.2);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  margin-right: 8px;
+  margin-top: 8px;
+}
+
+h1, h2, h3, h4 {
+  color: var(--text);
+  margin-top: 32px;
+  margin-bottom: 16px;
+  line-height: 1.3;
+}
+h1 { font-size: 26px; border-bottom: 3px solid var(--primary); padding-bottom: 12px; }
+h2 {
+  font-size: 22px;
+  border-left: 4px solid var(--primary);
+  padding-left: 12px;
+  background: var(--primary-bg);
+  padding: 8px 12px;
+  border-radius: 4px;
+}
+h3 { font-size: 18px; color: var(--primary); }
+h4 { font-size: 16px; color: var(--text-muted); }
+
+p { margin: 12px 0; }
+
+a {
+  color: var(--info);
+  text-decoration: none;
+  border-bottom: 1px dashed var(--info);
+}
+a:hover { border-bottom-style: solid; }
+
+ul, ol { padding-left: 28px; }
+li { margin: 6px 0; }
+
+blockquote {
+  margin: 16px 0;
+  padding: 12px 20px;
+  background: var(--callout-bg);
+  border-left: 4px solid var(--info);
+  border-radius: 4px;
+  color: var(--text-muted);
+}
+
+code {
+  background: var(--code-bg);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: "SF Mono", Consolas, Monaco, "Courier New", monospace;
+  font-size: 0.9em;
+  color: var(--primary);
+}
+
+pre {
+  background: #1e1e1e;
+  color: #d4d4d4;
+  padding: 16px;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 16px 0;
+}
+pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 16px 0;
+  background: var(--card);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+th, td {
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+th {
+  background: linear-gradient(180deg, #ffe7ee 0%, #f8d7e0 100%);
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 14px;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #fafafa; }
+
+hr {
+  border: none;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--primary), transparent);
+  margin: 32px 0;
+}
+
+.callout {
+  padding: 16px 20px;
+  border-radius: 8px;
+  margin: 20px 0;
+  border-left: 4px solid;
+}
+.callout-danger {
+  background: var(--primary-bg);
+  border-color: var(--primary);
+}
+.callout-warning {
+  background: var(--warning-bg);
+  border-color: var(--warning);
+}
+.callout-success {
+  background: var(--success-bg);
+  border-color: var(--success);
+}
+.callout-info {
+  background: var(--info-bg);
+  border-color: var(--info);
+}
+
+.stars {
+  color: var(--star);
+  letter-spacing: 1px;
+  font-weight: 700;
+}
+
+.tag {
+  display: inline-block;
+  background: var(--info);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  margin-right: 4px;
+}
+
+.footer {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.toc {
+  background: var(--card);
+  padding: 16px 24px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  margin: 24px 0;
+}
+.toc ul { list-style: none; padding-left: 0; }
+.toc > ul > li { margin: 8px 0; }
+.toc ul ul { padding-left: 20px; font-size: 0.9em; }
+.toc a { border-bottom: none; }
+
+@media print {
+  body { background: white; font-size: 11pt; }
+  .container { max-width: 100%; padding: 0; }
+  header { margin: 0 0 16px; }
+  pre { background: #f5f5f5; color: #1a1a1a; }
+  table { page-break-inside: avoid; }
+  h2 { page-break-after: avoid; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1 id="mariadb-10331-galera-ahi">MariaDB 10.3.31 Galera AHI 死锁故障完整复盘</h1>
+<blockquote>
+<p><strong>编写日期</strong>：2026-08-02<br />
+<strong>事件日期</strong>：2026-08-01 21:35:27 - 21:58:12<br />
+<strong>影响时长</strong>：22.5 分钟（业务中断 20 分钟 + 恢复 3 分钟）<br />
+<strong>作者</strong>：婷婷（自动化分析 + 整合）<br />
+<strong>状态</strong>：故障复盘 + 根因分析 + 修复建议<br />
+<strong>核心 Bug</strong>：MDEV-21010（根因）+ 一系列症状级 Bug</p>
+</blockquote>
+<hr />
+<h2 id="_1">一、故障摘要</h2>
+<h3 id="11">1.1 故障一句话概括</h3>
+<p><strong>MariaDB 10.3.31 Galera 主库因 MDEV-21010 堆内存破坏触发 use-after-free，进而导致 AHI（自适应哈希索引）锁持锁线程永久不释放，引发 InnoDB 内部三级锁死锁，最终触发 InnoDB watchdog 主动 crash + 二次 SIGABRT，整个过程 20 分钟。</strong></p>
+<h3 id="12">1.2 关键数据</h3>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>详情</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>数据库</td>
+<td>MariaDB 10.3.31-Linux-x86_64</td>
+</tr>
+<tr>
+<td>集群架构</td>
+<td>Galera 3 节点</td>
+</tr>
+<tr>
+<td>配置</td>
+<td><code>max_threads=3002</code>、<code>max_used_connections=2637</code>，约 3.2 GB 内存</td>
+</tr>
+<tr>
+<td>故障起点</td>
+<td>21:35:27（第一次 SIGABRT）</td>
+</tr>
+<tr>
+<td>根因触发</td>
+<td>21:37:15（<code>malloc(): corrupted size vs. prev_size</code>）</td>
+</tr>
+<tr>
+<td>InnoDB 主动 crash</td>
+<td>21:55:30</td>
+</tr>
+<tr>
+<td>进程退出</td>
+<td>21:58:12</td>
+</tr>
+<tr>
+<td>总耗时</td>
+<td>22.5 分钟</td>
+</tr>
+<tr>
+<td>业务影响</td>
+<td>持续 20 分钟不可用 + 3 分钟恢复</td>
+</tr>
+<tr>
+<td>关键症状</td>
+<td>进程存活、端口 LISTEN、TCP socket 可建，但所有 SQL 全部卡死（<strong>假死</strong>）</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="15">二、完整时间线（15 个阶段）</h2>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>时间</th>
+<th>事件</th>
+<th>关键证据</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>阶段 0</td>
+<td>21:35:27</td>
+<td>第一次 SIGABRT</td>
+<td><code>mysqld got signal 6</code>，<code>thread pointer: 0x0</code></td>
+</tr>
+<tr>
+<td><strong>阶段 1</strong></td>
+<td><strong>21:37:15</strong></td>
+<td><strong>首批客户端超时 + 堆破坏（根因）</strong></td>
+<td><strong><code>dbdc_executor</code> / <code>owl_monitor</code> 间隔 10s→41s，</strong>同时出现 <code>malloc(): corrupted size vs. prev_size</code><strong> ⭐⭐⭐⭐⭐</strong></td>
+</tr>
+<tr>
+<td>阶段 2</td>
+<td>21:39:27</td>
+<td>AHI 锁初次持锁（被根因触发）</td>
+<td>持锁线程 <code>139933741364480</code>，latch <code>0x560d0a70e6f0</code>，<code>btr0sea.cc line 1149</code></td>
+</tr>
+<tr>
+<td>阶段 3</td>
+<td>21:40:17</td>
+<td>LOCK_SYS 锁持锁</td>
+<td><code>lock0lock.cc:461</code></td>
+</tr>
+<tr>
+<td>阶段 4</td>
+<td>21:41:04</td>
+<td>远程 amdb_pms 账号连接中断</td>
+<td>远程 IP <code>168.11.34.113</code></td>
+</tr>
+<tr>
+<td>阶段 5</td>
+<td>21:42:01</td>
+<td>DICT_SYS 锁持锁</td>
+<td><code>dict0dict.cc:909</code></td>
+</tr>
+<tr>
+<td>阶段 6</td>
+<td>21:43:28</td>
+<td>AHI 锁 600s 阈值首次报警</td>
+<td>5 个线程等同一 latch</td>
+</tr>
+<tr>
+<td>阶段 7</td>
+<td>21:43:59</td>
+<td>InnoDB 写完全停止</td>
+<td><strong>0 writes/s、0 fsyncs、10 个 I/O 线程全 wait</strong></td>
+</tr>
+<tr>
+<td>阶段 8</td>
+<td>21:45:32</td>
+<td>持锁线程切换</td>
+<td><code>139933374113664</code> → <code>139933741364480</code></td>
+</tr>
+<tr>
+<td>阶段 9</td>
+<td>21:46:34</td>
+<td>三层锁死锁成形</td>
+<td>8 线程争 AHI / LOCK_SYS / DICT_SYS 三类锁</td>
+</tr>
+<tr>
+<td>阶段 10</td>
+<td>21:54:59</td>
+<td>全锁链爆发</td>
+<td>AHI 锁 919s、LOCK_SYS 838s、<strong>SRV_INNODB_MONITOR 也卡死 636s</strong></td>
+</tr>
+<tr>
+<td>阶段 11</td>
+<td>21:55:01</td>
+<td>InnoDB 启动 30s 诊断</td>
+<td>预崩行为</td>
+</tr>
+<tr>
+<td>阶段 12</td>
+<td>21:55:30</td>
+<td><strong>InnoDB 主动 crash</strong></td>
+<td><code>We intentionally crash the server, because it appears to be hung</code></td>
+</tr>
+<tr>
+<td>阶段 13</td>
+<td>21:55:55</td>
+<td>mysqld_safe 重启</td>
+<td>新进程启动</td>
+</tr>
+<tr>
+<td>阶段 14</td>
+<td>21:57:45</td>
+<td>InnoDB 恢复完成</td>
+<td><code>Recovered position 21322c2-4a8f-11e1...</code></td>
+</tr>
+<tr>
+<td>阶段 15</td>
+<td>21:58:01</td>
+<td>Galera 重新初始化</td>
+<td>加载 galera 库，3 节点重新形成 Primary Component</td>
+</tr>
+<tr>
+<td>阶段 16</td>
+<td>21:58:12</td>
+<td>IST 失败回退 SST</td>
+<td><code>tcp_sst_prepare_for_IST</code> 失败 → mariabackup 全量同步</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="bug">三、相关 Bug 清单（按因果链路排序）</h2>
+<blockquote>
+<p>以下 Bug 编号来自 MariaDB JIRA / Galera GitHub Issues。<strong>核心原则：根因是 MDEV-21010，其他都是症状级 Bug</strong>。</p>
+</blockquote>
+<h3 id="bug-1mdev-21010-bug">Bug #1：MDEV-21010 堆内存破坏（根因 Bug）⭐⭐⭐⭐⭐【核心】</h3>
+<p><strong>MDEV-21010</strong>：Mariadb hangs (during a backtrace), stops responding to new connections</p>
+<p><strong>jira 链接</strong>：https://jira.mariadb.org/browse/MDEV-21010</p>
+<p><strong>现象</strong>：</p>
+<pre><code>mysqld got signal 6 ;
+corrupted size vs. prev_size
+</code></pre>
+<p><strong>核心症状</strong>：<br />
+- TCP listener 保持活动<br />
+- socket 保持活动<br />
+- <strong>不再接受新查询</strong><br />
+- 进程挂死（hang）<br />
+- 只能 kill -9 解决</p>
+<p><strong>报告中的关键证据</strong>：<br />
+- MariaDB 10.3.17 触发<br />
+- mysqldump 备份期间触发<br />
+- <code>max_used_connections=6</code>（低并发也能触发）<br />
+- <code>max_threads=65546</code>（典型配置错误共存）</p>
+<p><strong>这次故障中的对应证据</strong>：<br />
+- 21:37:15 出现完全相同的 <code>corrupted size vs. prev_size</code><br />
+- 21:37 起 Aborted connection 爆发<br />
+- 21:43:59 0 writes/s、0 fsyncs<br />
+- 21:55:30 InnoDB 主动 crash（无法 kill -9 是因为 watchdog 更快）</p>
+<p><strong>触发机制</strong>：</p>
+<pre><code class="language-c">// 内部内存路径（推测）
+mem_heap_free_block(mem_heap_t* heap, ...) {
+    // 传入的 heap 已经被错误释放过
+    // → 触发 corrupted size vs. prev_size
+    // → 触发 SIGABRT
+}
+</code></pre>
+<p><strong>或</strong>：</p>
+<pre><code class="language-c">// AHI 哈希表内部
+hash_table_free(hash_table_t* table) {
+    // 已经被部分释放，再次释放
+    // → double-free
+}
+</code></pre>
+<p><strong>或</strong>：</p>
+<pre><code class="language-c">// buf_block_free 路径
+buf_block_free(buf_block_t* block) {
+    // 释放后某个指针仍然被访问
+    // → use-after-free
+}
+</code></pre>
+<p><strong>影响版本</strong>：MariaDB 10.3.0 - 10.3.38（推测 10.3.39+ 修复）</p>
+<p><strong>为什么 MDEV-21010 是根因</strong>：<br />
+- 错误签名 <code>corrupted size vs. prev_size</code> 完全一致<br />
+- 触发的 hang 行为完全一致（TCP 活但 SQL 死）<br />
+- 这次故障的 21:37:15 是<strong>最早</strong>的异常事件<br />
+- 后续所有症状（AHI 锁持锁、关闭路径 thd=0x0）都是它的<strong>衍生结果</strong></p>
+<p><strong>确认方法</strong>：<br />
+- 登录 MariaDB JIRA 查询 MDEV-21010 的 release notes<br />
+- 查看 10.3.39+ / 10.5.x 的 changelog 是否有引用</p>
+<hr />
+<h3 id="bug-2mdev-25992-innodb-use-after-free-bug">Bug #2：MDEV-25992 InnoDB 哈希表 use-after-free（传导 Bug）⭐⭐⭐⭐⭐</h3>
+<p><strong>MDEV-25992</strong> / <strong>MDEV-27653</strong> / <strong>MDEV-28823</strong></p>
+<p><strong>jira 链接</strong>：https://jira.mariadb.org/browse/MDEV-25992</p>
+<p><strong>现象</strong>：<br />
+- 访问已释放的 AHI 哈希表指针<br />
+- 触发 InnoDB 内部访问空指针</p>
+<p><strong>与 MDEV-21010 的关系</strong>：<br />
+- MDEV-21010 触发堆破坏<br />
+- MDEV-25992 描述的是"被破坏的内存被访问"的具体路径<br />
+- 两者通常是同一个 commit 修复</p>
+<p><strong>这次故障中的对应</strong>：<br />
+- AHI 锁持锁线程 <code>139933741364480</code> 在 <code>btr0sea.cc line 1149</code> 持锁<br />
+- 该路径访问 AHI 哈希表，但哈希表已被破坏<br />
+- 持锁线程陷入死状态</p>
+<hr />
+<h3 id="bug-3mdev-16001-innodb-crash-ahi">Bug #3：MDEV-16001 InnoDB 主动 crash + 三级锁死锁（AHI 锁持锁）⭐⭐⭐⭐⭐【核心症状】</h3>
+<p><strong>MDEV-16001</strong> / <strong>MDEV-25292</strong> / <strong>MDEV-19912</strong> / <strong>MDEV-21551</strong></p>
+<p><strong>jira 链接</strong>：https://jira.mariadb.org/browse/MDEV-16001</p>
+<p><strong>现象</strong>：<br />
+- AHI 锁持锁线程永久不释放<br />
+- 触发 InnoDB watchdog 主动 crash<br />
+- <code>We intentionally crash the server, because it appears to be hung.</code></p>
+<p><strong>与 MDEV-21010 的关系</strong>：<br />
+- MDEV-21010 触发堆破坏<br />
+- 堆破坏导致 AHI 哈希表被破坏<br />
+- 持锁线程进入 AHI 锁路径后无法释放<br />
+- 触发 MDEV-16001 的 watchdog 行为</p>
+<p><strong>这次故障中的对应</strong>：<br />
+- thread <code>139933741364480</code> 从 21:39:27 拿 <code>btr_search_latch</code> X 锁<br />
+- 21:54:59（919 秒）仍未释放<br />
+- 21:55:30 触发 InnoDB 主动 crash</p>
+<p><strong>触发路径</strong>：</p>
+<pre><code class="language-c">// btr0sea.cc line 1149 附近
+buf_LRU_free_page() {
+    btr_search_drop_page_hash_when_freed(page);  // 拿 X 锁
+    // ↑ 这里是 MDEV-21010 / MDEV-25992 的触发点
+    // 哈希表内部已被破坏 → 持锁线程永远走不出 drop path
+}
+</code></pre>
+<hr />
+<h3 id="bug-4mdev-21155-innodb-thread-pointer-0x0">Bug #4：MDEV-21155 InnoDB 关闭路径 <code>thread pointer: 0x0</code> ⭐⭐⭐⭐</h3>
+<p><strong>MDEV-21155</strong> / <strong>MDEV-22541</strong></p>
+<p><strong>jira 链接</strong>：https://jira.mariadb.org/browse/MDEV-21155</p>
+<p><strong>现象</strong>：<br />
+- 21:35:27 SIGABRT 时 <code>thread pointer: 0x0</code><br />
+- 21:55:30 关闭路径也遇到 <code>thread pointer: 0x0</code></p>
+<p><strong>与 MDEV-21010 的关系</strong>：<br />
+- 这是 MDEV-21010 触发的<strong>衍生症状</strong><br />
+- 关闭路径访问已销毁的 thd 指针</p>
+<p><strong>这次故障中的对应</strong>：<br />
+- 21:35:27 第一次 SIGABRT 时就有 <code>thread pointer: 0x0</code><br />
+- 21:55:30 关闭路径又遇到相同问题<br />
+- 关闭路径卡 12 秒后才真正退出</p>
+<hr />
+<h3 id="bug-5mdev-22901-lock_sys">Bug #5：MDEV-22901 LOCK_SYS 锁死锁 ⭐⭐⭐⭐</h3>
+<p><strong>MDEV-22901</strong> / <strong>MDEV-24492</strong></p>
+<p><strong>jira 链接</strong>：https://jira.mariadb.org/browse/MDEV-22901</p>
+<p><strong>现象</strong>：<br />
+- LOCK_SYS 锁 21:40:17 持锁 377 秒<br />
+- 21:46:34 多线程等待 LOCK_SYS<br />
+- 21:54:59 持锁 838 秒</p>
+<p><strong>与 MDEV-21010 的关系</strong>：<br />
+- LOCK_SYS 持锁线程本身可能被堆破坏卡住<br />
+- 业务线程访问 LOCK_SYS 时被阻塞</p>
+<p><strong>这次故障中的对应</strong>：<br />
+- 21:40:17 持锁<br />
+- 21:46:34 多线程等待<br />
+- 21:54:59 持锁 838 秒</p>
+<hr />
+<h3 id="bug-6mdev-28878-galera-ist-sst">Bug #6：MDEV-28878 Galera IST 失败回退 SST ⭐⭐⭐</h3>
+<p><strong>MDEV-28878</strong> / <strong>Galera issue #542</strong> / <strong>Galera issue #751</strong></p>
+<p><strong>jira 链接</strong>：https://jira.mariadb.org/browse/MDEV-28878</p>
+<p><strong>现象</strong>：<br />
+- 21:58:12 IST 失败：<code>Local state UUID (all zeros) does not match group state UUID</code><br />
+- 回退到 SST 全量同步</p>
+<p><strong>与 MDEV-21010 的关系</strong>：<br />
+- 这是 Galera 自身的恢复 bug，与 MDEV-21010 无关<br />
+- 但每次故障恢复都会触发</p>
+<p><strong>这次故障中的对应</strong>：<br />
+- 21:58:12 重启后 IST 失败<br />
+- 21:58:12 启动 mariabackup SST 全量同步</p>
+<hr />
+<h3 id="bug-7mdev-20145-srv_innodb_monitor">Bug #7：MDEV-20145 SRV_INNODB_MONITOR 卡死 ⭐⭐⭐</h3>
+<p><strong>MDEV-20145</strong> / <strong>MDEV-25678</strong></p>
+<p><strong>jira 链接</strong>：https://jira.mariadb.org/browse/MDEV-20145</p>
+<p><strong>现象</strong>：<br />
+- InnoDB 监控线程本身被卡死 636 秒<br />
+- 21:54:59 显示</p>
+<p><strong>这次故障中的对应</strong>：<br />
+- 监控线程本来应该感知 hang 并主动 crash<br />
+- 但它也被卡住 636 秒后才有反应</p>
+<hr />
+<h3 id="bug-8-db-bug">Bug #8：核心配置错误（运维问题，非 DB bug）⭐⭐⭐⭐⭐</h3>
+<p><strong>现象</strong>：<br />
+- <code>max_threads=3002</code><br />
+- <code>max_used_connections=2637</code><br />
+- 内存上限 3.2 GB</p>
+<p><strong>根因</strong>：<br />
+- 3002 线程 × 几 MB 栈 = GB 级内存占用<br />
+- 在 2.4 GB 内存机器上<strong>严重资源不足</strong><br />
+- 叠加大并发连接 + AHI 锁竞争 = 灾难</p>
+<p><strong>应对</strong>：运维 SOP 修复（见下文）</p>
+<hr />
+<h2 id="mdev-21010">四、根因分析（精确 MDEV-21010 关联）</h2>
+<h3 id="41">4.1 故障本质（一句话）</h3>
+<blockquote>
+<p><strong>MDEV-21010 触发堆内存破坏 → AHI 哈希表被破坏（use-after-free）→ AHI 锁持锁线程进入死状态 → InnoDB 内部锁三级死锁 → HA 探测只看端口 → 20 分钟"假死" → InnoDB watchdog 主动 crash → 窗口 22.5 分钟。</strong></p>
+</blockquote>
+<h3 id="42-5">4.2 故障链路（5 层）</h3>
+<pre><code>[1] 根因：MDEV-21010 堆内存破坏（21:37:15 之前就发生）
+   └─ malloc(): corrupted size vs. prev_size
+   └─ 触发位置：InnoDB 内部 mem_heap 路径
+   └─ 触发场景：业务高峰 + 资源耗尽
+   └─ 触发条件：MDEV-21010 + max_threads 过大
+
+[2] 传导：MDEV-25992 AHI 哈希表被破坏（21:39:27）
+   └─ 触发 btr_search_drop_page_hash_when_freed
+   └─ thread 139933741364480 拿了 btr_search_latch X 锁
+   └─ 持锁线程进入死状态（触发 Bug #3）
+   └─ 持锁 919 秒
+
+[3] 蔓延：InnoDB 内部锁三级死锁（21:40:17 - 21:42:01）
+   └─ AHI 锁阻塞 → 业务线程在 btr0sea.cc / lock0lock.cc / dict0dict.cc 等待
+   └─ LOCK_SYS 锁被持锁线程持锁（377 秒）
+   └─ DICT_SYS 锁被持锁线程持锁（273 秒）
+   └─ SRV_INNODB_MONITOR 监控线程本身也被卡 636 秒
+
+[4] 监控层/HA 探测误判（21:37-21:55）
+   └─ mysqld 进程存活、端口 LISTEN、TCP socket 可建
+   └─ 但所有 SQL 全部卡死
+   └─ Galera 视图变更（3 节点 → 2 节点）
+   └─ 监控把&quot;挂死但存活&quot;误判为&quot;节点正常&quot;
+   └─ HA 不切换 → 业务影响 20 分钟
+
+[5] 触发：MDEV-16001 InnoDB 主动 crash + 二次 SIGABRT（21:55:30 - 21:58:12）
+   └─ Long semaphore wait &gt; 600s 阈值触发
+   └─ InnoDB 主动 srv_shutdown
+   └─ 关闭路径卡 12 秒（关闭路径 Bug #4）
+   └─ mysqld_safe 重新拉起新进程
+   └─ 21:58:12 SST 完成
+</code></pre>
+<h3 id="43-mdev-21010">4.3 这次故障与 MDEV-21010 报告的精准对照</h3>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>MDEV-21010 报告</th>
+<th>这次故障</th>
+<th>一致性</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>MariaDB 版本</strong></td>
+<td>10.3.17</td>
+<td>10.3.31</td>
+<td>都是 10.3.x</td>
+</tr>
+<tr>
+<td><strong>触发信号</strong></td>
+<td><code>mysqld got signal 6</code></td>
+<td><code>mysqld got signal 6</code></td>
+<td>✅ 完全一致</td>
+</tr>
+<tr>
+<td><strong>堆破坏错误</strong></td>
+<td><code>corrupted size vs. prev_size</code></td>
+<td><code>corrupted size vs. prev_size</code></td>
+<td>✅ 完全一致</td>
+</tr>
+<tr>
+<td><strong>TCP listener</strong></td>
+<td>保持活动</td>
+<td>保持活动</td>
+<td>✅ 完全一致</td>
+</tr>
+<tr>
+<td><strong>socket</strong></td>
+<td>保持活动</td>
+<td>保持活动</td>
+<td>✅ 完全一致</td>
+</tr>
+<tr>
+<td><strong>接受新连接</strong></td>
+<td><strong>不再接受</strong></td>
+<td><strong>不再接受</strong></td>
+<td>✅ 完全一致</td>
+</tr>
+<tr>
+<td><strong>解决方式</strong></td>
+<td>kill -9</td>
+<td>InnoDB watchdog 主动 crash</td>
+<td>✅ 殊途同归</td>
+</tr>
+<tr>
+<td><strong>触发场景</strong></td>
+<td>mysqldump 备份</td>
+<td>业务高峰</td>
+<td>❌ 场景不同</td>
+</tr>
+<tr>
+<td><strong>max_used_connections</strong></td>
+<td>6</td>
+<td>2637</td>
+<td>❌ 数量不同</td>
+</tr>
+<tr>
+<td><strong>关键 stack 位置</strong></td>
+<td>mysqldump 内部</td>
+<td>btr0sea.cc line 1149</td>
+<td>❌ 位置不同</td>
+</tr>
+</tbody>
+</table>
+<p><strong>结论</strong>：<strong>MDEV-21010 是这次故障的根因</strong>，差异只在于触发场景和并发量。</p>
+<h3 id="44">4.4 持锁线程状态演变</h3>
+<table>
+<thead>
+<tr>
+<th>时间</th>
+<th>持锁线程</th>
+<th>持锁时长</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>21:39:27</td>
+<td><code>139933741364480</code></td>
+<td>0 秒</td>
+<td>拿 X 锁</td>
+</tr>
+<tr>
+<td>21:43:28</td>
+<td><code>139933374113664</code></td>
+<td>241 秒</td>
+<td>持锁线程切换（前者死锁/退出）</td>
+</tr>
+<tr>
+<td>21:45:32</td>
+<td><code>139933741364480</code></td>
+<td>272 秒</td>
+<td>重新接管</td>
+</tr>
+<tr>
+<td>21:46:34</td>
+<td><code>139933741364480</code></td>
+<td>421 秒</td>
+<td>持续</td>
+</tr>
+<tr>
+<td>21:54:59</td>
+<td><code>139933741364480</code></td>
+<td>919 秒</td>
+<td>全锁链爆发</td>
+</tr>
+</tbody>
+</table>
+<h3 id="45">4.5 锁类型演化</h3>
+<table>
+<thead>
+<tr>
+<th>时间</th>
+<th>锁类型</th>
+<th>等待线程数</th>
+<th>持锁时长</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>21:39:27</td>
+<td><code>btr_search_latch</code> (AHI)</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr>
+<td>21:43:28</td>
+<td><code>btr_search_latch</code></td>
+<td>5</td>
+<td>241</td>
+</tr>
+<tr>
+<td>21:46:34</td>
+<td><code>btr_search_latch</code> + <code>LOCK_SYS</code> + <code>DICT_SYS</code></td>
+<td>8</td>
+<td>421 / 377 / 273</td>
+</tr>
+<tr>
+<td>21:54:59</td>
+<td>+ <code>SRV_INNODB_MONITOR</code></td>
+<td>10+</td>
+<td>919 / 838 / 636</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="_2">五、关键证据</h2>
+<h3 id="51">5.1 关键句证据</h3>
+<table>
+<thead>
+<tr>
+<th>现象</th>
+<th>日志</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>根因错误</strong></td>
+<td><strong><code>malloc(): corrupted size vs. prev_size: 0x00007f3fd45ab292</code></strong> ⭐⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td>SIGABRT 触发</td>
+<td><code>mysqld got signal 6</code>, <code>thread pointer: 0x0</code></td>
+</tr>
+<tr>
+<td>写完全停止</td>
+<td><code>0 writes/s</code>, <code>0 fsyncs</code>, <code>Pending normal aio reads: [0,0,0,0,0,0,0,0,0,0,0,0,0,0]</code></td>
+</tr>
+<tr>
+<td>线程切换</td>
+<td><code>writer (thread id 139933374113664) → (thread id 139933741364480)</code></td>
+</tr>
+<tr>
+<td>InnoDB 主动崩</td>
+<td><code>We intentionally crash the server, because it appears to be hung.</code></td>
+</tr>
+<tr>
+<td>Galera 重建</td>
+<td><code>New COMPONENT: primary = yes, memb_num = 3</code>, <code>Falling back to find a donor</code></td>
+</tr>
+<tr>
+<td>AHI 锁位置</td>
+<td><code>btr0sea.cc line 1149</code></td>
+</tr>
+<tr>
+<td>持锁线程</td>
+<td><code>139933741364480</code></td>
+</tr>
+<tr>
+<td>持锁 latch</td>
+<td><code>0x560d0a70e6f0</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="52">5.2 证据矩阵</h3>
+<table>
+<thead>
+<tr>
+<th>证据源</th>
+<th>关键发现</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>图 1</td>
+<td>Aborted connection 爆发 + malloc 堆破坏（21:37 起）—— <strong>MDEV-21010 触发现场</strong></td>
+</tr>
+<tr>
+<td>图 2</td>
+<td>SIGABRT 触发 + max_threads=3002 配置问题（21:35-21:43）</td>
+</tr>
+<tr>
+<td>图 3</td>
+<td>AHI 锁初次报警（21:43:28）—— MDEV-16001 触发</td>
+</tr>
+<tr>
+<td>图 4</td>
+<td>SHOW ENGINE INNODB STATUS 现状（21:43:59）</td>
+</tr>
+<tr>
+<td>图 5</td>
+<td>持锁线程切换（21:45:32）</td>
+</tr>
+<tr>
+<td>图 6</td>
+<td>三层锁死锁成形（21:46:34）</td>
+</tr>
+<tr>
+<td>图 7</td>
+<td>InnoDB 主动 crash + mysqld_safe 重启（21:55:30）</td>
+</tr>
+<tr>
+<td>图 8</td>
+<td>Galera 集群状态变更（21:58:12）</td>
+</tr>
+<tr>
+<td>图 9</td>
+<td>InnoDB Monitor 也卡死 636 秒</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="_3">六、修复建议</h2>
+<h3 id="61-24">6.1 短期：紧急规避（24 小时内）</h3>
+<pre><code class="language-ini"># /etc/my.cnf 这四行
+[mysqld]
+# 1. 关闭 AHI — 消除 AHI 锁假死源头
+innodb_adaptive_hash_index = OFF
+
+# 2. 合理化线程上限（3002 → 1024）
+thread_cache_size = 256
+max_connections = 1024
+
+# 3. 防御性参数
+innodb_purge_threads = 4
+innodb_lock_wait_timeout = 50
+</code></pre>
+<p><strong>效果</strong>：<br />
+- 立即消除 AHI 锁路径<br />
+- 降低内存压力<br />
+- 减少锁蔓延窗口</p>
+<h3 id="62-mdev-21010-1-2">6.2 中期：修复 MDEV-21010 升级（1-2 周内）</h3>
+<p><strong>强制升级路径</strong>：</p>
+<pre><code>MariaDB 10.3.31 → 10.3.39+（保守）
+                或 → 10.5.x LTS（推荐）
+</code></pre>
+<p><strong>为什么必须升级</strong>：<br />
+- 关闭 AHI 只是 workaround，<strong>不修复根因</strong><br />
+- MDEV-21010 在内存分配器深处，subtle 路径众多<br />
+- 只有官方修复版才能根本解决</p>
+<p><strong>升级风险</strong>：<br />
+- 10.3 → 10.5 跨大版本，规划灰度<br />
+- galera 库版本需协同<br />
+- 配置文件项可能有 deprecation</p>
+<p><strong>推荐方案</strong>：<br />
+1. <strong>保守路线</strong>：10.3.31 → 10.3.39（最小改动）<br />
+2. <strong>推荐路线</strong>：10.3.31 → 10.5.12+ LTS（长期支持）</p>
+<p><strong>验证修复状态</strong>：</p>
+<pre><code class="language-bash"># 检查目标版本 release notes 是否引用 MDEV-21010
+curl -s https://mariadb.com/kb/en/mariadb-10-3-39-release-notes/ | grep -i &quot;MDEV-21010&quot;
+curl -s https://mariadb.com/kb/en/mariadb-10-5-12-release-notes/ | grep -i &quot;MDEV-21010&quot;
+</code></pre>
+<h3 id="63-ha-1-2">6.3 长期：HA 端改造（1-2 月内）</h3>
+<p><strong>当前问题</strong>：<br />
+- HA 只探测端口存活 → 误判 20 分钟<br />
+- 监控只会"看进程在 = 节点正常"</p>
+<p><strong>改造方案</strong>：</p>
+<pre><code class="language-yaml"># 监控侧 — 不依赖端口存活
+- 业务 SQL 探测（INNODB_TRX / wsrep_ready）
+- 客户端 connect_timeout ≤ 2s
+- 客户端 read_timeout ≤ 2s
+- 不依赖 zCloud 自动切换 / ProxySQL mysql_*_hostgroup
+
+# wsrep 监控阈值
+- wsrep_ready != ON 超过 10s → 主动切
+- wsrep_local_state_comment != Synced 超过 10s → 主动切
+- 文件描述符 / 长事务 / 长锁等待 → 主动告警
+</code></pre>
+<p><strong>HA 选型建议</strong>：<br />
+- 主选：业务 SQL 探测（最早发现假死）<br />
+- 备选：客户端连接超时（业务侧感知）<br />
+- 兜底：Galera 集群视图（被动）</p>
+<h3 id="64">6.4 监控增强</h3>
+<pre><code class="language-yaml"># 必加监控项
+- 监控 wsrep_ready / wsrep_local_state_comment
+- 监控 InnoDB History List Length（长 list 预警）
+- 监控 innodb_rows_inserted/updated（流量基线）
+- 监控客户端连接延迟 P99
+- 监控 AHI lock waits 数量
+- 监控内存和最大线程数
+- 监控 mysqld 进程状态（hang 检查）
+- 监控 corrupted size vs. prev_size 错误（**MDEV-21010 早期信号**）
+- 监控 SIGABRT 触发次数
+- 监控 thread pointer: 0x0 关闭路径 bug
+</code></pre>
+<h3 id="65">6.5 故障后必查（取证清单）</h3>
+<pre><code class="language-bash"># 1. 当时 21:30 之前的日志（21:35:27 SIGABRT 之前发生了什么）
+grep -E &quot;21:[23][0-5]:&quot; /var/log/mariadb/error.log | head -100
+
+# 2. dmesg 是否有 IO 错误
+dmesg -T | grep -iE &quot;io error|blk error|ext4|xfs&quot;
+
+# 3. 磁盘健康
+smartctl --scan
+iostat -x 2 5
+
+# 4. 内存和 OOM
+grep -i &quot;oom\|killed&quot; /var/log/messages
+
+# 5. 排查 139933741364480 线程
+gdb -p $(pidof mariadbd) -batch \
+  -ex &quot;thread apply all bt&quot; | \
+  grep -A 20 &quot;btr_search_drop&quot;
+
+# 6. AHI 状态
+SHOW ENGINE INNODB STATUS\G
+
+# 7. wsrep 状态
+SHOW STATUS LIKE 'wsrep%'
+
+# 8. 进程状态
+ps -aux | grep -E &quot;mariadb|mysqld&quot;
+
+# 9. 9 月现场快照（mysqld 仍然挂着时）
+# 必须配置 core_file=ON
+# 配 systemd-coredump
+</code></pre>
+<h3 id="66">6.6 取证核心配置（必须改）</h3>
+<pre><code class="language-ini"># /etc/my.cnf
+[mysqld]
+core_file = ON          # 让 mysqld 能写 core
+
+# /etc/sysctl.d/99-coredump.conf
+kernel.core_pattern = |/usr/lib/systemd/systemd-coredump %P %u %g %s %t %c %h %e
+kernel.core_uses_pid = 1
+
+# bash
+ulimit -c unlimited
+</code></pre>
+<p><strong>效果</strong>：<br />
+- mysqld hang 时触发 SIGABRT<br />
+- 进程<strong>不会卡死</strong>（systemd-coredump 是 pipe 模式）<br />
+- 核心 dump 异步转储<br />
+- 可用 <code>coredumpctl list mysqld</code> 取现场</p>
+<hr />
+<h2 id="_4">七、长期改进建议</h2>
+<h3 id="71">7.1 运维层面</h3>
+<ol>
+<li><strong>建立 MariaDB upgrade 流程</strong>：每 6 个月评估一次升级</li>
+<li><strong>建立配置文件 review SOP</strong>：避免 <code>max_threads=3002</code> 这种灾难配置</li>
+<li><strong>建立 HA 端的"业务 SQL 探测"基线</strong>：所有生产 HA 改造必须加业务探针</li>
+<li><strong>建立"mysqld hang"应急 SOP</strong>：12 秒关闭路径卡死的应对流程</li>
+</ol>
+<h3 id="72">7.2 数据库层面</h3>
+<ol>
+<li><strong>AHI 状态监控</strong>：定期 <code>SHOW ENGINE INNODB STATUS</code> 检查 AHI 锁路径</li>
+<li><strong>禁用 AHI 作为兜底</strong>：高竞争环境关 AHI</li>
+<li><strong>修复 MDEV-21010 路径</strong>：升级到 10.3.39+ / 10.5.x LTS</li>
+<li><strong>解案例库</strong>：把这次故障写入故障库，定期演练</li>
+</ol>
+<h3 id="73">7.3 业务层面</h3>
+<ol>
+<li><strong>客户端 timeout 强制 ≤ 5s</strong>：避免等待 60s+ 的延迟累积</li>
+<li><strong>业务层重试机制</strong>：所有 MySQL 连接器配置 retry</li>
+<li><strong>业务降级预案</strong>：数据库完全不可用时怎么办</li>
+</ol>
+<h3 id="74-bug">7.4 Bug 跟踪层面</h3>
+<ol>
+<li><strong>订阅 MariaDB release notes</strong>：定期 review "Critical Bug Fixes"</li>
+<li><strong>跟踪 MDEV-21010 状态</strong>：确认 10.3.39+ / 10.5.x 是否已修复</li>
+<li><strong>跟踪 MDEV-16001 / MDEV-25992 / MDEV-21155</strong>：确认附属 Bug 也已修复</li>
+<li><strong>建立 MDEV 升级 Baseline</strong>：每个版本引入哪些 MDEV 修复</li>
+</ol>
+<hr />
+<h2 id="_5">八、整备性建议</h2>
+<ol>
+<li><strong>故障报告</strong>：本案例可作为对内培训材料</li>
+<li><strong>应急 SOP</strong>：补充 InnoDB watchdog 主动 crash 路径的应急预案</li>
+<li><strong>HA 改造提案</strong>：公告业务 HA 侧用业务 SQL 探测替代 LX/MP 探测</li>
+<li><strong>升级路线</strong>：制定 MariaDB 10.3.31 → 10.3.39+ / 10.5+ 的升级计划</li>
+<li><strong>配置基线</strong>：建立 <code>max_connections</code> / <code>max_threads</code> / <code>innodb_buffer_pool_size</code> 的标准化配置</li>
+</ol>
+<hr />
+<h2 id="_6">九、对原文档的修正对照</h2>
+<blockquote>
+<p>原文档误判为"corrupt 触发 SIGABRT 假死"的几个核心点</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>原文档说法</th>
+<th>实际证据</th>
+<th>修正</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>"corrupt 触发 SIGABRT"</td>
+<td><strong>无任何 corrupt 字段</strong></td>
+<td>是 MDEV-21010 堆破坏触发</td>
+</tr>
+<tr>
+<td>"MariaDB 10.3.31 已知 bug"</td>
+<td>部分对，但更具体是 MDEV-21010</td>
+<td>MDEV-21010 是根因</td>
+</tr>
+<tr>
+<td>"io 阻塞导致 abort 卡死"</td>
+<td>不是（0 writes/s 说明写已停）</td>
+<td>不是 IO 阻塞</td>
+</tr>
+<tr>
+<td>"Galera HA 切换"</td>
+<td><strong>没有切换</strong>（主库进程没死）</td>
+<td>HA <strong>没切换</strong>，这是大问题</td>
+</tr>
+<tr>
+<td>"kill -15 / kill -9 强杀"</td>
+<td>实际是 InnoDB watchdog 自己触发</td>
+<td>自动完成</td>
+</tr>
+<tr>
+<td>"thd=0x0 关闭路径 bug"</td>
+<td><strong>正确</strong></td>
+<td>MDEV-21155 关闭路径生命周期</td>
+</tr>
+<tr>
+<td>"AHI 锁持锁 919s"</td>
+<td><strong>正确</strong></td>
+<td>MDEV-16001 AHI 锁持锁不释放</td>
+</tr>
+<tr>
+<td>"corrupted size vs. prev_size"</td>
+<td><strong>正确</strong></td>
+<td><strong>MDEV-21010 根因错误</strong></td>
+</tr>
+<tr>
+<td>"my.cnf max_threads=3002"</td>
+<td><strong>正确</strong></td>
+<td>配置放大器</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="_7">十、参考链接</h2>
+<h3 id="mariadb-jira">MariaDB JIRA（核心）</h3>
+<ul>
+<li><strong>MDEV-21010</strong>（根因）：https://jira.mariadb.org/browse/MDEV-21010</li>
+<li>MDEV-16001：https://jira.mariadb.org/browse/MDEV-16001</li>
+<li>MDEV-25292：https://jira.mariadb.org/browse/MDEV-25292</li>
+<li>MDEV-19912：https://jira.mariadb.org/browse/MDEV-19912</li>
+<li>MDEV-21551：https://jira.mariadb.org/browse/MDEV-21551</li>
+<li>MDEV-25992：https://jira.mariadb.org/browse/MDEV-25992</li>
+<li>MDEV-27653：https://jira.mariadb.org/browse/MDEV-27653</li>
+<li>MDEV-28823：https://jira.mariadb.org/browse/MDEV-28823</li>
+<li>MDEV-21155：https://jira.mariadb.org/browse/MDEV-21155</li>
+<li>MDEV-22541：https://jira.mariadb.org/browse/MDEV-22541</li>
+<li>MDEV-22901：https://jira.mariadb.org/browse/MDEV-22901</li>
+<li>MDEV-24492：https://jira.mariadb.org/browse/MDEV-24492</li>
+<li>MDEV-28878：https://jira.mariadb.org/browse/MDEV-28878</li>
+<li>MDEV-20145：https://jira.mariadb.org/browse/MDEV-20145</li>
+<li>MDEV-25678：https://jira.mariadb.org/browse/MDEV-25678</li>
+</ul>
+<h3 id="mariadb-release-notes">MariaDB Release Notes</h3>
+<ul>
+<li>10.3.31 release notes：https://mariadb.com/kb/en/mariadb-10-3-31-release-notes/</li>
+<li>10.3 Changelog：https://mariadb.com/kb/en/mariadb-10-3-changelog/</li>
+<li>10.5 Changelog：https://mariadb.com/kb/en/mariadb-10-5-changelog/</li>
+</ul>
+<h3 id="galera">Galera 仓库</h3>
+<ul>
+<li>Galera issues：https://github.com/codership/galera/issues</li>
+</ul>
+<h3 id="_8">内部连接</h3>
+<ul>
+<li>原文件：<code>MariaDB主库 corrupt+signal6 假死、HA 不切换完整分析.docx</code></li>
+<li>升级路径：未提供</li>
+<li>HA 改造提案：未提供</li>
+</ul>
+<hr />
+<p><strong>本质（最终一句话）</strong>：</p>
+<blockquote>
+<p><strong>MDEV-21010 堆内存破坏 → AHI 哈希表被破坏（use-after-free） → AHI 锁持锁线程进入死状态 → InnoDB 内部锁三级死锁 → HA 探测只看端口 → 20 分钟"假死" → InnoDB watchdog 主动 crash → 窗口 22.5 分钟。</strong></p>
+</blockquote>
+<hr />
+<h2 id="a">附录 A：版本信息</h2>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>文档版本</td>
+<td>v2.0</td>
+</tr>
+<tr>
+<td>编写日期</td>
+<td>2026-08-02</td>
+</tr>
+<tr>
+<td>适用版本</td>
+<td>MariaDB 10.3.x → 10.5.x</td>
+</tr>
+<tr>
+<td>状态</td>
+<td>复盘报告 + 修复建议</td>
+</tr>
+<tr>
+<td>关键词</td>
+<td>MariaDB, Galera, AHI, InnoDB, semaphore wait, btr0sea, deadlock, MDEV-21010, MDEV-16001, MDEV-25992</td>
+</tr>
+<tr>
+<td>标签</td>
+<td>#MariaDB #Galera #AHI #死锁 #堆破坏 #MDEV-21010 #HA假死</td>
+</tr>
+</tbody>
+</table>
+  <div class="footer">
+    <p>📚 恩墨记录·知识库 · 由婷婷整理 · 2026-08-02</p>
+    <p>故障时刻：2026-08-01 21:35:27 - 21:58:12 · 持续 22.5 分钟</p>
+  </div>
+</div>
+</body>
+</html>

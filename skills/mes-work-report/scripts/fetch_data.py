@@ -166,7 +166,10 @@ def _extract_list(data) -> list[dict]:
 
 
 def fetch_service_requests(person_ids: list[int], from_date: str, to_date: str) -> list[dict]:
-    """获取指定人员在时间范围内的服务请求列表。person_ids 为空时拉全量。"""
+    """获取指定人员在时间范围内的服务请求列表。person_ids 为空时拉全量。
+
+    v0.5.1 CLI: `mes service request list` → `mes sr list`（去掉 request 子命令）
+    """
     start_time = f"{from_date} 00:00:00"
     end_time = f"{to_date} 23:59:59"
     all_items = []
@@ -174,7 +177,7 @@ def fetch_service_requests(person_ids: list[int], from_date: str, to_date: str) 
     if person_ids:
         for pid in person_ids:
             data = run_mes([
-                "service", "request", "list",
+                "sr", "list",
                 "--person-id", str(pid),
                 "--start-time", start_time,
                 "--end-time", end_time,
@@ -183,7 +186,7 @@ def fetch_service_requests(person_ids: list[int], from_date: str, to_date: str) 
             all_items.extend(_extract_list(data))
     else:
         data = run_mes([
-            "service", "request", "list",
+            "sr", "list",
             "--start-time", start_time,
             "--end-time", end_time,
             "--page-size", "100",
@@ -193,8 +196,11 @@ def fetch_service_requests(person_ids: list[int], from_date: str, to_date: str) 
 
 
 def fetch_service_stats() -> dict:
-    """获取全局服务统计卡片（待处理咨询/工单/计划/未关闭工单数）。"""
-    data = run_mes(["dashboard", "service"])
+    """获取全局服务统计卡片（待处理咨询/工单/计划/未关闭工单数）。
+
+    v0.5.1 CLI: `mes dashboard service` → `mes dashboard sr`
+    """
+    data = run_mes(["dashboard", "sr"])
     return data if isinstance(data, dict) else {}
 
 

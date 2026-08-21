@@ -60,6 +60,27 @@
       "zip_url": "https://lightmake.site/api/v1/download?slug=ontology",
       "source": "skillhub",
       "version": "0.1.2"
+    },
+    "vision-recognition-ocr": {
+      "name": "Vision Recognition Ocr",
+      "zip_url": "https://api.skillhub.cn/api/v1/download?slug=vision-recognition-ocr",
+      "source": "community",
+      "version": "1.0.1",
+      "installedAt": "2026-06-01T12:39:49Z"
+    },
+    "web-tools-guide": {
+      "name": "web-tools-guide",
+      "zip_url": "https://api.skillhub.cn/api/v1/download?slug=web-tools-guide",
+      "source": "community",
+      "version": "1.0.2",
+      "installedAt": "2026-07-27T08:59:40Z"
+    },
+    "find-skill-skillhub": {
+      "name": "find skill",
+      "zip_url": "https://api.skillhub.cn/api/v1/download?slug=find-skill-skillhub",
+      "source": "community",
+      "version": "1.0.2",
+      "installedAt": "2026-07-27T08:59:43Z"
     }
   }
 }

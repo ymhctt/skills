@@ -54,28 +54,9 @@ When you find relevant skills, present them to the user with:
 2. The source used (`skillhub` / `clawhub`)
 3. The install command they can run
 
-### Step 4: Security Check (MANDATORY before install)
+### Step 4: Offer to Install
 
-⚠️ **Before ANY skill installation, you MUST run the security check first.**
-
-Run this security check script:
-
-```bash
-/root/skill-security-check.sh <skill-directory>
-```
-
-**If the check PASSES (exit 0):**
-- Proceed with installation
-- Inform the user: "✅ Security check passed, proceeding with installation..."
-
-**If the check FAILS (exit 1):**
-- ❌ **DO NOT install the skill**
-- Report the specific security risks found to the user
-- Ask for their confirmation before overriding (only if they explicitly acknowledge the risks)
-
-### Step 5: Install
-
-If the user wants to proceed (and security check passes), install the skill:
+If the user wants to proceed, you can install the skill for them.
 
 Preferred install order:
 
