@@ -73,14 +73,14 @@
       "zip_url": "https://api.skillhub.cn/api/v1/download?slug=web-tools-guide",
       "source": "community",
       "version": "1.0.2",
-      "installedAt": "2026-07-27T08:59:40Z"
+      "installedAt": "2026-08-27T02:57:47Z"
     },
     "find-skill-skillhub": {
       "name": "find skill",
       "zip_url": "https://api.skillhub.cn/api/v1/download?slug=find-skill-skillhub",
       "source": "community",
       "version": "1.0.2",
-      "installedAt": "2026-07-27T08:59:43Z"
+      "installedAt": "2026-08-27T02:57:49Z"
     }
   }
 }

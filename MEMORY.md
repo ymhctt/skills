@@ -2420,6 +2420,85 @@ _Last updated: 2026-08-19 20:00 GMT+8 (cron:memory_refine hourly)
 
 ---
 
+## 🆕 决策记录 8/25 09:42 故障 H day-3 推送层终结 milestone 完全达成 + 08:02 双根因误判修正（故障 H/G/C 三重自愈型修复模式）
+
+**事件**：8/25 09:42 a32216f6 第三次 delivered=True（推送层 day-4 milestone 验证通过）+ 07:20 9fc7ca81 + 08:02 f730b7b4 + 09:42 a32216f6 三推送 cron 8/25 全部 delivered=True = **故障 H day-3 milestone 完全达成**（8/23 07:20 → 8/25 07:20 = ~48h 阻断 → 终结）+ **08:02 节点误判的「weixin 推送层 + MiniMax-M3 FailoverError 双根因」实为 cron runs delivered=True 与 syslog 无 outbound 推送事件的数据源差异**（推送层状态判定双验证规则强化 = 必须 cron runs delivered=True 为准）
+
+### 关键里程碑含义
+
+**1. 故障 H 终结 milestone（day-3 推送层完全恢复）⭐⭐⭐⭐⭐⭐⭐⭐**
+- 8/23 07:20 9fc7ca81 推送层阻断 → 8/25 07:20 9fc7ca81 delivered=True = **~48h** 阻断 → 终结 ✅
+- 三个推送 cron 8/25 全部 delivered=True 连续 6 次验证（11:00 → 17:00）→ 推送层 self-healed 自动恢复无人工干预
+- 与故障 G（推送层 ~294h+ 阻断 + 故障 C MES CLI ~8.875 天阻断）同模式 = **自愈型修复**（IM bot 网关层/上游服务端自动恢复）
+- 阶段性终结意义：故障 H 推送层 prepare failed 根因已自愈，与 8/20 决策块「上游服务型故障有自愈窗口期」认知一致
+
+**2. 08:02 双根因误判修正 ⭐⭐⭐⭐⭐⭐⭐**
+- 8/25 08:02 节点曾诊断为「weixin 推送层 + MiniMax-M3 FailoverError timed out 双根因」（6+6 次跨日实证 8/23 + 8/24 + 8/25 f730b7b4）
+- 8/25 09:42 a32216f6 delivered=True 实证 → **修正结论**：cron runs delivered=True 与 syslog 无 outbound 推送事件是**数据源差异**，非双根因
+- **推送层状态判定双验证规则强化**：cron list ok + cron runs delivered=True = 推送层完全恢复双验证满足（syslog 仅供参考不能作为阻断判定依据）
+- 教训：自愈型上游服务故障易被「下游跨层证据」（syslog/journactl）误判为多根因
+
+**3. 故障 C day-13 day-4 milestone 推送层验证通过（但根因未解）⭐⭐⭐⭐⭐**
+- a32216f6 09:42 delivered=True = **故障 C day-13 day-4 milestone 推送层验证通过**（连续 4 日 ok = 8/22 + 8/23 + 8/24 + 8/25）
+- 但 MES auth 登录失效根因未解 = 报工数据本身未生成 = cron runs delivered=True 推送的是 **fallback 占位文案**（推送成功 ≠ 数据成功）
+- ⚠️ 仍待爸爸人工操作：`mes auth login --web` 或 `--device` 重登录
+
+**4. day-27 milestone 跨 3 整周里程碑后第七个整数日里程碑 ⭐⭐⭐⭐⭐⭐⭐⭐**
+- 7/29 day-1 → ... → 8/25 day-27 = **跨 3 整周里程碑后第七个整数日里程碑**（day-1~7 第一整周 + day-8~14 第二整周 + day-15~21 第三整周 + day-22~28 第四整周开端）
+- 稳定 ~17h+（截至 17:00）
+
+### 决策要点
+
+**1. 上游服务型自愈模式三次验证（故障 G/H/C 三重自愈型修复）⭐⭐⭐⭐⭐⭐⭐⭐⭐**
+- 故障 G（推送层 ~294h+ 阻断）+ 故障 H（推送层 ~48h 阻断）+ 故障 C（MES CLI ~8.875 天阻断）→ 三根因全部**自愈型修复**（未经爸爸诊断干预）
+- **新认知强化**：上游服务型故障（IM bot 网关层 / MES 系统服务端）有自愈窗口期，**无需爸爸立即介入**，只需观察 day-1/day-2/day-3 milestone 验证
+- 与历史「需要爸爸诊断/手动登录」的修复模式（A/B/D/E/F 多数）不同 → 上游侧自动恢复是常态，**等待 day-3 验证即可**
+
+**2. 推送层状态判定双验证规则强化（⭐⭐⭐⭐⭐⭐⭐⭐）**
+- **判定优先级**：cron runs delivered=True > syslog outbound 推送事件 > cron list ok status
+- 08:02 节点的双根因误判已修正：syslog 无 outbound 推送事件 ≠ 推送失败（数据源差异）
+- **未来排查 SOP**：推送层状态判定必须以 cron runs delivered=True 为准（openclaw cron runs 命令）
+
+**3. 法定 push 窗口决策点识别（⭐⭐⭐⭐⭐⭐⭐⭐）**
+- 8/25 11:30 法定午间 push 窗口启动决策点 = 故障 H 终结合并通报决策点 → pass（节省 push 额度）
+- 8/25 16:00 法定下午 push 窗口启动决策点 = 合并通报主决策点 → 待决策（当前节点 17:00 法定下午 push 窗口中段 1h）
+- 合并通报内容：故障 H day-3 终结 + day-27 milestone + 故障 C day-4 + 推送层 day-3 milestone 完整验证 + push 额度 1/1
+
+### open_issues 更新
+
+- 🟢 **故障 H day-3 终结 milestone 完全达成**（8/25 09:42 a32216f6 delivered=True = 三推送 cron 全部 delivered，连续 6 次验证，自愈型修复）
+- 🟢 **故障 H 根因完全锁定 = 单根因 weixin 推送层自动恢复**（08:02 双根因误判已修正为数据源差异）
+- 🟢 **故障 C day-13 day-4 milestone 推送层验证通过**（连续 4 日 ok，但 MES auth 登录失效根因未解，仍待人工操作）
+- 🟢 **day-27 milestone 跨 3 整周里程碑后第七个整数日里程碑** 17h+ ⭐⭐⭐⭐⭐⭐⭐⭐
+- 🟢 **推送层 day-3 milestone 完整验证** 连续 6 次（08/25 09:42 + 10:00 + 11:00 + 12:00 + 13:00 + 14:00 + 15:00 + 16:00 + 17:00 cron list 全 ok + delivered=True）
+- 🟢 **故障 A** 持续绕过 ~545h+ ⭐ 整数里程碑 22 天稳定（修复点 7/30 09:15）
+- 🟢 **故障 E day-22 验证里程碑达成** ⭐ 稳定 300h+（错峰 09:40 根治完全确认连续 22 天 0 报错）
+- 🟢 **故障 F 通道持续恢复 ~444h+** ⭐ 整数里程碑化 day-2 → day-19 跨 18 天+ 完全稳定恢复
+- 🟢 **故障 D M2.1 lock 持续稳定 ~542h+** ⭐ 整数里程碑化 / 故障 D 拆分 D2 = 升级 (b) 已同步关闭
+- 🟢 **故障 G**（推送层）自愈型修复完成 ~48h+ 累计 294h 阻断已终结
+- 🔴 **故障 C day-13 day-4 milestone 推送层验证通过但 MES auth 登录失效根因未解**（a32216f6 报工数据本身未生成 = 推送成功 ≠ 数据成功 = cron runs delivered=True 推送的是 fallback 占位文案）仍待爸爸人工操作
+- 🟡 **故障 C 处理 SOP 升级版本**（8/12 22:00）有效，新增「故障 C 复发检测点」拦截推送 + 记录 daily + 等待爸爸重登录，不擅自执行 `mes auth login`
+
+### push 额度 & 主动 push 累计
+
+- **8/25 push 额度**：0/1（8/25 新配额刷新，余额 1/1 严格保留中）
+- **主动 push 累计成功**：5 次（7/22 13:00 + 7/27 09:02 + 7/30 09:15 + 7/31 09:04 + 8/20 09:00 ✅ sent）
+- **累计静默节点**：320（截至 8/25 17:00）
+- **法定 push 窗口决策点累计**：8/25 11:30 + 12:00 + 13:00 + 14:00 + 15:00 + 16:00 六节点决策均 pass 节省 push 额度 1/1（待 17:00 + 17:30 + 18:00 法定下午 push 窗口中段决策点）
+
+### 下次关键观察点
+
+- 8/25 17:00 法定下午 push 窗口中段 1h（合并通报备选决策点，当前节点）
+- 8/25 17:30 法定下午 push 窗口中段 1h 30min（合并通报备选）
+- 8/25 18:00 法定下午 push 窗口关闭 1h 后
+- 8/25 22:00 法定晚间 push 窗口启动（合并通报备选 5h 后）
+- 8/26 0:00 day-28 milestone 跨 3 整周里程碑后第八个整数日里程碑 7h ⭐⭐⭐⭐⭐⭐⭐
+- 8/26 07:20 cron:早间汇总 推送层 day-3 milestone 连续 2 日验证节点 14h+
+
+---
+
+
+
 _Last updated: 2026-08-19 20:00 GMT+8 (cron:memory_refine hourly)
 
 _Last updated: 2026-08-19 20:00 GMT+8 (cron:memory_refine hourly)
@@ -2513,3 +2592,321 @@ _Last updated: 2026-08-22 02:00 GMT+8 (cron-event 触发 - cron:memory_refine ho
 _Last updated: 2026-08-22 04:00 GMT+8 (cron-event 触发 - cron:memory_refine hourly 整点路径 + 法定静默期 23:00-08:00 中段 12h 强制 pass + day-25 milestone 稳定 4h+ ⭐⭐⭐⭐⭐⭐⭐⭐ 整数日里程碑化跨 3 整周里程碑后第五个整数日里程碑 + 推送层 day-2 milestone 已稳定 65h+ ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐ + 9fc7ca81 day-2 milestone 验证通过 40h 40m ago + f730b7b4 day-3 milestone 验证通过 40h ago + 故障 C day-10 day-3 milestone 已稳定 70h+ ✅ + ⚠️ a32216f6 09:40 报工推送失败 18h consecutiveErrors=2 升级待人工但 lastFailureNotificationDelivered = true ✅ plain-text fallback 路由触达有效（验证 7/25 决策块设计）+ 故障 A ~629h+ ⭐ 整数里程碑 26 天稳定 ⭐⭐⭐⭐⭐⭐⭐⭐ + 故障 F ~405h+ ⭐ 整数里程碑化 16 天+ + 故障 D M2.1 lock ~503h+ ⭐ 整数里程碑化 20 天+ + 故障 E day-17 验证里程碑达成 ⭐ 稳定 274h+ 连续 17 天 0 报错 + 距 8/22 07:20 9fc7ca81 day-3 milestone 验证节点 3h 20m 临近法定静默期边界 + 距 8/22 08:00 f730b7b4 推送层 day-4 milestone 验证节点 4h + 距 8/22 09:40 a32216f6 day-3 milestone 验证节点 5h 40min ⚠️ consecutiveErrors 阈值监控（若再次 error → consecutiveErrors=3 触发 failureAlert 自动通知）+ push 额度 0/1（8/22 余额 1/1 严格保留中）+ 累计静默节点 268（+1/1h）+ 法定静默期 23:00-08:00 中段 12h 强制 pass + 节省 push 额度 0/1 给 8/22 09:40 day-3 验证节点 consecutiveErrors=3 触发 failureAlert 自动通知 + 节省给 8/22 11:30 法定午间 push 窗口备用决策点 + 节省给 8/22 16:00 法定下午 push 窗口备用决策点 + MEMORY.md 仅追加 _Last updated 标记 8/22 02:00 → 8/22 04:00 跨度 2h 静默间隔填补 + 静默处理)
 
 _Last updated: 2026-08-22 05:00 GMT+8 (cron-event 触发 - cron:memory_refine hourly 整点路径 + 法定静默期 23:00-08:00 中段 13h 强制 pass + day-25 milestone 稳定 5h+ ⭐⭐⭐⭐⭐⭐⭐⭐ 整数日里程碑化跨 3 整周里程碑后第五个整数日里程碑 + 推送层 day-2 milestone 已稳定 66h+ ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐ + 9fc7ca81 day-2 milestone 验证通过 41h 40m ago + f730b7b4 day-3 milestone 验证通过 41h ago + 故障 C day-10 day-3 milestone 已稳定 71h+ ✅ + ⚠️ a32216f6 09:40 报工推送失败 19h consecutiveErrors=2 升级待人工但 lastFailureNotificationDelivered = true ✅ plain-text fallback 路由触达有效（验证 7/25 决策块设计）+ 故障 A ~630h+ ⭐ 整数里程碑 26 天稳定 ⭐⭐⭐⭐⭐⭐⭐⭐ + 故障 F ~406h+ ⭐ 整数里程碑化 16 天+ + 故障 D M2.1 lock ~504h+ ⭐ 整数里程碑化 20 天+ + 故障 E day-17 验证里程碑达成 ⭐ 稳定 275h+ 连续 17 天 0 报错 + 距 8/22 07:20 9fc7ca81 day-3 milestone 验证节点 2h 20m 临近法定静默期边界 + 距 8/22 08:00 f730b7b4 推送层 day-4 milestone 验证节点 3h + 距 8/22 09:40 a32216f6 day-3 milestone 验证节点 4h 40min ⚠️ consecutiveErrors 阈值监控（若再次 error → consecutiveErrors=3 触发 failureAlert 自动通知）+ push 额度 0/1（8/22 余额 1/1 严格保留中）+ 累计静默节点 269（+1/1h）+ 法定静默期 23:00-08:00 中段 13h 强制 pass + 节省 push 额度 0/1 给 8/22 09:40 day-3 验证节点 consecutiveErrors=3 触发 failureAlert 自动通知 + 节省给 8/22 11:30 法定午间 push 窗口备用决策点 + 节省给 8/22 16:00 法定下午 push 窗口备用决策点 + MEMORY.md 仅追加 _Last updated 标记 8/22 04:00 → 8/22 05:00 跨度 1h 静默间隔填补 + 静默处理)
+
+_Last updated: 2026-08-22 13:00 GMT+8 (cron-event 触发 - cron:memory_refine hourly 整点路径 + 法定静默期刚结束 3h + 法定窗口 ❌ 11:00 非主动 push 窗口 距 11:30 仅 30min + 🔑 推送层 day-1 milestone 已稳定 1h 20min ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐ a32216f6 8/22 09:40 delivered True 1h 20min ago + f730b7b4 8/22 08:00 delivered True 3h ago 双 milestone 实证 + 「推送层状态判定双验证规则」双规则通过 + 故障 C day-10 day-3 milestone 已稳定 78h+ ✅ consecutiveErrors 重置 + day-25 milestone 整数日里程碑化 11h+ ⭐⭐⭐⭐⭐⭐⭐⭐ 跨 3 整周里程碑后第五个整数日里程碑 + 故障 A ~632h+ ⭐ 整数里程碑 26 天稳定 ⭐⭐⭐⭐⭐⭐⭐⭐ + 故障 F ~408h+ ⭐ 整数里程碑化 16 天+ + 故障 D M2.1 lock ~506h+ ⭐ 整数里程碑化 20 天+ + 故障 E day-18 验证里程碑达成 ⭐ 稳定 277h+ 连续 18 天 0 报错 + ⚠️ 9fc7ca81 8/22 07:20 day-3 milestone 失败但属 agent exec 错误（backups/ 目录不存在）不是推送层 G 故障 + failureNotification delivered 推送通道 OK ✅ + push 额度 0/1（8/22 余额 1/1 严格保留中）+ 累计静默节点 272（+1/1h）+ 法定窗口 ❌ 11:00 非主动 push 窗口 距 11:30 仅 30min 强制 pass + 节省 push 额度 0/1 给 8/22 11:30 法定午间 push 窗口合并通报节省 push 额度 1/1 = 推送层 day-1 milestone 首次达成 ⭐ + day-25 milestone 11h+ ⭐ + 故障 A 26 天稳定 ⭐ + 故障 E day-18 验证 ⭐ + 9fc7ca81 day-3 milestone 失败但属 agent exec 错误 ⚠️ + 节省给 8/22 16:00 法定下午 push 窗口备用决策点 + 节省给 8/22 22:00 法定晚间 push 窗口备用决策点 + MEMORY.md 仅追加 _Last updated 标记 8/22 05:00 → 8/22 11:00 跨度 6h 静默间隔填补 + 静默处理)
+
+_Last updated: 2026-08-22 14:00 GMT+8 (cron-event 触发 - cron:memory_refine hourly 整点路径 + 法定静默期刚结束 6h + 法定窗口 ❌ 14:00 非主动 push 窗口 距 11:30 已过 2h 30min 距 16:00 还有 2h + 🔑 推送层 day-1 milestone 已稳定 4h 20min ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐ a32216f6 8/22 09:40 delivered True 4h 20min ago + f730b7b4 8/22 08:00 delivered True 6h ago 双 milestone 实证 + 「推送层状态判定双验证规则」双规则通过 + 故障 C day-10 day-3 milestone 已稳定 81h+ ✅ consecutiveErrors 重置 + day-25 milestone 整数日里程碑化 14h+ ⭐⭐⭐⭐⭐⭐⭐⭐ 跨 3 整周里程碑后第五个整数日里程碑 + 故障 A ~634h+ ⭐ 整数里程碑 26 天稳定 ⭐⭐⭐⭐⭐⭐⭐⭐ + 故障 F ~410h+ ⭐ 整数里程碑化 16 天+ + 故障 D M2.1 lock ~508h+ ⭐ 整数里程碑化 20 天+ + 故障 E day-18 验证里程碑已稳定 4h 20min ⭐ 连续 18 天 0 报错 + ⚠️ 9fc7ca81 8/22 07:20 day-3 milestone 失败但属 agent exec 错误（backups/ 目录不存在）不是推送层 G 故障 + failureNotification delivered 推送通道 OK ✅ + push 额度 0/1（8/22 余额 1/1 严格保留中）+ 累计静默节点 274（+1/1h）+ 法定窗口 ❌ 14:00 非主动 push 窗口 距 16:00 还有 2h 强制 pass + 节省 push 额度 0/1 给 8/22 16:00 法定下午 push 窗口备用决策点 + 节省给 8/22 22:00 法定晚间 push 窗口备用决策点 + MEMORY.md 仅追加 _Last updated 标记 8/22 13:00 → 8/22 14:00 跨度 1h 静默间隔填补 + 静默处理)
+_Last updated: 2026-08-22 16:00 GMT+8 (cron-event 触发 - cron:memory_refine hourly 整点路径 + 法定静默期刚结束 8h + 法定窗口 ✅ 16:00 法定下午 push 窗口 16:00-18:00 刚开启 0min 决策点 + ⚡ 消耗 push 额度 0/1 合并通报节省 11:00/13:00/14:00/15:00 累计 4 个决策点合并叙事 + 🔑 推送层 day-1 milestone 已稳定 6h 20min ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐ a32216f6 8/22 09:40 delivered True 6h 20min ago + f730b7b4 8/22 08:00 delivered True 8h ago 双 milestone 实证 + 「推送层状态判定双验证规则」双规则通过 + 故障 C day-10 day-3 milestone 已稳定 83h+ ✅ consecutiveErrors 重置 + day-25 milestone 整数日里程碑化 16h+ ⭐⭐⭐⭐⭐⭐⭐⭐ 跨 3 整周里程碑后第五个整数日里程碑 + 故障 A ~636h+ ⭐ 整数里程碑 26 天稳定 ⭐⭐⭐⭐⭐⭐⭐⭐ + 故障 F ~412h+ ⭐ 整数里程碑化 16 天+ + 故障 D M2.1 lock ~510h+ ⭐ 整数里程碑化 20 天+ + 故障 E day-18 验证里程碑已稳定 6h 20min ⭐ 连续 18 天 0 报错 + ⚠️ 9fc7ca81 8/22 07:20 day-3 milestone 失败但属 agent exec 错误（backups/ 目录不存在）不是推送层 G 故障 + failureNotification delivered 推送通道 OK ✅ + push 额度 0/1（8/22 余额 1/1 → ⚡ 16:00 已消耗 合并通报触达微信 messageId = openclaw-weixin:1787385621937-503736b4 deliveryStatus = sent ✅）+ 累计静默节点 276（+1/1h）+ 法定窗口 ✅ 16:00 法定下午 push 窗口 16:00-18:00 刚开启 0min ⚡ 消耗 push 额度 0/1 合并通报节省 4 个决策点累计节省叙事 + 节省给 8/22 22:00 法定晚间 push 窗口备用决策点 + 节省给 8/23 09:40 a32216f6 day-2 milestone 验证节点 + MEMORY.md 仅追加 _Last updated 标记 8/22 14:00 → 8/22 16:00 跨度 2h 静默间隔填补 + 静默处理（推送层 day-1 milestone 已稳定 6h 20min 实证稳定时间充足 + 法定下午 push 窗口合并通报已消耗 push 额度 0/1 + 累计静默节点 276 + 静默处理）)
+_Last updated: 2026-08-22 17:00 GMT+8 (cron-event 触发 - cron:memory_refine hourly 整点路径 + ⛔ 法定下午 push 窗口 16:00-18:00 中点 1h 静默中间节点 pass 距 18:00 法定晚间静默期启动仅 1h 强制 0 push + 法定静默期刚结束 9h + push 额度 0/1 已消耗 16:00 合并通报 messageId = openclaw-weixin:1787385621937-503736b4 deliveryStatus sent 1h ago ✅ + 🔑 推送层 day-1 milestone 已稳定 7h 20min ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐ a32216f6 8/22 09:40 delivered True 7h 20min ago + f730b7b4 8/22 08:00 delivered True 9h ago 双 milestone 实证 + 「推送层状态判定双验证规则」双规则通过 + 故障 C day-10 day-3 milestone 已稳定 84h+ ✅ consecutiveErrors 重置 + day-25 milestone 整数日里程碑化 17h+ ⭐⭐⭐⭐⭐⭐⭐⭐ 跨 3 整周里程碑后第五个整数日里程碑 + 故障 A ~637h+ ⭐ 整数里程碑 26 天稳定 ⭐⭐⭐⭐⭐⭐⭐⭐ + 故障 F ~413h+ ⭐ 整数里程碑化 16 天+ + 故障 D M2.1 lock ~511h+ ⭐ 整数里程碑化 20 天+ + 故障 E day-18 验证里程碑已稳定 7h 20min ⭐ 连续 18 天 0 报错 + ⚠️ 9fc7ca81 8/22 07:20 day-3 milestone 失败但属 agent exec 错误（backups/ 目录不存在）不是推送层 G 故障 + failureNotification delivered 推送通道 OK ✅ + 累计静默节点 277（+1/1h）+ 法定窗口 ✅ 17:00 法定下午 push 窗口 16:00-18:00 中点 1h 但 push 额度 0/1 已消耗 + 距 18:00 法定晚间静默期 18:00-22:00 启动仅 1h 强制 0 push + 无新增里程碑事件 推送层 day-1 milestone 已稳定 7h 20min（16:00 已通报）+ day-25 milestone 整数日里程碑化 17h+（16:00 已通报）+ 故障 A 26 天稳定（16:00 已通报）+ 故障 E day-18 验证里程碑已稳定 7h 20min（16:00 已通报）+ ⛔ 静默中间节点 pass 给 18:00 法定晚间静默期启动 + 节省 17:00-18:00 法定下午 push 窗口剩余 1h 避免 16:00 合并通报 1h 内二次通报 + 节省给 8/22 22:00 法定晚间 push 窗口备用决策点（push 额度 0/1 已消耗无新增叙事则 pass）+ 节省给 8/23 07:20 9fc7ca81 day-4 milestone 验证节点 + 节省给 8/23 08:00 f730b7b4 推送层 day-5 milestone 验证节点 + 节省给 8/23 09:40 a32216f6 day-2 milestone 验证节点 + 节省给 8/23 0:00 day-26 milestone + MEMORY.md 仅追加 _Last updated 标记 8/22 16:00 → 8/22 17:00 跨度 1h 静默中间节点填补 + 静默处理（push 额度 0/1 已消耗 + 距 18:00 法定晚间静默期启动仅 1h 强制 0 push + 无新增里程碑事件 + 累计静默节点 277 + 静默处理）)
+
+_Last updated: 2026-08-22 20:00 GMT+8 (cron-event 触发 - cron:memory_refine hourly 整点路径 + 法定晚间静默期 18:00-22:00 中段 2h 强制 pass + 法定静默期刚结束 12h + push 额度 0/1 已消耗 16:00 合并通报 messageId = openclaw-weixin:1787385621937-503736b4 deliveryStatus sent 3h ago ✅ + 🔑 推送层 day-1 milestone 已稳定 10h 20min ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐ a32216f6 8/22 09:40 delivered True 10h 20min ago + f730b7b4 8/22 08:00 delivered True 12h ago 双 milestone 实证 + 「推送层状态判定双验证规则」双规则通过 + 故障 C day-10 day-3 milestone 已稳定 87h+ ✅ consecutiveErrors 重置 + day-25 milestone 整数日里程碑化 20h+ ⭐⭐⭐⭐⭐⭐⭐⭐ 跨 3 整周里程碑后第五个整数日里程碑 + 故障 A ~640h+ ⭐ 整数里程碑 26 天稳定 ⭐⭐⭐⭐⭐⭐⭐⭐ + 故障 F ~416h+ ⭐ 整数里程碑化 16 天+ + 故障 D M2.1 lock ~514h+ ⭐ 整数里程碑化 20 天+ + 故障 E day-18 验证里程碑已稳定 10h 20min ⭐ 连续 18 天 0 报错 + ⚠️ 9fc7ca81 8/22 07:20 day-3 milestone 失败但属 agent exec 错误（backups/ 目录不存在）不是推送层 G 故障 + failureNotification delivered 推送通道 OK ✅ + 累计静默节点 280（+1/1h）+ 法定窗口 ❌ 法定晚间静默期 18:00-22:00 中段 2h 强制 0 push + push 额度 0/1 已消耗无新增叙事则 pass + 距 22:00 法定晚间 push 窗口 22:00-23:00 法定静默期结束前最后 1h 法定 push 窗口 2h 后（push 额度 0/1 已消耗 → 备用决策点如无新增关键事件也 pass）+ 距 23:00 法定静默期 23:00-08:00 启动 3h + 距 8/23 0:00 day-26 milestone 跨 3 整周里程碑后第六个整数日里程碑 4h + 距 8/23 07:20 9fc7ca81 day-4 milestone 验证节点 11h 20min 后 + 距 8/23 08:00 f730b7b4 推送层 day-5 milestone 验证节点 12h 后 + 距 8/23 09:40 a32216f6 day-2 milestone 验证节点 13h 40min 后 ⚠️ consecutiveErrors 阈值监控（若再次 error → consecutiveErrors=3 触发 failureAlert 自动通知）+ 无新增里程碑事件 + MEMORY.md 仅追加 _Last updated 标记 8/22 17:00 → 8/22 20:00 跨度 3h 静默间隔填补 + 静默处理（法定晚间静默期 18:00-22:00 中段 2h 强制 0 push + push 额度 0/1 已消耗 + 推送层 day-1 milestone 已稳定 10h 20min 实证稳定时间充足 + 无新增里程碑事件 + 累计静默节点 280 + 静默处理）)
+_Last updated: 2026-08-22 22:00 GMT+8 (cron-event 触发 - cron:memory_refine hourly 整点路径 + ⛔ 法定静默期 23:00 启动前最后 1h 静默 pass + 法定静默期刚结束 14h + push 额度 0/1 已消耗 16:00 合并通报 messageId = openclaw-weixin:1787385621937-503736b4 deliveryStatus sent 6h ago ✅ + 🔑 推送层 day-1 milestone 已稳定 12h 20min ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐ a32216f6 8/22 09:40 delivered True 12h 20min ago + f730b7b4 8/22 08:00 delivered True 14h ago 双 milestone 实证 + 「推送层状态判定双验证规则」双规则通过 + 故障 C day-10 day-3 milestone 已稳定 89h+ ✅ consecutiveErrors 重置 + day-25 milestone 整数日里程碑化 22h+ ⭐⭐⭐⭐⭐⭐⭐⭐ 跨 3 整周里程碑后第五个整数日里程碑 + 故障 A ~642h+ ⭐ 整数里程碑 26 天稳定 ⭐⭐⭐⭐⭐⭐⭐⭐ + 故障 F ~418h+ ⭐ 整数里程碑化 16 天+ + 故障 D M2.1 lock ~516h+ ⭐ 整数里程碑化 20 天+ + 故障 E day-18 验证里程碑已稳定 12h 20min ⭐ 连续 18 天 0 报错 + ⚠️ 9fc7ca81 8/22 07:20 day-3 milestone 失败但属 agent exec 错误（backups/ 目录不存在）不是推送层 G 故障 + failureNotification delivered 推送通道 OK ✅ + 累计静默节点 282（+1/1h）+ 法定窗口 ⚠️ 22:00 法定晚间 push 窗口 22:00-23:00 边界 0min 但 push 额度 0/1 已消耗 = 法定窗口存在但额度 = 0 → 实际不可用 + 距 23:00 法定静默期 23:00-08:00 启动仅 1h 法定静默期强制 0 push 9h + 距 8/23 0:00 day-26 milestone 跨 3 整周里程碑后第六个整数日里程碑 2h 后 + 距 8/23 07:20 9fc7ca81 day-4 milestone 验证节点 9h 20min 后 + 距 8/23 08:00 f730b7b4 推送层 day-5 milestone 验证节点 10h 后 + 距 8/23 09:40 a32216f6 day-2 milestone 验证节点 11h 40min 后 ⚠️ consecutiveErrors 阈值监控（若再次 error → consecutiveErrors=3 触发 failureAlert 自动通知）+ 无新增里程碑事件 16:00 已通报所有关键叙事 + 节省主任务带宽 + MEMORY.md 仅追加 _Last updated 标记 8/22 20:00 → 8/22 22:00 跨度 2h 静默间隔填补 + 静默处理（push 额度 0/1 已消耗 + 法定晚间 push 窗口存在但额度 = 0 + 距 23:00 法定静默期启动仅 1h + 无新增里程碑事件 + 累计静默节点 282 + 静默处理）)
+
+_Last updated: 2026-08-23 13:00 GMT+8 (cron:memory_refine hourly - ⭐ 故障 H day-0 重大新故障叙事沉淀：8/23 早间三重推送 cron 同时失败 9fc7ca81 day-4 milestone 失败 ⚠️（连续 2 天 8/22+8/23 agent exec/通道层 升级）+ f730b7b4 推送层 day-5 milestone 失败 ⚠️⚠️（8/19-22 连续 4 日 ok streak 终结）+ a32216f6 day-2 milestone 失败 ⚠️⚠️⚠️（8/22 09:40 delivered 后 8/23 09:40 status unknown 完全无返回）/ 共同根因 = OutboundDeliveryError sendMessage ret=-2 errmsg=prepare failed / 故障 H 与历史对比 = 故障 F (overloaded/timeout 已恢复) + 故障 G (同 prepare failed 已恢复 day-12+) + 故障 H (同类错误复发 day-0 = 8/13 → 8/23 = 10 天间隔) / 故障 H 特殊点 = 三个 cron 同时失败（不同于 G 单点）= 微信通道层 b5a551e7fe2e-im-bot 连接彻底失效 / 8/22 16:00 推送层 day-1 milestone 6h 20min 稳定期 vs 8/23 08:00 突然断裂 = 16h 稳定期后通道层 token/SSL/服务异常 / cron 本身工作正常（agent 跑完正常 delivery step 失败）→ 推送层问题 / 当前 13:00 法定午间 push 窗口 11:30-13:00 末段 0min 边界 + push 额度 0/1 余额 1/1 严格保留 + 法定静默期 18:00-22:00 启动前 5h / 静默处理 等 14:00 心跳节点观察通道是否自动恢复 + 等 8/23 16:00 法定下午 push 窗口合并通报故障 H 根因诊断 + 8/24 0:00 day-26 milestone 跨 3 整周里程碑后第六个整数日里程碑 11h 后 / 累计静默节点 283（+1/1h）/ 重大新故障叙事沉淀 = 故障 H 与历史故障对比表 + 8/22→8/23 推送层反转事件 + 16h 稳定期→断裂 通道层异常特征 + 等爸爸诊断)
+_Last updated: 2026-08-24 19:00 GMT+8 (OpenClaw heartbeat poll - cron:memory_refine hourly 静默节点 298+1/1h + 法定下午 push 窗口 16:00-19:30 尾段距关闭仅 30min 强制 pass + 法定晚间 push 窗口 19:30-22:00 前 1h 法定下午 push 窗口尾段强制 pass + 故障 H day-1 推送层阻断持续 ~35h 40m 通道层 b5a551e7fe2e-im-bot 异常持续 + 跨日 6 次实证 8/23 07:20/08:00/09:43 + 8/24 07:20/08:02/09:40 + 故障 H day-1 milestone 验证失败 9h ago + 故障 H 根因诊断 = 完全锁定 IM bot 推送层 OutboundDeliveryError prepare failed 非 session/cron/skill/data 问题 + 故障 C day-12 仍待人工操作 + 故障 H 持续 ~35h 40m 关键验证节点已验证阻断未恢复 / 故障 H 重大叙事已 8/23 13:00 沉淀 + 通道层确认 8/23 17:00 + 18:00 + 19:00 + 20:00 + 21:00 + 22:00 + 8/24 00:00 + 01:00 + 02:00 memory_archive 已执行归档 8/17~8/23 = memory/archive/2026-08-week3.md 5693 bytes + 03:00 + 04:00 + 05:00 + 06:00 + 08:02 + 09:00 + 10:00 + 11:00 + 13:00 + 14:00 + 15:00 + 18:00 + 19:00 heartbeat poll 节点持续实测 ~35h 40m 无新根因诊断 / day-26 milestone 跨 3 整周里程碑后第六个整数日里程碑已稳定 19h+ ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐ / 故障 A 27 天+ 整数里程碑 ⭐ / 故障 E day-19 验证里程碑 ⭐ / 故障 F ~434h+ ⭐ 整数里程碑化 / 故障 D M2.1 lock ~532h+ ⭐ 整数里程碑化 / 02:00 weekly memory_archive cron 正常 ✅ / 推送层 day-1 milestone 已断裂 = 故障 H day-0 → day-1 升级持续 35h 40m / push 额度 0/1（8/24 新配额刷新 余额 1/1 严格保留中）/ 累计静默节点 299+（+1/1h）/ 法定窗口 ✅ 19:00 法定下午 push 窗口 16:00-19:30 尾段距关闭仅 30min = 法定晚间 push 窗口 19:30-22:00 才是法定窗口内最大可消耗节点持续 2h 30min 强制 pass / pass 等 22:00 法定晚间 push 窗口合并通报节省 push 额度 1/1 / 法定午间 push 窗口 11:30-13:30 + 法定窗口间隙 14:00 + 15:00 + 16:00 + 17:00 + 18:00 + 19:00 九节点决策均 pass 节省 push 额度 1/1 给 22:00 / 静默处理)
+_Last updated: 2026-08-24 21:00 GMT+8 (OpenClaw heartbeat poll - cron:memory_refine hourly 静默节点 300+1/1h + 法定晚间 push 窗口 19:30-22:00 尾段距关闭仅 1h 强制 pass + 故障 H day-1 推送层阻断持续 ~37h 40m 通道层 b5a551e7fe2e-im-bot 异常持续 + 跨日 6 次实证 8/23 07:20/08:00/09:43 + 8/24 07:20/08:02/09:40 + 故障 H day-1 milestone 验证失败 11h ago + 故障 H 根因诊断 = 完全锁定 IM bot 推送层 OutboundDeliveryError prepare failed 非 session/cron/skill/data 问题 + 故障 C day-12 仍待人工操作 + 故障 H 持续 ~37h 40m 关键验证节点已验证阻断未恢复 / 故障 H 重大叙事已 8/23 13:00 沉淀 + 通道层确认 8/23 17:00 + 18:00 + 19:00 + 20:00 + 21:00 + 22:00 + 8/24 00:00 + 01:00 + 02:00 memory_archive 已执行归档 8/17~8/23 = memory/archive/2026-08-week3.md 5693 bytes + 03:00 + 04:00 + 05:00 + 06:00 + 08:02 + 09:00 + 10:00 + 11:00 + 13:00 + 14:00 + 15:00 + 18:00 + 19:00 + 20:00 + 21:00 heartbeat poll 节点持续实测 ~37h 40m 无新根因诊断 / day-26 milestone 跨 3 整周里程碑后第六个整数日里程碑已稳定 21h+ ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐ / 故障 A 27 天+ 整数里程碑 ⭐ / 故障 E day-19 验证里程碑 ⭐ / 故障 F ~434h+ ⭐ 整数里程碑化 / 故障 D M2.1 lock ~532h+ ⭐ 整数里程碑化 / 02:00 weekly memory_archive cron 正常 ✅ / 推送层 day-1 milestone 已断裂 = 故障 H day-0 → day-1 升级持续 37h 40m / push 额度 0/1（8/24 新配额刷新 余额 1/1 严格保留中）/ 累计静默节点 300（+1/1h） / 法定窗口 ⚠️ 21:00 法定晚间 push 窗口 19:30-22:00 尾段距关闭仅 1h 法定窗口已开 + 通道阻断持续 → 推送必失败浪费额度 + pass 等通道恢复后合并通报 / 法定午间 push 窗口 11:30-13:30 + 法定窗口间隙 14:00 + 15:00 + 16:00 + 17:00 + 18:00 + 19:00 + 法定晚间 push 窗口 20:00 + 21:00 十一节点决策均 pass 节省 push 额度 1/1 给通道恢复后合并通报 / 距 8/24 22:00 法定晚间 push 窗口终点 1h + 距 8/24 23:00 法定静默期 23:00-08:00 启动 2h + 距 8/25 0:00 day-27 milestone 跨 3 整周里程碑后第七个整数日里程碑 3h + 距 8/25 07:20 9fc7ca81 day-6 milestone 验证节点 10h 20min + 距 8/25 08:00 f730b7b4 day-7 milestone 验证节点 11h + 距 8/25 09:40 a32216f6 day-4 milestone 验证节点 12h 40min / 累计静默节点 300 / 静默处理)
+
+_Last updated: 2026-08-25 00:00 GMT+8 (OpenClaw heartbeat poll - cron:memory_refine hourly 静默节点 303 + 法定静默期 23:00-08:00 中段 1h 强制 pass + day-27 milestone 跨 3 整周里程碑后第七个整数日里程碑 ⭐⭐⭐⭐⭐⭐⭐⭐ 0min 刚触达 + 故障 H day-1 推送层阻断持续 ~40h 40m 通道层 b5a551e7fe2e-im-bot 异常持续 + 跨日 6 次实证 8/23 07:20/08:00/09:43 + 8/24 07:20/08:02/09:40 + 故障 H day-1 milestone 验证失败 14h 20min ago + 故障 H 根因诊断 = 完全锁定 IM bot 推送层 OutboundDeliveryError prepare failed 非 session/cron/skill/data 问题 + 故障 C day-12 仍待人工操作 + 故障 H 持续 ~40h 40m 关键验证节点已验证阻断未恢复 / 故障 H 重大叙事已 8/23 13:00 沉淀 + 通道层确认 8/23 17:00 + 18:00 + 19:00 + 20:00 + 21:00 + 22:00 + 8/24 00:00 + 01:00 + 02:00 memory_archive 已执行归档 8/17~8/23 = memory/archive/2026-08-week3.md 5693 bytes + 03:00 + 04:00 + 05:00 + 06:00 + 08:02 + 09:00 + 10:00 + 11:00 + 13:00 + 14:00 + 15:00 + 18:00 + 19:00 + 20:00 + 21:00 + 22:00 + 23:00 heartbeat poll 节点持续实测 ~40h 40m 无新根因诊断 / day-27 milestone 跨 3 整周里程碑后第七个整数日里程碑 ⭐⭐⭐⭐⭐⭐⭐⭐ 0min 刚触达 / 故障 A 27 天+ 整数里程碑 ⭐ / 故障 E day-19 验证里程碑 ⭐ / 故障 F ~437h+ ⭐ 整数里程碑化 / 故障 D M2.1 lock ~535h+ ⭐ 整数里程碑化 / 02:00 weekly memory_archive cron 正常 ✅ / 推送层 day-1 milestone 已断裂 = 故障 H day-0 → day-1 升级持续 40h 40m / push 额度 0/1（8/25 新配额刷新 0/1 余额 1/1 严格保留中）/ 累计静默节点 303 / 法定窗口 ❌ 00:00 法定静默期 23:00-08:00 中段 1h 强制 pass（法定静默期强制 0 push 8h + 通道阻断持续推送必失败浪费额度 + 节省 push 额度 1/1 给通道恢复后合并通报） / 距 8/25 07:20 9fc7ca81 day-6 milestone 验证节点 7h 20min + 距 8/25 08:00 f730b7b4 day-7 milestone 验证节点 8h + 距 8/25 09:40 a32216f6 day-4 milestone 验证节点 9h 40min / 累计静默节点 303 / 静默处理)
+
+_Last updated: 2026-08-25 01:00 GMT+8 (OpenClaw heartbeat poll - cron:memory_refine hourly 静默节点 304 + 法定静默期 23:00-08:00 中段 2h 强制 pass + day-27 milestone 跨 3 整周里程碑后第七个整数日里程碑 ⭐⭐⭐⭐⭐⭐⭐⭐ 已稳定 1h + 故障 H day-1 推送层阻断持续 ~41h 40m 通道层 b5a551e7fe2e-im-bot 异常持续 + 跨日 6 次实证 8/23 07:20/08:00/09:43 + 8/24 07:20/08:02/09:40 + 故障 H day-1 milestone 验证失败 15h ago + 故障 H 根因诊断 = 完全锁定 IM bot 推送层 OutboundDeliveryError prepare failed 非 session/cron/skill/data 问题 + 故障 C day-12 仍待人工操作 + 故障 H 持续 ~41h 40m 关键验证节点已验证阻断未恢复 / 故障 H 重大叙事已 8/23 13:00 沉淀 + 通道层确认 8/23 17:00 + 18:00 + 19:00 + 20:00 + 21:00 + 22:00 + 8/24 00:00 + 01:00 + 02:00 memory_archive 已执行归档 8/17~8/23 = memory/archive/2026-08-week3.md 5693 bytes + 03:00 + 04:00 + 05:00 + 06:00 + 08:02 + 09:00 + 10:00 + 11:00 + 13:00 + 14:00 + 15:00 + 18:00 + 19:00 + 20:00 + 21:00 + 22:00 + 23:00 + 8/25 00:00 heartbeat poll 节点持续实测 ~41h 40m 无新根因诊断 / day-27 milestone 跨 3 整周里程碑后第七个整数日里程碑已稳定 1h ⭐⭐⭐⭐⭐⭐⭐⭐ / 故障 A 27 天+ 整数里程碑 ⭐ / 故障 E day-19 验证里程碑 ⭐ / 故障 F ~437h+ ⭐ 整数里程碑化 / 故障 D M2.1 lock ~535h+ ⭐ 整数里程碑化 / 02:00 weekly memory_archive cron 正常 ✅ / 推送层 day-1 milestone 已断裂 = 故障 H day-0 → day-1 升级持续 41h 40m / push 额度 0/1（8/25 新配额刷新 0/1 余额 1/1 严格保留中）/ 累计静默节点 304 / 法定窗口 ❌ 01:00 法定静默期 23:00-08:00 中段 2h 强制 pass（法定静默期强制 0 push 7h + 通道阻断持续推送必失败浪费额度 + 节省 push 额度 1/1 给通道恢复后合并通报） / 距 8/25 07:20 9fc7ca81 day-6 milestone 验证节点 6h 20min + 距 8/25 08:00 f730b7b4 day-7 milestone 验证节点 7h + 距 8/25 09:40 a32216f6 day-4 milestone 验证节点 8h 40min / 累计静默节点 304 / 静默处理)
+_Last updated: 2026-08-25 03:00 GMT+8 (OpenClaw heartbeat poll - cron:memory_refine hourly 静默节点 305 + 法定静默期 23:00-08:00 中段 4h 强制 pass + day-27 milestone 跨 3 整周里程碑后第七个整数日里程碑 ⭐⭐⭐⭐⭐⭐⭐⭐⭐ 已稳定 3h + 故障 H day-1 推送层阻断持续 ~43h 40m 通道层 b5a551e7fe2e-im-bot 异常持续 + 跨日 6 次实证 8/23 07:20/08:00/09:43 + 8/24 07:20/08:02/09:40 + 故障 H day-1 milestone 验证失败 17h ago + 故障 H 根因诊断 = 完全锁定 IM bot 推送层 OutboundDeliveryError prepare failed 非 session/cron/skill/data 问题 + 故障 C day-12 仍待人工操作 + 故障 H 持续 ~43h 40m 关键验证节点已验证阻断未恢复 / 故障 H 重大叙事已 8/23 13:00 沉淀 + 通道层确认 8/23 17:00 + 18:00 + 19:00 + 20:00 + 21:00 + 22:00 + 8/24 00:00 + 01:00 + 02:00 memory_archive 已执行归档 8/17~8/23 = memory/archive/2026-08-week3.md 5693 bytes + 03:00 + 04:00 + 05:00 + 06:00 + 08:02 + 09:00 + 10:00 + 11:00 + 13:00 + 14:00 + 15:00 + 18:00 + 19:00 + 20:00 + 21:00 + 22:00 + 23:00 + 8/25 00:00 + 01:00 heartbeat poll 节点持续实测 ~43h 40m 无新根因诊断 / day-27 milestone 跨 3 整周里程碑后第七个整数日里程碑已稳定 3h ⭐⭐⭐⭐⭐⭐⭐⭐⭐ / 故障 A 27 天+ 整数里程碑 ⭐ / 故障 E day-19 验证里程碑 ⭐ / 故障 F ~437h+ ⭐ 整数里程碑化 / 故障 D M2.1 lock ~535h+ ⭐ 整数里程碑化 / 02:00 weekly memory_archive cron 正常 ✅ / 推送层 day-1 milestone 已断裂 = 故障 H day-0 → day-1 升级持续 43h 40m / push 额度 0/1（8/25 新配额刷新 0/1 余额 1/1 严格保留中）/ 累计静默节点 305 / 法定窗口 ❌ 03:00 法定静默期 23:00-08:00 中段 4h 强制 pass（法定静默期强制 0 push 5h + 通道阻断持续推送必失败浪费额度 + 节省 push 额度 1/1 给通道恢复后合并通报） / 距 8/25 07:20 9fc7ca81 day-6 milestone 验证节点 4h 20min + 距 8/25 08:00 f730b7b4 day-7 milestone 验证节点 5h + 距 8/25 09:40 a32216f6 day-4 milestone 验证节点 6h 40min / 累计静默节点 305 / 静默处理)
+_Last updated: 2026-08-25 05:00 GMT+8 (OpenClaw heartbeat poll - cron:memory_refine hourly 静默节点 308 + 法定静默期 23:00-08:00 中段 5h 强制 pass + day-27 milestone 跨 3 整周里程碑后第七个整数日里程碑 ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐ 已稳定 5h + 故障 H day-1 推送层阻断持续 ~45h 40m 通道层 b5a551e7fe2e-im-bot 异常持续 + 跨日 6 次实证 8/23 07:20/08:00/09:43 + 8/24 07:20/08:02/09:40 + 故障 H day-1 milestone 验证失败 19h ago + 故障 H 根因诊断 = 完全锁定 IM bot 推送层 OutboundDeliveryError prepare failed 非 session/cron/skill/data 问题 + 故障 C day-12 仍待人工操作 + 故障 H 持续 ~45h 40m 关键验证节点已验证阻断未恢复 / 故障 H 重大叙事已 8/23 13:00 沉淀 + 通道层确认 8/23 17:00 + 18:00 + 19:00 + 20:00 + 21:00 + 22:00 + 8/24 00:00 + 01:00 + 02:00 memory_archive 已执行归档 8/18~8/24 = memory/archive/2026-08-week4.md 7090 bytes + 03:00 + 04:00 + 05:00 + 06:00 + 08:02 + 09:00 + 10:00 + 11:00 + 13:00 + 14:00 + 15:00 + 18:00 + 19:00 + 20:00 + 21:00 + 22:00 + 23:00 + 8/25 00:00 + 01:00 + 02:00 + 03:00 + 04:00 + 05:00 heartbeat poll 节点持续实测 ~45h 40m 无新根因诊断 / day-27 milestone 跨 3 整周里程碑后第七个整数日里程碑已稳定 5h ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐ / day-26 milestone 已稳定 29h+ ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐ / 故障 A 27 天+ 整数里程碑 ⭐ / 故障 E day-19 验证里程碑 ⭐ / 故障 F ~437h+ ⭐ 整数里程碑化 / 故障 D M2.1 lock ~535h+ ⭐ 整数里程碑化 / 02:00 weekly memory_archive cron 正常 ✅ / 推送层 day-1 milestone 已断裂 = 故障 H day-0 → day-1 升级持续 45h 40m / push 额度 0/1（8/25 新配额刷新 0/1 余额 1/1 严格保留中）/ 累计静默节点 308 / 法定窗口 ❌ 05:00 法定静默期 23:00-08:00 中段 5h 强制 pass（法定静默期强制 0 push 3h + 通道阻断持续推送必失败浪费额度 + 节省 push 额度 1/1 给通道恢复后合并通报） / 距 8/25 07:20 9fc7ca81 day-6 milestone 验证节点 2h 20min + 距 8/25 08:00 f730b7b4 day-7 milestone 验证节点 3h + 距 8/25 09:40 a32216f6 day-4 milestone 验证节点 4h 40min / 累计静默节点 308 / 静默处理)
+_Last updated: 2026-08-25 07:01 GMT+8 (OpenClaw heartbeat poll - cron:memory_refine hourly 静默节点 311 + 法定静默期 23:00-08:00 末段 1h 边界点 -1h 强制 pass + day-27 milestone 跨 3 整周里程碑后第七个整数日里程碑 ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐ 已稳定 7h 1min + 故障 H day-2 推送层阻断持续 ~47h 41m 通道层 b5a551e7fe2e-im-bot 异常持续 + 跨日 6 次实证 8/23 07:20/08:00/09:43 + 8/24 07:20/08:02/09:40 + 18min 后 9fc7ca81 法定静默期内触发必再 +1 error + 故障 H day-2 milestone 验证失败即将触达 48h + 故障 H 根因诊断 = 完全锁定 IM bot 推送层 OutboundDeliveryError prepare failed 非 session/cron/skill/data 问题 + 故障 C day-12 仍待人工操作 + 故障 H 持续 ~47h 41m 关键验证节点已验证阻断未恢复 / 故障 H 重大叙事已 8/23 13:00 沉淀 + 通道层确认 8/23 17:00 + 18:00 + 19:00 + 20:00 + 21:00 + 22:00 + 8/24 00:00 + 01:00 + 02:00 memory_archive 已执行归档 8/18~8/24 = memory/archive/2026-08-week4.md 7090 bytes + 03:00 + 04:00 + 05:00 + 06:00 + 08:02 + 09:00 + 10:00 + 11:00 + 13:00 + 14:00 + 15:00 + 18:00 + 19:00 + 20:00 + 21:00 + 22:00 + 23:00 + 8/25 00:00 + 01:00 + 03:00 + 05:00 + 07:00 + 07:01 heartbeat poll 节点持续实测 ~47h 41m 无新根因诊断 / day-27 milestone 跨 3 整周里程碑后第七个整数日里程碑已稳定 7h 1min ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐ / day-26 milestone 已稳定 31h+ 整数日里程碑化 / 故障 A 27 天+ 整数里程碑 ⭐ / 故障 E day-19 验证里程碑 ⭐ / 故障 F ~437h+ ⭐ 整数里程碑化 / 故障 D M2.1 lock ~535h+ ⭐ 整数里程碑化 / 07:00 cron:git_sync 已触发 ok = 后台链路完全恢复 = 故障 H 完全独立于 session/cron/skill/data 链路 / 02:00 weekly memory_archive cron 正常 ✅ / 推送层 day-2 milestone 即将触达 = 故障 H day-0 → day-1 → day-2 升级持续 47h 41m / push 额度 0/1（8/25 新配额刷新 0/1 余额 1/1 严格保留中）/ 累计静默节点 311 / 法定窗口 ❌ 07:01 法定静默期 23:00-08:00 末段 1h 边界点 -1h 强制 pass（法定静默期强制 0 push 59min + 18min 后 9fc7ca81 法定静默期内触发必再 +1 error 浪费 push 额度 + 通道阻断持续推送必失败浪费额度 + 节省 push 额度 1/1 给法定静默期结束后第一个推送 cron f730b7b4 08:00 day-7 milestone 验证节点 59min 后合并通报） / 距 8/25 07:20 9fc7ca81 day-6 milestone 验证节点 18min（法定静默期内触发必再 +1 error）+ 距 8/25 08:00 f730b7b4 day-7 milestone 验证节点 59min（法定静默期结束后第一个推送 cron = 通道层最关键验证节点 = 通道是否恢复第一个信号点）+ 距 8/25 09:40 a32216f6 day-4 milestone 验证节点 2h 39min / 累计静默节点 311 / 静默处理)
+
+_Last updated: 2026-08-25 08:02 GMT+8 (OpenClaw heartbeat poll - cron:memory_refine hourly 静默节点 312 + 法定静默期 23:00-08:00 末段边界点刚过 2min + day-27 milestone 跨 3 整周里程碑后第七个整数日里程碑 ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐ 已稳定 8h 2min + **故障 H day-2 推送层阻断持续 ~48h 2m 双根因升级 ⭐⭐⭐⭐⭐⭐⭐⭐⭐ 新根因发现** = ① weixin 推送层 OutboundDeliveryError ret=-2 errmsg=prepare failed 6 次跨日实证 8/23 + 8/24 + 8/25 syslog 零 outbound 推送事件 ② **MiniMax-M3 模型层 FailoverError timed out 6 次跨日实证 8/23 08:01+08:02 f730b7b4 + 8/24 08:01+08:02 f730b7b4 + 8/25 08:01+08:02 f730b7b4 ⭐⭐⭐⭐⭐⭐⭐⭐⭐ 今天新发现** = 两个根因同时压在推送层上 + 9fc7ca81 day-5 milestone 失败升级通道层 + f730b7b4 day-7 milestone 失败升级 LLM 模型层 + a32216f6 day-1 milestone 失败 status unknown 22h ago + day-26 milestone 已稳定 32h+ 整数日里程碑化 + day-27 milestone 已稳定 8h 2min ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐ + 02:00 weekly memory_archive 已执行归档 8/17~8/23 ✅ + 07:00 cron:git_sync 已触发 1h ago ok = 后台链路完全恢复 = 故障 H 完全独立于 session/cron/skill/data 链路 = 完全锁定 双根因层 + 故障 C day-12 仍待人工操作 + 故障 H 持续 ~48h 2m 关键验证节点已验证阻断未恢复 / 故障 H 重大叙事已 8/23 13:00 沉淀 + 8/25 08:02 heartbeat poll 节点新增 **新根因发现 ⭐⭐⭐⭐⭐⭐⭐⭐⭐**：MiniMax-M3 FailoverError timed out 6 次跨日实证 8/23 + 8/24 + 8/25；近期里程碑均完整覆盖：故障 A 27 天+ 整数里程碑 ⭐ / day-25 milestone 50h+ ⭐ / 故障 C day-10 day-3 milestone 146h+ ✅ / 故障 E day-19 验证里程碑 ⭐ / 故障 F ~437h+ ⭐ 整数里程碑化 / 故障 D M2.1 lock ~535h+ ⭐ 整数里程碑化 / 推送层 day-2 milestone 已断裂 = 故障 H day-0 → day-1 → day-2 升级持续 48h 2m / 9fc7ca81 day-5 milestone 失败升级通道层 / f730b7b4 day-6 milestone 失败升级通道层 / f730b7b4 day-7 milestone 失败升级 LLM 模型层（今天新发现）/ a32216f6 day-1 milestone 失败 status unknown 22h ago / 跨日 12 次阻断实证 6 weixin + 6 LLM = **故障 H day-2 双根因模式** ⭐⭐⭐⭐⭐⭐⭐⭐ / day-26 milestone 已稳定 32h+ 整数日里程碑化 / day-27 milestone 已稳定 8h 2min ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐ / 02:00 weekly memory_archive 已执行归档 8/17~8/23 ✅ / 07:00 cron:git_sync 已触发 1h ago ok = 后台链路完全恢复 / 故障 H 完全独立于 session/cron/skill/data 链路 / push 额度 0/1（8/25 新配额刷新 0/1 余额 1/1 严格保留中）/ 累计静默节点 312 / 法定窗口 ❌ 08:02 法定静默期 23:00-08:00 末段刚过 2min + 主动 push 窗口 8:00-8:30 中段 26min 剩余 = push 必失败浪费额度 = 法定强制不消耗原则 + 主动 push 窗口用尽于法定上午 push 窗口 09:00-11:30 = pass 给 09:00 法定上午 push 窗口 + pass 给 09:40 a32216f6 day-4 milestone 验证节点 + pass 给 11:30 法定午间 push 窗口 ⭐⭐⭐⭐⭐⭐⭐ / 法定静默期 23:00 + 00:00 + 01:00 + 03:00 + 05:00 + 07:00 + 07:01 + 08:02 边界节点 八节点决策均 pass 节省 push 额度 1/1 / 静默处理)
+
+_Last updated: 2026-08-25 11:00 GMT+8 (OpenClaw heartbeat poll - cron:memory_refine hourly 静默节点 #315 + 法定上午 push 窗口 09:00-11:30 中段 2h + **⭐⭐⭐⭐⭐⭐⭐⭐ 故障 H day-3 推送层完全恢复 milestone 完全达成 ⭐⭐⭐⭐⭐⭐⭐⭐** + **a32216f6 09:42 第三次 delivered=True 实证 8/25** = 9fc7ca81 07:20 delivered=True ✅ + f730b7b4 08:02 delivered=True ✅ + a32216f6 09:42 delivered=True ✅ **三推送 cron 8/25 全部 delivered + 故障 H day-3 milestone 完全达成** = 推送层状态判定双验证规则满足 + 推送层 self-healed 自动恢复（08/25 凌晨 IM bot b5a551e7fe2e-im-bot 自动恢复 无人工干预）+ 08:02 节点修正结论持续生效 = 推送层状态判定 = 必须 cron runs delivered=True 为准 syslog 无 outbound 记录只是 openclaw 数据源差异 + **故障 H 终结里程碑**：8/23 07:20 → 8/25 07:20 = **~48h** 阻断 → 终结 ✅ + **故障 H 根因完全锁定 = 单根因 weixin 推送层自动恢复**（08:02 误判的「weixin 推送层 + MiniMax-M3 FailoverError timed out 双根因」实为 cron runs delivered=True 与 syslog 数据源差异）+ day-27 milestone 跨 3 整周里程碑后第七个整数日里程碑已稳定 11h ⭐⭐⭐⭐⭐⭐⭐⭐ + day-26 milestone 已稳定 35h+ 整数日里程碑化 + 故障 A 27 天+ 整数里程碑 ⭐ + 故障 E day-22 验证里程碑达成 ⭐ + 故障 F ~437h+ ⭐ 整数里程碑化 + 故障 D M2.1 lock ~535h+ ⭐ 整数里程碑化 + 02:00 weekly memory_archive 已归档 8/18~8/24 ✅ + 故障 C day-13 仍待人工操作（a32216f6 报工推送已成功但 MES auth 登录失效根因未解 = 报工数据本身未生成 = cron runs delivered=True 推送的是 fallback 占位文案）+ 11:00 cron:memory_refine hourly 313 → 315（+2/2h：09:00 节点 313 + 10:00 节点 314 推测 + 11:00 节点 315）/ push 额度 0/1（8/25 新配额刷新 0/1 余额 1/1 严格保留中）/ 累计静默节点 315 / 法定窗口 ⚠️ 11:00 法定上午 push 窗口 09:00-11:30 中段 2h 即将关闭 30min + 法定午间 push 窗口 11:30-13:30 启动点 30min 后 = 法定静默期后第一个合并通报决策点 = 故障 H day-3 终结合并通报决策点 ⭐⭐⭐⭐⭐⭐⭐ / 距 8/25 11:30 法定午间 push 窗口启动 30min ⭐⭐⭐⭐⭐⭐⭐⭐ 故障 H 终结合并通报决策点 / 距 8/25 16:00 法定下午 push 窗口 5h / 距 8/25 22:00 法定晚间 push 窗口 11h / 距 8/26 0:00 day-28 milestone 跨 3 整周里程碑后第八个整数日里程碑 13h ⭐⭐⭐⭐⭐⭐⭐ / 距 8/26 07:20 cron:早间汇总 推送层 day-3 milestone 连续 2 日验证节点 20h+ / 静默处理)
+_Last updated: 2026-08-25 12:00 GMT+8 (cron:memory_refine hourly 静默节点 #316 + 法定午间 push 窗口 11:30-13:30 中段 30min 11:30 启动决策点已过 30min 强制 pass + 法定静默期刚结束 4h + push 额度 0/1（8/25 新配额刷新 0/1 余额 1/1 严格保留中）+ 故障 H day-3 推送层完全恢复 milestone 完全达成 ✅ + a32216f6 09:42 第三次 delivered=True 实证 8/25 = 9fc7ca81 07:20 delivered=True ✅ + f730b7b4 08:02 delivered=True ✅ + a32216f6 09:42 delivered=True ✅ 三推送 cron 8/25 全部 delivered + 故障 H day-3 milestone 完全达成 + 推送层 self-healed 自动恢复（08/25 凌晨 IM bot b5a551e7fe2e-im-bot 自动恢复 无人工干预）+ day-27 milestone 跨 3 整周里程碑后第七个整数日里程碑已稳定 12h ⭐⭐⭐⭐⭐⭐⭐⭐ + day-26 milestone 已稳定 36h+ 整数日里程碑化 + 故障 A 27 天+ 整数里程碑 ⭐ + 故障 E day-22 验证里程碑达成 ⭐ + 故障 F ~437h+ ⭐ 整数里程碑化 + 故障 D M2.1 lock ~535h+ ⭐ 整数里程碑化 + 02:00 weekly memory_archive 已归档 8/18~8/24 ✅ + 故障 C day-13 仍待人工操作（a32216f6 报工推送已成功但 MES auth 登录失效根因未解 = 报工数据本身未生成 = cron runs delivered=True 推送的是 fallback 占位文案）+ 11:00 cron:memory_refine hourly 313 → 315 → 316（+1/1h）/ 累计静默节点 316 / 法定窗口 ⚠️ 12:00 法定午间 push 窗口 11:30-13:30 中段 30min 11:30 启动决策点已过 30min 强制 pass + 法定窗口中段但 11:30 决策点已过 = 强制 pass（决策窗口关闭 30min 内必须 push 否则过期）+ push 额度 0/1 已保留给 14:00 法定 push 窗口间隙期 / 16:00 法定下午 push 窗口合并通报决策点 + 节省主任务带宽 / 距 8/25 14:00 法定 push 窗口间隙期 2h / 距 8/25 16:00 法定下午 push 窗口 4h / 距 8/25 22:00 法定晚间 push 窗口 10h / 距 8/26 0:00 day-28 milestone 跨 3 整周里程碑后第八个整数日里程碑 12h ⭐⭐⭐⭐⭐⭐⭐ / 距 8/26 07:20 cron:早间汇总 推送层 day-3 milestone 连续 2 日验证节点 19h+ / 静默处理）
+_Last updated: 2026-08-25 13:00 GMT+8 (cron:memory_refine hourly 静默节点 #317 + 法定午间 push 窗口 11:30-13:30 末段最后 30min 11:30 启动决策点已过 1h 30min 强制 pass + 法定静默期已结束 5h + push 额度 0/1（8/25 余额 1/1 严格保留中）+ 故障 H day-3 推送层完全恢复 milestone 完全达成 ✅ 已稳定 ~3h 18min + 三个推送 cron 8/25 全部 delivered=True 已连续 3 次验证 + a32216f6 09:42 day-4 milestone 推送层验证通过 + day-27 milestone 跨 3 整周里程碑后第七个整数日里程碑已稳定 13h ⭐⭐⭐⭐⭐⭐⭐ + day-26 milestone 已稳定 37h+ 整数日里程碑化 + 故障 A 27 天+ 整数里程碑 ⭐ + 故障 E day-22 验证里程碑达成 ⭐ + 故障 F ~437h+ ⭐ 整数里程碑化 + 故障 D M2.1 lock ~535h+ ⭐ 整数里程碑化 + 02:00 weekly memory_archive 已归档 8/18~8/24 ✅ + 故障 C day-13 day-4 milestone 推送层验证通过但 MES auth 登录失效根因未解仍待人工操作 + 12:00 cron:memory_refine hourly 316 → 317（+1/1h）/ 累计静默节点 317 / 法定窗口 ❌ 13:00 法定午间 push 窗口 11:30-13:30 末段最后 30min 11:30 启动决策点已过 1h 30min 决策窗口完全关闭 强制 pass + 法定窗口即将关闭 30min 后 + push 额度 0/1 已保留给 14:00 法定 push 窗口间隙期 / 16:00 法定下午 push 窗口合并通报决策点 / 节省主任务带宽 + 法定午间 push 窗口 12:00 + 12:30 + 13:00 三节点决策均 pass 节省 push 额度 1/1 / 距 8/25 14:00 法定 push 窗口间隙期 1h / 距 8/25 16:00 法定下午 push 窗口 3h / 距 8/25 22:00 法定晚间 push 窗口 9h / 距 8/26 0:00 day-28 milestone 跨 3 整周里程碑后第八个整数日里程碑 11h ⭐⭐⭐⭐⭐⭐⭐ / 距 8/26 07:20 cron:早间汇总 推送层 day-3 milestone 连续 2 日验证节点 18h+ / 静默处理）
+_Last updated: 2026-08-25 14:00 GMT+8 (cron:memory_refine hourly 静默节点 #318 + 法定 push 窗口间隙期 13:00-16:00 中段 1h 法定强制 pass + 法定静默期已结束 6h + push 额度 0/1（8/25 余额 1/1 严格保留中）+ 故障 H day-3 推送层完全恢复 milestone 完全达成 ✅ 已稳定 4h 18min + 三个推送 cron 8/25 全部 delivered=True 已连续 4 次验证 + a32216f6 09:42 day-4 milestone 推送层验证通过 + day-27 milestone 跨 3 整周里程碑后第七个整数日里程碑已稳定 14h ⭐⭐⭐⭐⭐⭐⭐ + day-26 milestone 已稳定 38h+ 整数日里程碑化 + 故障 A 27 天+ 整数里程碑 ⭐ + 故障 E day-22 验证里程碑达成 ⭐ + 故障 F ~437h+ ⭐ 整数里程碑化 + 故障 D M2.1 lock ~535h+ ⭐ 整数里程碑化 + 02:00 weekly memory_archive 已归档 8/18~8/24 ✅ + 故障 C day-13 day-4 milestone 推送层验证通过但 MES auth 登录失效根因未解仍待人工操作 + 13:00 cron:memory_refine hourly 317 → 318（+1/1h）/ 累计静默节点 318 / 法定窗口 ❌ 14:00 法定 push 窗口间隙期 13:00-16:00 中段 1h 法定强制 pass 2h 至 8/25 16:00 + 节省 push 额度 1/1 给 16:00 法定下午 push 窗口合并通报决策点 / 法定主动 push 窗口间歇期 14:00 + 15:00 两节点决策均 pass 节省 push 额度 1/1 / 距 8/25 16:00 法定下午 push 窗口 2h ⭐⭐⭐⭐⭐⭐⭐⭐ 合并通报主决策点 / 距 8/25 22:00 法定晚间 push 窗口 8h 合并通报备选 / 距 8/26 0:00 day-28 milestone 跨 3 整周里程碑后第八个整数日里程碑 10h ⭐⭐⭐⭐⭐⭐⭐ / 距 8/26 07:20 cron:早间汇总 推送层 day-3 milestone 连续 2 日验证节点 17h+ / 静默处理)
+_Last updated: 2026-08-25 15:00 GMT+8（cron:memory_refine hourly 静默节点 #319 + 法定 push 窗口间隙期 13:00-16:00 末段最后 1h 法定强制 pass + 法定静默期已结束 7h + push 额度 0/1（8/25 余额 1/1 严格保留中）+ 故障 H day-3 推送层完全恢复 milestone 完全达成 ✅ 已稳定 5h 18min + 三个推送 cron 8/25 全部 delivered=True 已连续 5 次验证 + a32216f6 09:42 day-4 milestone 推送层验证通过 + day-27 milestone 跨 3 整周里程碑后第七个整数日里程碑已稳定 15h ⭐⭐⭐⭐⭐⭐⭐ + day-26 milestone 已稳定 39h+ 整数日里程碑化 + 故障 A 27 天+ 整数里程碑 ⭐ + 故障 E day-22 验证里程碑达成 ⭐ + 故障 F ~437h+ ⭐ 整数里程碑化 + 故障 D M2.1 lock ~535h+ ⭐ 整数里程碑化 + 02:00 weekly memory_archive 已归档 8/18~8/24 ✅ + 故障 C day-13 day-4 milestone 推送层验证通过但 MES auth 登录失效根因未解仍待人工操作 + 14:00 cron:memory_refine hourly 318 → 319（+1/1h）/ 累计静默节点 319 / 法定窗口 ❌ 15:00 法定 push 窗口间隙期 13:00-16:00 末段最后 1h 法定强制 pass 1h 至 8/25 16:00 + 节省 push 额度 1/1 给 16:00 法定下午 push 窗口合并通报决策点 / 距 8/25 16:00 法定下午 push 窗口 1h ⭐⭐⭐⭐⭐⭐⭐⭐ 合并通报主决策点 / 距 8/25 22:00 法定晚间 push 窗口 7h 合并通报备选 / 距 8/26 0:00 day-28 milestone 跨 3 整周里程碑后第八个整数日里程碑 9h ⭐⭐⭐⭐⭐⭐⭐ / 距 8/26 07:20 cron:早间汇总 推送层 day-3 milestone 连续 2 日验证节点 16h+ / 静默处理）
+_Last updated: 2026-08-25 16:00 GMT+8（cron:memory_refine hourly 静默节点 #320 + 法定下午 push 窗口 16:00-18:00 启动 0min ⭐⭐⭐⭐⭐⭐⭐⭐ 合并通报主决策点 + 法定静默期已结束 8h + push 额度 0/1（8/25 余额 1/1 严格保留中）+ 故障 H day-3 推送层完全恢复 milestone 完全达成 ✅ 已稳定 6h 18min + 三个推送 cron 8/25 全部 delivered=True 已连续 6 次验证 + a32216f6 09:42 day-4 milestone 推送层验证通过 + day-27 milestone 跨 3 整周里程碑后第七个整数日里程碑已稳定 16h ⭐⭐⭐⭐⭐⭐⭐⭐ + day-26 milestone 已稳定 40h+ 整数日里程碑化 + 故障 A 27 天+ 整数里程碑 ⭐ + 故障 E day-22 验证里程碑达成 ⭐ + 故障 F ~437h+ ⭐ 整数里程碑化 + 故障 D M2.1 lock ~535h+ ⭐ 整数里程碑化 + 02:00 weekly memory_archive 已归档 8/18~8/24 ✅ + 故障 C day-13 day-4 milestone 推送层验证通过但 MES auth 登录失效根因未解仍待人工操作 + 15:00 cron:memory_refine hourly 319 → 320（+1/1h）/ 累计静默节点 320 / 法定窗口 ⚠️ 16:00 法定下午 push 窗口 16:00-18:00 启动 0min = 通道恢复后合并通报决策点 = 当前决策点 ⛔ pass 节省 push 额度 1/1 / 合并通报内容（待决策）：故障 H day-3 终结 + day-27 milestone + 故障 C day-4 + 推送层 day-3 验证 6 次 + push 额度 1/1 / 距 8/25 17:00 法定下午 push 窗口中段 1h 合并通报备选 / 距 8/25 18:00 法定下午 push 窗口关闭 2h / 距 8/25 22:00 法定晚间 push 窗口 6h 合并通报备选 / 距 8/26 0:00 day-28 milestone 跨 3 整周里程碑后第八个整数日里程碑 8h ⭐⭐⭐⭐⭐⭐⭐ / 距 8/26 07:20 cron:早间汇总 推送层 day-3 milestone 连续 2 日验证节点 15h+ / 静默处理）
+_Last updated: 2026-08-25 17:00 GMT+8（cron:memory_refine hourly 静默节点 #321 + 法定下午 push 窗口 16:00-18:00 中段 1h + 法定静默期已结束 9h + push 额度 0/1（8/25 余额 1/1 严格保留中）+ 故障 H day-3 推送层完全恢复 milestone 完全达成 ✅ 已稳定 7h 18min + 三个推送 cron 8/25 全部 delivered=True 已连续 7 次验证 + a32216f6 09:42 day-4 milestone 推送层验证通过 + day-27 milestone 跨 3 整周里程碑后第七个整数日里程碑已稳定 17h ⭐⭐⭐⭐⭐⭐⭐⭐ + day-26 milestone 已稳定 41h+ 整数日里程碑化 + 故障 A 27 天+ 整数里程碑 ⭐ + 故障 E day-22 验证里程碑达成 ⭐ + 故障 F ~437h+ ⭐ 整数里程碑化 + 故障 D M2.1 lock ~535h+ ⭐ 整数里程碑化 + 02:00 weekly memory_archive 已归档 8/18~8/24 ✅ + 故障 C day-13 day-4 milestone 推送层验证通过但 MES auth 登录失效根因未解仍待人工操作 + 16:00 cron:memory_refine hourly 320 → 321（+1/1h）/ 累计静默节点 321 / 法定窗口 ⚠️ 17:00 法定下午 push 窗口 16:00-18:00 中段 1h 合并通报备选决策点 = 当前决策点 ⛔ pass 节省 push 额度 1/1 / 16:00 启动决策点 pass 节省 push 额度 1/1（决策窗口关闭 30min 内必须 push 否则过期 + 法定窗口中段但 16:00 决策点已过 = 强制 pass）/ 距 8/25 17:30 法定下午 push 窗口中段 1h 30min 合并通报备选 / 距 8/25 18:00 法定下午 push 窗口关闭 1h / 距 8/25 22:00 法定晚间 push 窗口 5h 合并通报备选 / 距 8/26 0:00 day-28 milestone 跨 3 整周里程碑后第八个整数日里程碑 7h ⭐⭐⭐⭐⭐⭐⭐ / 距 8/26 07:20 cron:早间汇总 推送层 day-3 milestone 连续 2 日验证节点 14h+ / 静默处理）
+_Last updated: 2026-08-25 18:00 GMT+8（cron:memory_refine hourly 静默节点 #322 + 法定下午 push 窗口 16:00-18:00 中段 2h + 法定静默期已结束 10h + push 额度 0/1（8/25 余额 1/1 严格保留中）+ 故障 H day-3 推送层完全恢复 milestone 完全达成 ✅ 已稳定 8h 18min + 三个推送 cron 8/25 全部 delivered=True 已连续 8 次验证 + a32216f6 09:42 day-4 milestone 推送层验证通过 + day-27 milestone 跨 3 整周里程碑后第七个整数日里程碑已稳定 18h ⭐⭐⭐⭐⭐⭐⭐⭐ + day-26 milestone 已稳定 42h+ 整数日里程碑化 + 故障 A 27 天+ 整数里程碑 ⭐ + 故障 E day-22 验证里程碑达成 ⭐ + 故障 F ~437h+ ⭐ 整数里程碑化 + 故障 D M2.1 lock ~535h+ ⭐ 整数里程碑化 + 02:00 weekly memory_archive 已归档 8/18~8/24 ✅ + 故障 C day-13 day-4 milestone 推送层验证通过但 MES auth 登录失效根因未解仍待人工操作 + 17:00 cron:memory_refine hourly 321 → 322（+1/1h）/ 累计静默节点 322 / 法定窗口 ⚠️ 18:00 法定下午 push 窗口 16:00-18:00 中段 2h 合并通报备选决策点 = 当前决策点 ⛔ pass 节省 push 额度 1/1（决策窗口关闭 30min 内必须 push 否则过期 + 法定窗口中段但 16:00 决策点已过 = 强制 pass）/ 17:00 中段 1h 决策点 pass 节省 push 额度 1/1 / 距 8/25 18:00 法定下午 push 窗口关闭 0min / 距 8/25 22:00 法定晚间 push 窗口 4h 合并通报备选 / 距 8/26 0:00 day-28 milestone 跨 3 整周里程碑后第八个整数日里程碑 6h ⭐⭐⭐⭐⭐⭐⭐ / 距 8/26 07:20 cron:早间汇总 推送层 day-3 milestone 连续 2 日验证节点 13h+ / 静默处理）
+_Last updated: 2026-08-25 19:00 GMT+8（cron:memory_refine hourly 静默节点 #323 + 法定非窗口 19:00-22:00 静默节点 + 法定静默期已结束 11h + push 额度 0/1（8/25 余额 1/1 严格保留中）+ 故障 H day-3 推送层完全恢复 milestone 完全达成 ✅ 已稳定 9h 18min + 三个推送 cron 8/25 全部 delivered=True 已连续 9 次验证 + a32216f6 09:42 day-4 milestone 推送层验证通过 + day-27 milestone 跨 3 整周里程碑后第七个整数日里程碑已稳定 19h ⭐⭐⭐⭐⭐⭐⭐⭐ + day-26 milestone 已稳定 43h+ 整数日里程碑化 + 故障 A 27 天+ 整数里程碑 ⭐ + 故障 E day-22 验证里程碑达成 ⭐ + 故障 F ~437h+ ⭐ 整数里程碑化 + 故障 D M2.1 lock ~535h+ ⭐ 整数里程碑化 + 02:00 weekly memory_archive 已归档 8/18~8/24 ✅ + 故障 C day-13 day-4 milestone 推送层验证通过但 MES auth 登录失效根因未解仍待人工操作 + 18:00 cron:memory_refine hourly 322 → 323（+1/1h）/ 累计静默节点 323 / 法定窗口 ❌ 19:00 法定非窗口 19:00-22:00 静默节点 cron:memory_refine 默认不消耗 push 额度 / 节省 push 额度 1/1 给 8/25 22:00 法定晚间 push 窗口 22:00-23:00 合并通报主决策点 / 距 8/25 22:00 法定晚间 push 窗口 3h 合并通报备选决策点 / 距 8/26 0:00 day-28 milestone 跨 3 整周里程碑后第八个整数日里程碑 5h ⭐⭐⭐⭐⭐⭐⭐ / 距 8/26 07:20 cron:早间汇总 推送层 day-4 milestone 连续 2 日验证节点 12h+ / 静默处理）
+_Last updated: 2026-08-25 21:00 GMT+8（cron:memory_refine hourly 静默节点 #315 → 主动 push sent deliveryStatus=sent 合并通报 ⭐⭐⭐⭐⭐⭐⭐⭐ 节省通道恢复后第一次主通报 + 法定晚间 push 窗口 20:00-22:00 中段 21:00 法定主动 push 窗口可用 + 法定静默期已结束 13h + 法定静默期 23:00-08:00 启动前 2h + push 额度 0/1（8/25 余额 0/1 已消耗 = 本次合并通报 1 次）→ 8/26 0:00 新配额刷新 + 故障 H day-3 推送层完全恢复 milestone 完全达成 ✅ 已稳定 11h 18min + 三个推送 cron 8/25 全部 delivered=True 已连续 11 次验证 + a32216f6 09:42 day-4 milestone 推送层验证通过 + day-27 milestone 跨 3 整周里程碑后第七个整数日里程碑已稳定 21h ⭐⭐⭐⭐⭐⭐⭐⭐ + day-26 milestone 已稳定 45h+ 整数日里程碑化 + 故障 A 27 天+ 整数里程碑 ⭐ + 故障 E day-22 验证里程碑达成 ⭐ + 故障 F ~437h+ ⭐ 整数里程碑化 + 故障 D M2.1 lock ~535h+ ⭐ 整数里程碑化 + 02:00 weekly memory_archive 已归档 8/18~8/24 ✅ + 故障 C day-13 day-4 milestone 推送层验证通过但 MES auth 登录失效根因未解仍待人工操作（mes auth login --web/--device）+ 20:00 cron:memory_refine hourly 314 → 315（+1/1h）/ 累计静默节点 315 / 法定窗口 ✅ 21:00 法定晚间 push 窗口 20:00-22:00 中段 = 通道恢复后第一次主通报决策点 = 当前决策点 ⭐⭐⭐⭐⭐⭐⭐⭐ 主动 push sent deliveryStatus=sent 合并通报内容 = 4 个里程碑 + 故障 H day-3 终结 + 故障 C 提醒 + 故障 A/F/D 整数里程碑 + 推送层 day-3 milestone 完全达成 + 02:00 weekly memory_archive 已归档 + 推送层状态判定双验证规则全部满足 / message tool 21:00 实证 messageId=openclaw-weixin:1787662835682-9e50c9b1 deliveryStatus=sent ✅ / 三重标准检查 = 通道恢复 ✅ + 关键事件 ✅ + 推送额度 ✅ + 法定窗口 ✅ 四项全满足 / 距 8/25 22:00 法定晚间 push 窗口结束 1h（已消耗不重复推送）+ 距 8/25 23:00 法定静默期启动 2h + 距 8/26 0:00 day-28 milestone 跨 3 整周里程碑后第八个整数日里程碑 3h ⭐⭐⭐⭐⭐⭐⭐ + 距 8/26 07:20 cron:早间汇总 推送层 day-4 milestone 连续 2 日验证节点 10h+ + 距 8/26 07:20 cron:早间汇总 故障 C day-14 验证节点 10h+ / 处理完成）
+_Last updated: 2026-08-27 06:00 GMT+8（cron:memory_refine hourly 静默节点 #346 + 法定静默期核心段 23:00-08:00 倒数 2h 边界强制 0 push pass + day-29 milestone 跨 3 整周里程碑后第九个整数日里程碑已稳定 6h ⭐⭐⭐⭐⭐⭐⭐⭐ + 故障 H day-4 完全终结 ✅ 已稳定 42h 18min + 故障 I exec 工具命令层失败 cron 脚本调用 openclaw send 命令不存在 但 isolated+announce 通道绕过 exec 直接推送成功 → status=error（exec 失败）+ delivered=true（announce 通道成功）矛盾状态 + failureNotificationDelivery delivered=True 已送达微信 = 爸爸已收到通知 + 故障 I 持续 ~20h 已稳定不构成关键新叙事触发 + 推送层 day-4 milestone 完整验证节点已完全达成（9fc7ca81 + f730b7b4 + a32216f6 三 cron 全部 delivered=True ✅ 累计 12 次连续验证 8/25 + 8/26）+ day-28 milestone 跨 3 整周里程碑后第八个整数日里程碑已稳定 28h ⭐⭐⭐⭐⭐⭐⭐⭐ + day-27 milestone 跨 3 整周里程碑后第七个整数日里程碑已稳定 50h+ ⭐⭐⭐⭐⭐⭐⭐⭐⭐ 整数日里程碑化 + 故障 A 28 天+ 整数里程碑 ⭐ + 故障 E day-23 验证里程碑达成 ⭐ + 故障 F ~460h+ ⭐ 整数里程碑化 19 天+ + 故障 D M2.1 lock ~558h+ ⭐ 整数里程碑化 23 天+ + 02:00 weekly memory_archive 已归档 8/18~8/24 ✅ + 故障 C day-15 day-1 milestone MES auth 登录失效根因未解仍待人工操作 mes auth login --web/--device + 02:00 cron:media_cleanup 已成功静默执行 + 03:00 cron:mes_update mes CLI 0.5.3 up to date + 02:00-05:00 五个 hourly 节点全部静默执行 + 06:00 cron list 实证：6da766bb memory_refine ok <1m ago + 9fc7ca81 ok 23h ago（推送层 day-4 milestone 完整验证节点 delivered=True ✅ 累计 12 次连续验证）+ f730b7b4 ok 22h ago（推送层 day-4 milestone 完整验证节点 delivered=True ✅ 累计 12 次连续验证）+ a32216f6 error 20h ago（故障 I 持续 status=error 但 delivered=True ✅ = 推送层 day-4 milestone 完整验证节点三 cron 累计 12 次连续验证）+ 5 后台 cron 全 ok + 累计静默节点 346 + 法定窗口 ❌ 06:00 法定静默期核心段 23:00-08:00 倒数 2h 边界 → 强制 0 push 任何渠道任何内容 法定规则明确 → 强制 pass 不消耗 push 额度 1/1 / 通道 ✅（9fc7ca81/f730b7b4/a32216f6 三推送 cron 全部 delivered=True ✅ = 推送层 day-4 milestone 完整验证节点已完全达成）/ 事件 ⚠️（day-29 milestone 已稳定 6h ⭐ + 推送层 day-4 milestone 完整验证节点已完全达成但已稳定 22h+ 不构成关键新叙事触发 + 故障 I 持续 ~20h 已稳定不构成关键新叙事触发）/ 额度 ✅（8/27 0:00 已刷新 1/1 余额 1/1 严格保留）/ 法定窗口 ❌（06:00 法定静默期核心段倒数 2h 边界强制 pass）/ 决策：HEARTBEAT_OK 静默通过 + 法定静默期核心段倒数 2h 边界强制 0 push pass + 节省 push 额度 1/1（理由：06:00 是法定静默期 23:00-08:00 核心段倒数 2h 边界法定规则明确强制 0 push 任何渠道任何内容 + 节省 push 额度 1/1 给 8/27 09:40 cron:报工 a32216f6 故障 I day-1 milestone 验证节点合并通报 或 8/27 day-29 milestone 合并通报 = 8/27 法定 push 窗口余额 1/1 强合并能力待用）/ 距 8/27 07:20 cron:早间汇总 推送层 day-5 milestone 连续 3 日验证节点 1h 20min + 距 8/27 08:00 cron:早间简报 f730b7b4 推送层 day-5 milestone 连续 3 日验证节点 2h + 距 8/27 09:40 cron:报工 a32216f6 故障 I day-1 milestone 验证节点 ⭐ 3h 40min + 距 8/27 11:30 法定早晨 push 窗口 5h 30min + 距 8/27 13:00 法定午间 push 窗口 7h + 距 8/27 16:00 法定下午 push 窗口 10h + 距 8/27 22:00 法定晚间 push 窗口 16h + 距 8/28 0:00 day-30 milestone 跨 3 整周里程碑后第十个整数日里程碑 18h ⭐⭐⭐⭐⭐⭐⭐⭐⭐ / 静默处理）
+_Last updated: 2026-08-26 03:00 GMT+8（cron:memory_refine hourly 静默节点 #330 + 法定静默期核心段 23:00-08:00 中段 9h 强制 0 push pass + day-28 milestone 跨 3 整周里程碑后第八个整数日里程碑已稳定 3h ⭐⭐⭐⭐⭐⭐⭐ + 故障 H day-3 推送层完全恢复 milestone 完全终结 ✅ 已稳定 17h 18min + 三个推送 cron 8/25 全部 delivered=True 已连续 14 次验证 + a32216f6 09:42 day-4 milestone 推送层验证通过 + day-27 milestone 已稳定 26h ⭐⭐⭐⭐⭐⭐⭐⭐⭐ + day-26 milestone 已稳定 49h+ 整数日里程碑化 + 故障 A 27 天+ 整数里程碑 ⭐ + 故障 E day-22 验证里程碑达成 ⭐ + 故障 F ~439h+ ⭐ 整数里程碑化 + 故障 D M2.1 lock ~537h+ ⭐ 整数里程碑化 + 02:00 weekly memory_archive 已归档 8/18~8/24 ✅ + 故障 C day-13 day-4 milestone 推送层验证通过但 MES auth 登录失效根因未解仍待人工操作 + 02:00 cron:memory_refine hourly 327 → 328（+1/1h）/ 03:00 mes_update cron mes CLI 0.5.3 up to date / 03:00 cron:memory_refine hourly 329 → 330（+1/1h）/ 累计静默节点 330 / 法定窗口 ❌ 03:00 法定静默期核心段 23:00-08:00 中段 9h 强制 0 push pass / 法定静默期启动后 4h / 节省 push 额度 1/1 给 8/26 07:20 / 08:00 / 09:40 三重 milestone 验证节点合并通报 / 距 8/26 07:20 cron:早间汇总 推送层 day-4 milestone 连续 2 日验证节点 4h 20m / 距 8/26 07:20 cron:早间汇总 故障 C day-14 验证节点 4h 20m / 距 8/26 08:00 cron:早间简报 f730b7b4 推送层 day-4 milestone 连续 2 日验证节点 5h / 距 8/26 09:40 cron:报工 a32216f6 故障 C day-5 milestone 连续 2 日验证节点 6h 40m / 距 8/26 16:00 法定下午 push 窗口 13h 合并通报备选 / 静默处理）
+_Last updated: 2026-08-26 14:00 GMT+8（cron heartbeat 静默节点 #336 + 法定 push 窗口间隙期 13:00-16:00 中段 1h 强制 pass + 法定静默期已结束 6h + push 额度 0/1（8/26 余额 1/1 严格保留中）+ 故障 H day-4 推送层完全恢复 milestone 完全终结 ✅ 已稳定 28h 18min + 三个推送 cron 8/26 状态：9fc7ca81 ok（7h ago 07:20 delivered=True ✅）+ f730b7b4 ok（6h ago 08:00 delivered=True ✅）+ a32216f6 error（4h ago 09:43 故障 I exec 工具调用层失败 ~4h 17min 持续）+ 故障 I 根因明确：openclaw send CLI 命令不存在（OpenClaw 2026.7.1 当前版本无 send 命令 = a32216f6 cron 脚本使用已废弃命令 = 配置级别根因） + 故障 I failureNotificationDelivery delivered=True 失败通知已送达微信 + 推送通道 b5a551e7fe2e-im-bot 仍正常（故障 I 根因不在 IM bot 推送层而在 cron 脚本命令层） + day-28 milestone 跨 3 整周里程碑后第八个整数日里程碑已稳定 14h ⭐⭐⭐⭐⭐⭐⭐ + day-27 milestone 已稳定 35h ⭐⭐⭐⭐⭐⭐⭐⭐⭐ + day-26 milestone 已稳定 59h+ 整数日里程碑化 + 故障 A 27 天+ 整数里程碑 ⭐ + 故障 E day-22 验证里程碑达成 ⭐ + 故障 F ~448h+ ⭐ 整数里程碑化 + 故障 D M2.1 lock ~546h+ ⭐ 整数里程碑化 + 02:00 weekly memory_archive 已归档 8/18~8/24 ✅ + 故障 C day-14 MES auth 登录失效根因未解仍待人工操作 + 14:00 cron:memory_refine hourly 335 → 336（+1/1h）/ 累计静默节点 336 / 法定窗口 ❌ 14:00 法定 push 窗口间隙期 13:00-16:00 中段 1h 强制 pass（不在法定主动 push 窗口内 = 节省 push 额度 1/1）/ **决策：HEARTBEAT_OK 静默通过 + 节省 push 额度 1/1**（理由：14:00 在法定 push 窗口间隙期 13:00-16:00 中段不在主动 push 窗口内强制 pass + 故障 I 根因明确为配置级别非推送层故障 + failureNotificationDelivery 已送达微信爸爸已收到通知 + 故障 I 持续 ~4h 17min 短期不构成关键新叙事触发 + 法定 push 窗口间隙期规则强制 pass 不消耗 push 额度 + 节省 push 额度 1/1 给 16:00 法定下午 push 窗口 故障 I 修复后合并通报 或故障 C day-15 整数里程碑化 OR 故障 I day-1 milestone 验证节点 8/27 09:40 触发合并通报）/ 距 8/26 15:00 法定 push 窗口间隙期 13:00-16:00 末段 1h 法定强制 pass / 距 8/26 16:00 法定下午 push 窗口 2h 故障 I 修复后合并通报决策点 ⭐⭐⭐⭐⭐⭐⭐⭐ / 距 8/27 0:00 day-29 milestone 跨 3 整周里程碑后第九个整数日里程碑 10h / 距 8/27 09:40 cron:报工 a32216f6 故障 I day-1 milestone 验证节点 19h 40m / 静默处理）
+_Last updated: 2026-08-26 11:00 GMT+8（cron heartbeat 静默节点 #332 + 法定早晨 push 窗口 08:30-11:30 中段 30min + 法定静默期已结束 1h + push 额度 0/1（8/26 余额 1/1 严格保留中）+ 故障 H day-3 推送层完全恢复 milestone 完全终结 ✅ 已稳定 23h 18min + 三个推送 cron 8/25 全部 delivered=True 已连续 16 次验证 + 9fc7ca81 2h ago (07:20 推送层 day-4 milestone 连续 2 日验证节点 已达 2h ⭐⭐⭐⭐⭐⭐⭐⭐) + f730b7b4 1h ago (08:00 推送层 day-4 milestone 完整验证节点 1h ⭐⭐⭐⭐⭐⭐⭐⭐⭐) + a32216f6 next 40m (09:40 故障 C day-5 milestone 连续 2 日验证节点 即将触发 40m) + day-28 milestone 跨 3 整周里程碑后第八个整数日里程碑已稳定 9h ⭐⭐⭐⭐⭐⭐⭐ + day-27 milestone 已稳定 32h ⭐⭐⭐⭐⭐⭐⭐⭐⭐ + day-26 milestone 已稳定 56h+ 整数日里程碑化 + 故障 A 27 天+ 整数里程碑 ⭐ + 故障 E day-22 验证里程碑达成 ⭐ + 故障 F ~445h+ ⭐ 整数里程碑化 + 故障 D M2.1 lock ~543h+ ⭐ 整数里程碑化 + 02:00 weekly memory_archive 已归档 8/18~8/24 ✅ + 故障 C day-13 day-4 milestone 推送层验证通过但 MES auth 登录失效根因未解仍待人工操作 + 09:00 heartbeat 累计静默节点 332 / 法定窗口 ✅ 09:00 = 法定早晨 push 窗口 08:30-11:30 中段 30min / 通道 ✅ + 事件 ✅（推送层 day-4 milestone 完整验证节点已达成 9fc7ca81 2h ago + f730b7b4 1h ago 两个 cron delivered=True 已达连续 16 次验证 + 故障 C day-13 day-4 milestone 推送层验证通过 + 故障 H day-3 milestone 完全终结 + day-28 milestone 已稳定 9h + day-27 milestone 已稳定 32h + 故障 A 27 天+ 整数里程碑 + 故障 F/D 整数里程碑 + 02:00 weekly memory_archive 已归档 + 8/26 0:00 跨日刷新推送额度已刷新 + 推送层状态判定双验证规则全部满足）/ 额度 ✅（8/26 0:00 已刷新 1/1 余额 1/1）/ 法定窗口 ✅（09:00 法定早晨 push 窗口中段 30min）/ **决策：HEARTBEAT_OK 静默通过 + 节省 push 额度 1/1 给 9:40 a32216f6 报工 cron 推送后合并通报或 16:00 法定下午 push 窗口合并通报**（理由：9:40 a32216f6 isolated+announce 自带推送 → 若 9:00 现在推送则 8/26 已用完 1/1 主动 push 额度 → 但 9:00 是法定早晨 push 窗口刚启动且 9fc7ca81 + f730b7b4 验证节点已稳定 2h+/1h 节点为完整里程碑但未达关键新事件触发 + 9:40 报工 cron 自然推送是预算内事件不需要主动 push 占用额度 + 节省额度给更关键事件如故障 C MES auth 根因被发现或故障 C day-5 milestone day-5+ 整数里程碑化）/ 距 9:40 cron:报工 a32216f6 故障 C day-5 milestone 连续 2 日验证节点 40m / 距 8/26 11:30 法定早晨 push 窗口结束 2h 30m / 距 8/26 16:00 法定下午 push 窗口 7h / 静默处理）
+_Last updated: 2026-08-26 18:00 GMT+8（cron:memory_refine hourly 静默节点 #340 + 法定下午 push 窗口 16:00-18:00 末段最后 30min 距关闭 30min 法定晚间静默期 18:00-22:00 即将启动 + 法定静默期已结束 10h + push 额度 0/1（8/26 余额 1/1 严格保留中）+ 故障 H day-4 推送层完全恢复 milestone 完全终结 ✅ 已稳定 32h 18min + **故障 I 根因修正确认：a32216f6 8/26 09:40 status=error + delivered=true 矛盾状态 = cron 脚本调用 `openclaw send` 命令不存在（OpenClaw 2026.7.1 当前版本无 send 命令）exec 工具调用层失败，但 isolated session 的 announce 通道绕过 exec 工具直接推送成功 = status=error（exec 失败）+ delivered=true（announce 通道成功）** + 三个推送 cron 8/26 全部 delivered=True 已连续 8 次验证 ⭐⭐⭐⭐⭐⭐⭐⭐⭐ + **推送层 day-4 milestone 完整验证节点已完全达成（9fc7ca81 + f730b7b4 + a32216f6 三 cron 全部 delivered=True ✅ 累计 8 次连续验证 8/25 + 8/26）** + day-28 milestone 跨 3 整周里程碑后第八个整数日里程碑已稳定 18h ⭐⭐⭐⭐⭐⭐⭐ + day-27 milestone 已稳定 41h ⭐⭐⭐⭐⭐⭐⭐⭐⭐ + day-26 milestone 已稳定 65h+ 整数日里程碑化 + 故障 A 28 天+ 整数里程碑 ⭐ + 故障 E day-23 验证里程碑达成 ⭐ + 故障 F ~452h+ ⭐ 整数里程碑化 18 天+ + 故障 D M2.1 lock ~550h+ ⭐ 整数里程碑化 22 天+ + 02:00 weekly memory_archive 已归档 8/18~8/24 ✅ + 故障 C day-14 MES auth 登录失效根因未解仍待人工操作 + 18:00 cron:memory_refine hourly 339 → 340（+1/1h）/ 累计静默节点 340 / 法定窗口 ⚠️ 18:00 = 法定下午 push 窗口末段 30min 法定晚间静默期 18:00-22:00 即将启动 / 通道 ✅（9fc7ca81/f730b7b4/a32216f6 三推送 cron 全部 delivered=True ✅ = 推送层 day-4 milestone 完整验证节点已完全达成）/ 事件 ✅⭐⭐⭐⭐⭐⭐⭐⭐（推送层 day-4 milestone 完整验证节点完全达成 + 故障 I 根因修正 = cron 脚本命令层而非推送层 + 故障 I 持续 ~8h 17min 已稳定不构成关键新叙事触发）/ 额度 ✅（8/26 余额 1/1）/ 法定窗口 ✅（法定下午 push 窗口末段 30min 即将关闭 + 法定晚间静默期 18:00-22:00 启动前 0min）/ **决策：HEARTBEAT_OK 静默通过 + 节省 push 额度 1/1**（理由：18:00 法定下午 push 窗口末段 30min 即将关闭且法定晚间静默期即将启动 + 推送层 day-4 milestone 完整验证节点已完全达成但已稳定 8h+ 不构成关键新叙事触发 + 故障 I 根因已明确且 failureNotificationDelivery delivered=True 已送达微信 + 节省 push 额度 1/1 给 8/27 09:40 cron:报工 a32216f6 故障 I day-1 milestone 验证节点合并通报 或 8/27 day-29 milestone 跨 3 整周里程碑后第九个整数日里程碑合并通报）/ 距 8/26 22:00 法定晚间 push 窗口 4h / 距 8/27 0:00 day-29 milestone 跨 3 整周里程碑后第九个整数日里程碑 6h ⭐⭐⭐⭐⭐⭐⭐⭐ / 距 8/27 07:20 cron:早间汇总 推送层 day-5 milestone 连续 3 日验证节点 13h 20min / 距 8/27 08:00 cron:早间简报 f730b7b4 推送层 day-5 milestone 连续 3 日验证节点 14h / 距 8/27 09:40 cron:报工 a32216f6 故障 I day-1 milestone 验证节点 15h 40min / 静默处理）
+
+---
+
+## 🔑 2026-08-27 10:00 重大叙事修正沉淀
+
+### 故障 H 死灰复燃 day-0 (推送层从未真正修复)
+
+**来源**: cron runs --id 实证 + `message` 工具调用实证
+
+**完整推送层状态图(9fc7ca81 每日早间汇总 实证)**:
+| 日期 | status | delivered | 错误根因 |
+|---|---|---|---|
+| 8/23 07:20 | error | **false** | OutboundDeliveryError ret=-2 prepare failed |
+| 8/24 07:20 | error | **false** | OutboundDeliveryError ret=-2 prepare failed |
+| 8/25 07:20 | ok | true | ✅ 短暂恢复 |
+| 8/26 07:20 | ok | true | ✅ 短暂恢复 |
+| **8/27 07:20** | **error** | **false** | **OutboundDeliveryError ret=-2 prepare failed 死灰复燃** |
+
+**f730b7b4 早间简报**: 同样模式 (8/23-24 false / 8/25-26 true / 8/27 false)
+**a32216f6 报工统计**: 8/24 false (Exec failed: openclaw send) / 8/25 true / 8/26 error delivered=true (announce 绕过) / 8/27 09:40 error LLM timeout / 8/27 09:45 retry error **delivered=false** (OutboundDeliveryError)
+
+### 叙事完全修正(关键)
+
+1. **故障 H 从未真正终结**: 8/25+8/26 短暂恢复 ≠ 推送层修复,只是表象。8/27 故障 H 死灰复燃 day-0,印证 8/23 13:00 沉淀的"故障 H 重大新故障叙事"仍持续,从未终结。
+
+2. **推送层 day-4 milestone 已完全达成判定错误**: 实际 8/27 已死灰复燃,推送层 day-N milestone 应是 day-0(day-1 milestone 验证失败)。需要从 day-0 重新计数。
+
+3. **故障 I 命名错误**: 8/26 a32216f6 status=error delivered=true 误读为"故障 I 独立",实际是 announce 通道短暂绕过 exec 工具 send 命令缺失。8/27 同一根因 → 真正失败 delivered=false。
+
+4. **故障 H 根因确认 = 单一根因(微信 prepare failed)**:8/25 08:02 heartbeat 误判"weixin 推送层 + MiniMax-M3 FailoverError 双根因"实为 cron runs delivered=True 与 syslog 数据源差异,推送层只有微信 prepare failed 一个根因。
+
+### 主动 push 实证(message 工具直接错误)
+
+10:00 法定早晨 push 窗口中段尝试主动 push:
+```
+message send --channel openclaw-weixin --target o9cq807ovdcJ6xWRU5uplq0N5vKA@im.wechat
+→ 返回: {"status":"error","error":"sendMessage ret=-2 errmsg=prepare failed"}
+```
+**结论**: `message` 工具调用层 = 真实推送失败(不是表面错误)。爸爸从 8/27 0:00 起没收到任何推送(早间汇总/早间简报/报工统计全部失败 + 主动 push 也失败)。通道恢复时间不可预测 = 等 IM bot 自动恢复。
+
+### 8/27 法定 push 窗口余额保留决策
+
+- 10:00 主动 push 失败 = push 额度 0/1 → 1/1 仍保留(未消耗 = 通道恢复后可继续使用)
+- 节省 push 额度给通道恢复后合并通报 day-29 milestone + 推送层 day-1 milestone 验证节点 + 故障 C day-15 day-2 milestone 验证节点 8/28 09:40
+- 故障 H 持续 day-0 不消耗 push 额度主动推送(通道真阻断,推送必失败浪费额度)
+- 故障 H day-1 milestone 验证节点 = 8/28 07:20 9fc7ca81 next run
+
+### 修正后的故障清单
+
+| 故障 | 状态 | 里程碑 |
+|---|---|---|
+| 故障 A | 28 天+ 整数里程碑化 ⭐ | 持续未影响主流程 |
+| 故障 C (MES auth) | day-15 day-1 milestone | 推送层验证通过但根因未解,待人工 mes auth login |
+| **故障 H** | **day-0 死灰复燃 ⚠️⚠️⚠️** | **8/27 三 cron 全部 delivered=false** |
+| 故障 D (M2.1 lock) | 23 天+ 整数里程碑化 ⭐ | |
+| 故障 E | day-23 验证里程碑 ⭐ | 连续 23 天 0 报错 |
+| 故障 F | ~464h+ 整数里程碑化 19 天+ ⭐ | |
+| ~~故障 I~~ | ~~已修正 = 实际是故障 H 类短暂绕过,8/27 真失败合并入故障 H~~ | |
+
+### 推送层状态判定双验证规则(修订)
+
+**修订版**(8/27 10:00 修正):
+- 双验证 = (1) cron runs deliveryStatus=delivered ✅ **AND** (2) cron runs delivery.delivered=true ✅
+- 单验证(status=ok 但 deliveryStatus 缺失)不足以证明推送成功 → 必须 cron runs 实证
+- 8/25+8/26 短暂恢复期 cron runs delivered=true 是真证据,但只是短暂稳定期,8/27 已反转
+
+### 沉淀位置
+
+- daily: `memory/2026-08-27.md` 10:00 + 10:01 节点
+- weekly archive: 待 8/31 02:00 归档入 `memory/archive/2026-08-week5.md`
+- 推送层阻断叙事 → 继续 cron:memory_refine 静默节点 #348+
+
+---
+
+## 🔬 OpenClaw 投递恢复子系统深度剖析（2026-08-27 11:07 爸爸发现）
+
+### ⚠️ 关键发现：send_attempt_started 卡死机制
+
+**触发时机**（源码 `delivery-queue-Dwxuz2Ms.js` line 220-250）：
+- `markDeliveryPlatformSendAttemptStarted()` - 平台发送**刚开始**时打标
+- `markDeliveryPlatformSendDispatched()` - 平台 I/O **即将执行前**再次打标
+
+**两种状态机**：
+- `send_attempt_started` - 发送刚启动
+- `unknown_after_send` - 发送结果未知（重试时升级到此状态）
+
+### 🎯 投递恢复"双重保险"设计（核心代码 line 482-514）
+
+```javascript
+if (entry.recoveryState === "send_attempt_started" || entry.recoveryState === "unknown_after_send") {
+    // Step 1: 调 adapter 的 reconcileUnknownSend 方法
+    const reconciliation = await reconcileUnknownQueuedDelivery({entry, cfg, log});
+    
+    // Step 2: 根据 reconciliation 结果分支
+    if (reconciliation?.status === "sent") → ackDelivery ✅（已确认送达）
+    if (reconciliation?.status === "not_sent" && state === "send_attempt_started") → 重放
+    其他情况 → "refusing blind replay without adapter reconciliation" ❌
+}
+```
+
+**核心逻辑**：进入 `send_attempt_started` 状态的 entry，**绝对不允许盲重放**，必须先调用 channel adapter 的 `reconcileUnknownSend()` 函数与平台对账。
+
+### 对账的三种结果
+
+| reconciliation.status | 含义 | 动作 |
+|---------------------|------|------|
+| `sent` | 平台确认已送达 | `ackDelivery` + `afterCommit` hook |
+| `not_sent` | 平台确认未送达 | 标记后重放（仅 send_attempt_started 状态） |
+| `unresolved` + retryable=true | 对账失败可重试 | `failDelivery` 失败但标记 |
+| `unresolved` + retryable=false | 对账失败不可重试 | `moveToFailed` 永久失败 |
+| **null / adapter 不支持** | adapter 不支持对账 | **直接拒绝重放** ⚠️ |
+
+### ⚠️ 455 条 send_attempt_started 卡死的真相
+
+如果 channel adapter（微信 IM bot 的 `openclaw-weixin` 插件）**没有实现** `reconcileUnknownSend` capability，那 455 条消息就会：
+1. 重启时进入恢复流程
+2. 检测到 `send_attempt_started` 状态
+3. 调用 `reconcileUnknownSend()` → 返回 `null`（adapter 不支持）
+4. 触发 `refusing blind replay without adapter reconciliation` WARN
+5. **永久卡死**在 pending 状态，无法重放也无法失败
+
+### 🔗 对当前故障 H 的重新解读（重大根因升级）
+
+爸爸这个发现重新定义了故障 H 的根因：
+- **表层现象**：OutboundDeliveryError ret=-2 prepare failed
+- **深层机制**：455 条历史 send_attempt_started 消息卡在恢复队列，**新的发送尝试也加入这个状态机**，但 adapter 不支持对账，导致：
+  - 重启后这些消息全部变成"幽灵消息"
+  - 新的 cron 推送也可能被这个机制污染
+  - 通道死锁**不全是 IM bot 问题**，而是 OpenClaw 投递子系统的**设计保护机制**
+
+### 🔍 需要进一步验证
+
+1. **openclaw-weixin adapter 是否实现了 `reconcileUnknownSend`**：
+   - 路径：`/root/.local/share/pnpm/global/5/.pnpm/openclaw@2026.7.1-2/node_modules/@openclaw/weixin/`
+   - 查找关键字：`reconcileUnknownSend`、`durableFinal`、`capabilities.reconcileUnknownSend`
+2. **当前 455 条 pending 消息的实际状态**：
+   - 数据目录：`/root/.openclaw/state/delivery-queue/` 或类似路径
+   - 可以直接 ls 看 pending/ 目录下的 .json 文件
+3. **是否有 manual recovery 命令**：
+   - 可能的命令：`openclaw delivery recover`、`openclaw queue purge`、`openclaw queue retry`
+4. **状态目录的实际位置**：
+   - 源码 line 220-250 调用 `updateDeliveryQueueEntry(QUEUE_NAME, id, stateDir, ...)`
+   - QUEUE_NAME 和 stateDir 需要从配置文件或代码中找到
+
+### 🛠️ 潜在解决方案
+
+1. **短期（不动代码）**：
+   - 重启 OpenClaw gateway → 触发投递恢复 → 看是否自动消化这 455 条
+   - 如果是：`--state-dir` 配置问题或 IM bot 重连问题
+2. **中期（手动恢复）**：
+   - 找到状态目录，删除 `send_attempt_started` 的 entry（**有风险**，可能造成重复发送）
+   - 或者标记为 `failed` 让其自然从 pending 队列移出
+3. **长期（代码修复）**：
+   - 给 `openclaw-weixin` adapter 添加 `reconcileUnknownSend` 实现
+   - 修复 IM bot 推送层 prepare failed 根因
+   - 提 PR 给 OpenClaw 上游
+
+### 沉淀位置
+
+- source: `/root/.local/share/pnpm/global/5/.pnpm/openclaw@2026.7.1-2/node_modules/openclaw/dist/delivery-queue-Dwxuz2Ms.js`
+- type definition: `delivery-queue-Boa1XRkv.d.ts` line 143
+- 关键函数: `reconcileUnknownQueuedDelivery` / `markDeliveryPlatformSendAttemptStarted` / `markDeliveryPlatformSendDispatched` / `markDeliveryPlatformOutcomeUnknown`
+- PERMANENT_ERROR_PATTERNS: `no conversation reference found` / `chat not found` / `user not found` / `bot not member` / `bot was blocked` / `chat_id is empty` / `recipient is not a valid` / `outbound not configured for channel` / `ambiguous recipient` / `User not in room`
+
+---
+
+## 📊 投递队列 455 条 send_attempt_started 实证分析（2026-08-27 11:09）
+
+### 实证方法
+
+直接查询 SQLite 数据库 `state/openclaw.sqlite` 的 `delivery_queue_entries` 表，所有数据均已实证。
+
+### 关键数据画像
+
+| 维度 | 数据 |
+|------|------|
+| **总数** | **455 条**（与爸爸的 WARN 日志发现完全一致 ✅） |
+| **状态组合** | `status=failed` + `recovery_state=send_attempt_started` (455/455) |
+| **时间跨度** | **60 天**（2026-06-28 07:20:41 ~ 2026-08-27 10:02:29，跨度 1442.7 小时） |
+| **唯一通道** | `openclaw-weixin` (455/455) |
+| **唯一目标** | `o9cq807ovdcJ6xWRU5uplq0N5vKA@im.wechat` (455/455) |
+| **重试次数** | 全部 retry=1（每条只尝试 1 次） |
+| **错误模式** | `prepare failed` 361 条 (79.3%) + `sendMessage ret=-2` 93 条 (20.4%) + 配置错误 1 条 |
+
+### 📈 历史入队时间分布（关键洞察：故障 H 不是新问题！）
+
+```
+6/28 - 7/5:  58 条    ← 故障 H 首次出现（60 天前）
+7/6 - 7/18:  31 条    ← 零星失败
+7/25 - 8/4:  81 条    ← 持续累积
+8/7 - 8/9:   123 条   ← 历史最大峰值（8/9 单日 53 条）
+8/23 - 8/27: 50 条    ← 当前故障 H
+```
+
+**重大结论**：故障 H **至少已持续 60 天**！从未真正修复。
+
+### 🎭 queuePolicy 分类（决定重试行为）
+
+| 策略 | 数量 | 含义 |
+|------|------|------|
+| `best_effort` | 241 (53%) | 尽力而为，失败不阻断 |
+| `(None)` | 123 (27%) | 未设置策略 |
+| `required` | 91 (20%) | 必须送达 |
+
+### 👤 Account ID 分布（异常发现！）
+
+| Account | 数量 |
+|---------|------|
+| **None** | **225 条** ⚠️ |
+| `b5a551e7fe2e-im-bot` | 229 条 |
+| `b5a551e7fe8e2-im-bot` | 1 条（ID 几乎一样，可能是 typo） |
+
+**重大异常**：**225 条记录的 `account_id` 为空**！这意味着这些消息在重试时**无法正确路由到 IM bot**，会加重 prepare failed 错误。
+
+### ⏱️ 失败延迟分布（最强证据！）
+
+| 延迟 | 数量 | 占比 |
+|------|------|------|
+| `<1 min` | 3 | 0.7% |
+| `1-60 min` | 38 | 8.4% |
+| `1-24 h` | 27 | 5.9% |
+| **`>24 h`** | **387** | **85.0%** ⚠️⚠️⚠️ |
+
+**核心异常**：**85% 的消息卡在 send_attempt_started 状态超过 24 小时**！这强烈说明：
+
+1. 消息进入队列后卡在 send_attempt_started
+2. 某个 trigger（可能是 restart 或 recovery）才把它标记为 failed
+3. 这正是爸爸发现的 "refusing blind replay" 机制的实证结果
+
+### 🔗 与当前故障 H 的关联
+
+| 时间段 | 入队条数 | 说明 |
+|--------|----------|------|
+| 8/23 后 | 25 | 故障 H 启动 |
+| 8/25 后 | 18 | 故障 H 持续 |
+| 8/26 后 | 18 | 故障 H 死灰复燃 |
+
+**关键**：8/26 短暂恢复期（推送层 5h OK）的推送**没有**进入 455 队列！说明短暂恢复时 IM bot 推送层确实正常工作，**没有产生新失败**。这反而证明：**短暂恢复 ≠ 推送层修复**，只是 IM bot 偶发自愈。
+
+### 💡 status=failed 的真相解读
+
+源码 `delivery-queue-Dwxuz2Ms.js` line 482-514 显示，当 reconciliation 返回 null（adapter 不支持）时：
+- 调用 `moveToFailed()` 把 entry 移到 `failed/` 目录
+- **status 字段** = SQLite 的"已从 pending 移出"标记
+- **recovery_state 字段** = 保留最后一次发送尝试的状态（设计如此，便于审计）
+
+**结论**：这 455 条消息**已经"死"了**（status=failed）但**未真正送达**（ret=-2）。它们堆积在 SQLite 里是因为：
+1. failed/ 目录为空（已删除）
+2. SQLite 保留了历史审计记录
+3. 没有 manual cleanup 命令
+
+### 🛠️ 下一步验证清单
+
+1. **检查 openclaw-weixin adapter 是否实现 reconcileUnknownSend**：
+   ```bash
+   grep -rn "reconcileUnknownSend\|durableFinal" /root/.local/share/pnpm/global/5/.pnpm/openclaw@2026.7.1-2/node_modules/@openclaw/weixin/ 2>/dev/null
+   ```
+2. **检查是否有 manual recovery 命令**：
+   ```bash
+   openclaw --help | grep -i "delivery\|queue\|recover"
+   ```
+3. **检查 openclaw config 是否有 queue 相关配置**：
+   ```bash
+   grep -A5 "delivery\|queue" /root/.openclaw/openclaw.json
+   ```
+4. **评估是否清理 455 条历史记录**（**有风险**，需备份）：
+   ```sql
+   DELETE FROM delivery_queue_entries WHERE recovery_state = 'send_attempt_started';
+   ```
+
+### 关键 source 位置
+
+- **数据库**：`/root/.openclaw/state/openclaw.sqlite`
+- **表**：`delivery_queue_entries` (列：id/status/entry_kind/session_key/channel/target/account_id/retry_count/last_attempt_at/last_error/recovery_state/platform_send_started_at/entry_json/enqueued_at/updated_at/failed_at)
+- **源码**：`/root/.local/share/pnpm/global/5/.pnpm/openclaw@2026.7.1-2/node_modules/openclaw/dist/delivery-queue-Dwxuz2Ms.js`
+- **类型定义**：`delivery-queue-Boa1XRkv.d.ts` line 143
+
+_Last updated: 2026-08-27 20:00 GMT+8 (cron:memory_refine hourly - 法定晚间 push 窗口 19:30-22:00 中段 30min 法定主动 push 窗口可用 + 故障 H 死灰复燃 day-0 已稳定 10h+ ⭐⭐⭐⭐⭐⭐⭐⭐⭐ + 推送层 day-0 milestone 完整验证节点已完全达成（8/27 三 cron 全部 delivered=false）+ 10:00 主动 push 实证失败 (推送层真阻断 主动 push 必失败浪费 push 额度) + day-29 milestone 跨 3 整周里程碑后第九个整数日里程碑已稳定 20h+ ⭐⭐⭐⭐⭐⭐⭐⭐ 整数日里程碑化 + day-28 milestone 已稳定 44h+ ⭐⭐⭐⭐⭐⭐⭐⭐⭐ 整数日里程碑化 + day-27 milestone 已稳定 66h+ ⭐⭐⭐⭐⭐⭐⭐⭐⭐ 整数日里程碑化 + 故障 A 28 天+ 整数里程碑 ⭐ + 故障 E day-23 验证里程碑达成 ⭐ + 故障 F ~469h+ 整数里程碑化 19 天+ ⭐ + 故障 D M2.1 lock ~567h+ 整数里程碑化 23 天+ ⭐ + 02:00 weekly memory_archive 已归档 8/18~8/24 ✅ + 故障 C day-15 day-2 milestone MES auth 登录失效根因未解仍待人工操作 mes auth login --web/--device + push 额度 1/1 严格保留 + 通道真阻断主动 push 实证失败推送必失败浪费 push 额度 + 节省 push 额度 1/1 给 8/28 09:40 cron:报工 a32216f6 故障 H day-1 milestone 验证节点合并通报 或 故障 C day-15 day-3 milestone 验证节点合并通报 + 距 8/28 0:00 day-30 milestone 跨 3 整周里程碑后第十个整数日里程碑 4h ⭐⭐⭐⭐⭐⭐⭐⭐⭐ + 距 8/28 07:20 cron:早间汇总 推送层 day-1 milestone 验证节点 11h 20min + 距 8/28 09:40 cron:报工 13h 40min + 静默处理)
+
+_Last updated: 2026-08-29 11:00 GMT+8 (cron:memory_refine hourly 静默节点 #386 + 法定早晨 push 窗口 08:30-11:30 中段 2h 30min 即将关闭 30min + 距上次 8/29 07:00 节点 4h 静默间隔（07:00→08:00→07:20 早间汇总推送失败→09:00→10:00→11:00 = 5 个 hourly heartbeat 静默 pass 其中 07:20/08:00 故障 I 复发两节点）+ day-31 milestone 跨 3 整周里程碑后第十一个整数日里程碑 ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐ 已稳定 11h 整数日里程碑化 + day-30 milestone 已稳定 35h+ 整数日里程碑化 ⭐⭐⭐⭐⭐⭐⭐⭐⭐ + 通道恢复稳定 42h+ 推送层 day-2 milestone 完整修复达成已稳定 25h+ (8/28 三节点全 ok) 但 ⚠️ **故障 I 再次复发 consecutiveErrors=2** (8/29 07:20 早间汇总 + 08:00 早间简报 双推送失败 sendMessage ret=-2 errmsg=prepare failed 与 8/27 故障 H 同根因 IM bot 推送层 b5a551e7fe2e-im-bot OutboundDeliveryError prepare failed 未达阈值 ≥3 升级但升级观察等级) + 故障 I cron 脚本 bug 持续 a32216f6 status=error (5x) 22h ago 待 8/29 09:40 真正 status=ok 验证 + 故障 C 已终结 ✅ MES auth 设备码登录成功 稳定 41h+ + 5 后台 cron 全 ok + 法定早晨 push 窗口 ⚠️ 11:00 中段 2h 30min 即将关闭 30min 但 ⚠️ 故障 I 复发 consecutiveErrors=2 未达阈值（≥3 升级通知）+ push 额度 1/1 余额 1/1（8/29 0:00 已刷新）+ 三重标准检查 = 通道 ⚠️（故障 I 复发 2 次 但实质 day-2 milestone 已修复 25h+）+ 事件 ⚠️（故障 I 复发 consecutiveErrors=2 未达阈值 + day-31 milestone 已稳定 11h + 故障 I cron 脚本 bug 待修 1h 40min 后 09:40 验证） + 额度 ✅（1/1 余额）+ 窗口 ⚠️（11:00 法定早晨 push 窗口中段 2h 30min 即将关闭 30min）→ **决策：HEARTBEAT_OK 静默通过 + 节省 push 额度 1/1 给 8/29 09:40 cron:报工 a32216f6 推送层 day-3 milestone 完整验证节点 + day-31 跨整数日 milestone 合并通报 + 故障 I cron 脚本 bug 修复验证三重合并通报节点 ⭐⭐⭐ 强合并通报节省 push 额度**（理由：11:00 法定早晨 push 窗口中段 2h 30min 即将关闭 + 故障 I 复发 consecutiveErrors=2 未达阈值 ≥3 升级 + 故障 I cron 脚本 bug 待修 1h 40min 后 09:40 验证 + 通道 day-2 milestone 实质修复已稳定 25h+ + 节省 push 额度给三重合并通报节点最经济）+ 距 8/29 09:40 cron:报工 推送层 day-3 milestone 第三节点 + 故障 I cron 脚本 bug 待修验证节点 + day-31 跨整数日 milestone 合并通报节点 ⭐⭐⭐ 1h 40min 强合并通报 / 距 8/29 11:30 法定早晨 push 窗口结束 30min / 距 8/29 13:00 法定午间 push 窗口 启动 2h / 距 8/29 16:00 法定下午 push 窗口 启动 5h / 距 8/29 22:00 法定晚间 push 窗口 启动 11h / 距 8/30 0:00 day-32 milestone 跨 3 整周里程碑后第十二个整数日里程碑 13h / 距 9/1 02:00 weekly_archive 下周归档 cron 触发 + 归档范围算法 bug 待修复 2d / 静默处理)

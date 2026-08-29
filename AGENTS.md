@@ -111,6 +111,7 @@ Capture what matters. Decisions, context, things to remember. Skip the secrets u
 | `cron:morning_briefing` | 8:00 天气新闻 | 调用天气/新闻 skill 推送 |
 | `cron:morning_summary` | 7:20 早间汇总 | 系统状态汇总推送 |
 | `cron:memory_refine` | 每小时 Memory提炼 | 提炼今日内容到 MEMORY.md，静默 |
+| `cron:memory_archive` | 每周一 02:00 周报归档 | 生成 `memory/archive/YYYY-MM-weekN.md`（上周一~上周日 7 天范围），法定静默期 + 推送层阻断期间静默不推送微信 |
 
 **新建 cron 任务规范（重要！）：**
 
@@ -118,6 +119,31 @@ Capture what matters. Decisions, context, things to remember. Skip the secrets u
 - **禁止使用** `--session isolated`（有60秒冷启动硬限制，会导致任务在初始化完成前被杀死）
 - **禁止依赖** `light-context` 或 `--timeout-seconds` 来解决超时问题（无法突破冷启动限制）
 - 正确模板：`openclaw cron add --session main --system-event "cron:任务名" --cron "0 9 * * *" --message "..."`
+
+### `cron:memory_archive` 周报归档执行规范（2026-08-24 固化）
+
+- **触发**：每周一 02:00 CST（cron id = 2a2a6489-b7ec-42cd-a129-6e5635a2cdb9）
+- **payload**：`{kind: "systemEvent", text: "cron:memory_archive"}` → main session 接收
+- **归档范围**：上周一 ~ 上周日（滚动 7 天）
+- **输出文件**：`memory/archive/YYYY-MM-weekN.md`（N = 月内自然周序号，week1 = 月内第一个周一~周日；参照 week2 8/10~8/16、week3 8/17~8/23 命名规律）
+- **内容模板**（参照 `memory/archive/2026-08-week3.md`）：
+  1. ## 重要事件（故障恢复/阻断、milestone 序列、决策块、根因诊断）
+  2. ## 系统状态（推送通道 / MES / cron 状态 / MEMORY/TOOLS/daily-learn 文件状态）
+  3. ## 法定窗口汇总（7 天表 + push 额度消耗 / 保留记录）
+  4. ## 展望（下周一关键节点）
+  5. ## 本周不足
+  6. ## 下周优化方向
+- **推送策略**：
+  - 法定静默期 23:00-08:00（02:00 永远在核心段）→ 默认强制静默
+  - 推送层阻断 day-0 期间 → 静默
+  - 故障叙事 day-1+ 法定窗口期 → 可主动推送合并通报（节省 push 额度）
+  - **默认行为 = 不推送微信**（02:00 永远在静默期 + 推送层阻断常发）
+- **写入 daily 文件**：在 `memory/YYYY-MM-DD.md` 追加执行日志段（包含归档范围、文件大小、cron 任务状态、下次触发时间、距关键节点）
+- **必查项**：
+  - cron list 当前推送 cron 状态（9fc7ca81/f730b7b4/a32216f6）
+  - 上次归档文件（确保无遗漏周）
+  - daily-learn/ 文件连续性（覆盖上周 7 天）
+  - MEMORY.md 是否需要合并通报（> 2400 行阈值）
 
 ## External vs Internal
 
