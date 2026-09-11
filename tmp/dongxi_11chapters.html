@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>团队23报工看板 09/05~09/02</title>
+<style>
+  * {box-sizing:border-box;margin:0;padding:0;}
+  body {font-family:'PingFang SC','Microsoft YaHei',sans-serif;background:#0f0f23;color:#ecf0f1;}
+  .container {max-width:1200px;margin:0 auto;padding:20px;}
+  .header {background:linear-gradient(135deg,#16213e 0%,#1a1a2e 100%);color:white;padding:28px;border-radius:12px;margin-bottom:20px;border-left:4px solid #00d4ff;}
+  .header h1 {font-size:22px;font-weight:700;margin-bottom:6px;}
+  .header p {font-size:13px;opacity:0.8;}
+  .section {background:#16213e;border-radius:12px;padding:20px;margin-bottom:20px;}
+  .section-title {font-size:16px;font-weight:700;color:#00d4ff;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid #0f3460;display:flex;align-items:center;gap:8px;}
+  .grid-cards {display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;}
+  @media(max-width:768px){.grid-cards{grid-template-columns:repeat(2,1fr);}}
+  .card {background:#1a1a2e;border-radius:10px;padding:14px;text-align:center;border:1px solid #0f3460;}
+  .card .num {font-size:24px;font-weight:800;color:#00d4ff;}
+  .card .label {font-size:11px;color:#95a5a6;margin-top:4px;}
+  table {width:100%;border-collapse:collapse;font-size:12px;}
+  th {background:#1a1a2e;color:#00d4ff;font-weight:600;padding:10px 8px;text-align:left;border-bottom:1px solid #0f3460;}
+  td {padding:8px;border-bottom:1px solid #0f3460;}
+  tr:hover td {background:#1a1a2e;}
+  .badge {display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;}
+  .bar {height:8px;border-radius:4px;background:#1a1a2e;overflow:hidden;margin-top:4px;}
+  .bar-fill {height:100%;border-radius:4px;}
+  .type-bar {display:flex;height:20px;border-radius:6px;overflow:hidden;margin:8px 0;}
+  .type-seg {height:100%;}
+  .type-label {display:flex;justify-content:space-between;font-size:11px;color:#95a5a6;margin-top:4px;}
+  .highlight {color:#00d4ff;font-weight:700;}
+  .warn {color:#f39c12;}
+  .danger {color:#e94560;}
+  .ok {color:#2ecc71;}
+  .empty {text-align:center;padding:20px;color:#95a5a6;font-size:13px;}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <h1>📊 团队23 报工综合分析看板</h1>
+  <p>统计周期：09/05~09/02（4个工作日） | 标准工时：32h/人 | 生成时间：2026-09-06 09:42</p>
+</div>
+
+<!-- 一、核心指标概览 -->
+<div class="section">
+  <div class="section-title">📊 一、团队核心指标概览</div>
+  <div class="grid-cards">
+    <div class="card"><div class="num">21</div><div class="label">团队人数</div></div>
+    <div class="card"><div class="num">439.0h</div><div class="label">总工时</div></div>
+    <div class="card"><div class="num">20.9h</div><div class="label">人均工时</div></div>
+    <div class="card"><div class="num">71.4%</div><div class="label">满勤率</div></div>
+    <div class="card"><div class="num">12.0h</div><div class="label">加班总时长</div></div>
+    <div class="card"><div class="num">96.5</div><div class="label">平均评分</div></div>
+    <div class="card"><div class="num">0</div><div class="label">文档产出</div></div>
+    <div class="card"><div class="num">0</div><div class="label">服务请求</div></div>
+  </div>
+</div>
+
+<!-- 二、成员工时明细 -->
+<div class="section">
+  <div class="section-title">📋 二、成员工时明细</div>
+  <table>
+    <thead>
+      <tr><th>#</th><th>姓名</th><th>城市</th><th>总工时</th><th>售前</th><th>售后</th><th>内部</th><th>加班</th><th>报工条数</th><th>评分</th><th>不足</th><th>状态</th></tr>
+    </thead>
+    <tbody>
+<tr>
+          <td>1</td><td><b>黄进</b></td><td></td>
+          <td class="highlight">28.0h</td><td>0.0h</td><td>28.0h</td>
+          <td>0.0h</td><td>4.0h</td><td>4</td>
+          <td>96.0</td><td>0.0h</td><td>🟠</td>
+        </tr><tr>
+          <td>2</td><td><b>刘明民</b></td><td>成都</td>
+          <td class="highlight">26.0h</td><td>0.0h</td><td>26.0h</td>
+          <td>0.0h</td><td>0.0h</td><td>5</td>
+          <td>100.0</td><td>0.0h</td><td>🟠</td>
+        </tr><tr>
+          <td>3</td><td><b>莫乾一</b></td><td></td>
+          <td class="highlight">24.0h</td><td>0.0h</td><td>24.0h</td>
+          <td>0.0h</td><td>0.0h</td><td>3</td>
+          <td>0.0</td><td>0.0h</td><td>🟠</td>
+        </tr><tr>
+          <td>4</td><td><b>丁岩松</b></td><td>昆明</td>
+          <td class="highlight">24.0h</td><td>0.0h</td><td>24.0h</td>
+          <td>0.0h</td><td>0.0h</td><td>3</td>
+          <td>0.0</td><td>0.0h</td><td>🟠</td>
+        </tr><tr>
+          <td>5</td><td><b>徐伟东</b></td><td>贵阳</td>
+          <td class="highlight">24.0h</td><td>0.0h</td><td>24.0h</td>
+          <td>0.0h</td><td>0.0h</td><td>3</td>
+          <td>0.0</td><td>0.0h</td><td>🟠</td>
+        </tr><tr>
+          <td>6</td><td><b>何阳</b></td><td></td>
+          <td class="highlight">24.0h</td><td>0.0h</td><td>24.0h</td>
+          <td>0.0h</td><td>0.0h</td><td>3</td>
+          <td>0.0</td><td>0.0h</td><td>🟠</td>
+        </tr><tr>
+          <td>7</td><td><b>杨蕊</b></td><td></td>
+          <td class="highlight">24.0h</td><td>0.0h</td><td>24.0h</td>
+          <td>0.0h</td><td>0.0h</td><td>3</td>
+          <td>100.0</td><td>0.0h</td><td>🟠</td>
+        </tr><tr>
+          <td>8</td><td><b>聂大爽</b></td><td>昆明</td>
+          <td class="highlight">24.0h</td><td>0.0h</td><td>24.0h</td>
+          <td>0.0h</td><td>0.0h</td><td>3</td>
+          <td>0.0</td><td>0.0h</td><td>🟠</td>
+        </tr><tr>
+          <td>9</td><td><b>陈伟棠</b></td><td>深圳</td>
+          <td class="highlight">24.0h</td><td>0.0h</td><td>24.0h</td>
+          <td>0.0h</td><td>0.0h</td><td>3</td>
+          <td>96.0</td><td>0.0h</td><td>🟠</td>
+        </tr><tr>
+          <td>10</td><td><b>谢罗锣</b></td><td></td>
+          <td class="highlight">24.0h</td><td>0.0h</td><td>24.0h</td>
+          <td>0.0h</td><td>0.0h</td><td>3</td>
+          <td>0.0</td><td>0.0h</td><td>🟠</td>
+        </tr><tr>
+          <td>11</td><td><b>钟敏</b></td><td></td>
+          <td class="highlight">24.0h</td><td>0.0h</td><td>0.0h</td>
+          <td>24.0h</td><td>0.0h</td><td>3</td>
+          <td>90.0</td><td>0.0h</td><td>🟠</td>
+        </tr><tr>
+          <td>12</td><td><b>冯彦苇</b></td><td>昆明</td>
+          <td class="highlight">24.0h</td><td>0.0h</td><td>24.0h</td>
+          <td>0.0h</td><td>0.0h</td><td>3</td>
+          <td>0.0</td><td>0.0h</td><td>🟠</td>
+        </tr><tr>
+          <td>13</td><td><b>罗海鸥</b></td><td>成都</td>
+          <td class="highlight">24.0h</td><td>0.0h</td><td>0.0h</td>
+          <td>24.0h</td><td>0.0h</td><td>3</td>
+          <td>0.0</td><td>0.0h</td><td>🟠</td>
+        </tr><tr>
+          <td>14</td><td><b>张懿骉</b></td><td>贵阳</td>
+          <td class="highlight">24.0h</td><td>0.0h</td><td>24.0h</td>
+          <td>0.0h</td><td>0.0h</td><td>3</td>
+          <td>0.0</td><td>0.0h</td><td>🟠</td>
+        </tr><tr>
+          <td>15</td><td><b>朱顶勋</b></td><td>昆明</td>
+          <td class="highlight">24.0h</td><td>0.0h</td><td>24.0h</td>
+          <td>0.0h</td><td>0.0h</td><td>3</td>
+          <td>0.0</td><td>0.0h</td><td>🟠</td>
+        </tr><tr>
+          <td>16</td><td><b>薛瑞</b></td><td>昆明</td>
+          <td class="highlight">17.0h</td><td>0.0h</td><td>17.0h</td>
+          <td>0.0h</td><td>0.0h</td><td>2</td>
+          <td>0.0</td><td>7.0h</td><td>🟠</td>
+        </tr><tr>
+          <td>17</td><td><b>石庆楠</b></td><td>贵阳</td>
+          <td class="highlight">16.0h</td><td>0.0h</td><td>16.0h</td>
+          <td>0.0h</td><td>0.0h</td><td>6</td>
+          <td>0.0</td><td>8.0h</td><td>🟠</td>
+        </tr><tr>
+          <td>18</td><td><b>李汶隆</b></td><td>昆明</td>
+          <td class="highlight">16.0h</td><td>0.0h</td><td>16.0h</td>
+          <td>0.0h</td><td>0.0h</td><td>2</td>
+          <td>0.0</td><td>8.0h</td><td>🟠</td>
+        </tr><tr>
+          <td>19</td><td><b>李晴晴</b></td><td>成都</td>
+          <td class="highlight">16.0h</td><td>0.0h</td><td>16.0h</td>
+          <td>0.0h</td><td>0.0h</td><td>2</td>
+          <td>97.0</td><td>8.0h</td><td>🟠</td>
+        </tr><tr>
+          <td>20</td><td><b>张磊-昆明</b></td><td>昆明</td>
+          <td class="highlight">8.0h</td><td>0.0h</td><td>8.0h</td>
+          <td>0.0h</td><td>8.0h</td><td>1</td>
+          <td>0.0</td><td>16.0h</td><td>🔴</td>
+        </tr><tr>
+          <td>21</td><td><b>陈星</b></td><td>成都</td>
+          <td class="highlight">0.0h</td><td>0.0h</td><td>0.0h</td>
+          <td>0.0h</td><td>0.0h</td><td>0</td>
+          <td>0.0</td><td>24.0h</td><td>🔴</td>
+        </tr></tbody></table>
+</div>
+
+<!-- 三、每日工时热力图 -->
+<div class="section">
+  <div class="section-title">🗓️ 三、每日工时热力图</div>
+  <table>
+    <thead><tr><th>姓名</th><th>09-05</th><th>09-04</th><th>09-03</th><th>09-02</th><th>合计</th></tr></thead>
+    <tbody>
+<tr><td><b>黄进</b></td><td style="text-align:center;background:#4a7a4a;color:white;font-weight:600">4</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td class="highlight">28.0h</td></tr><tr><td><b>刘明民</b></td><td style="text-align:center;background:#2d2d2d;color:white;font-weight:600">0</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td style="text-align:center;background:#e94560;color:white;font-weight:600">10</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td class="highlight">26.0h</td></tr><tr><td><b>莫乾一</b></td><td style="text-align:center;background:#2d2d2d;color:white;font-weight:600">0</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td class="highlight">24.0h</td></tr><tr><td><b>丁岩松</b></td><td style="text-align:center;background:#2d2d2d;color:white;font-weight:600">0</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td class="highlight">24.0h</td></tr><tr><td><b>徐伟东</b></td><td style="text-align:center;background:#2d2d2d;color:white;font-weight:600">0</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td class="highlight">24.0h</td></tr><tr><td><b>何阳</b></td><td style="text-align:center;background:#2d2d2d;color:white;font-weight:600">0</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td class="highlight">24.0h</td></tr><tr><td><b>杨蕊</b></td><td style="text-align:center;background:#2d2d2d;color:white;font-weight:600">0</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td class="highlight">24.0h</td></tr><tr><td><b>聂大爽</b></td><td style="text-align:center;background:#2d2d2d;color:white;font-weight:600">0</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td class="highlight">24.0h</td></tr><tr><td><b>陈伟棠</b></td><td style="text-align:center;background:#2d2d2d;color:white;font-weight:600">0</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td class="highlight">24.0h</td></tr><tr><td><b>谢罗锣</b></td><td style="text-align:center;background:#2d2d2d;color:white;font-weight:600">0</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td class="highlight">24.0h</td></tr><tr><td><b>钟敏</b></td><td style="text-align:center;background:#2d2d2d;color:white;font-weight:600">0</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td class="highlight">24.0h</td></tr><tr><td><b>冯彦苇</b></td><td style="text-align:center;background:#2d2d2d;color:white;font-weight:600">0</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td class="highlight">24.0h</td></tr><tr><td><b>罗海鸥</b></td><td style="text-align:center;background:#2d2d2d;color:white;font-weight:600">0</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td class="highlight">24.0h</td></tr><tr><td><b>张懿骉</b></td><td style="text-align:center;background:#2d2d2d;color:white;font-weight:600">0</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td class="highlight">24.0h</td></tr><tr><td><b>朱顶勋</b></td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td style="text-align:center;background:#2d2d2d;color:white;font-weight:600">0</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td class="highlight">24.0h</td></tr><tr><td><b>薛瑞</b></td><td style="text-align:center;background:#2d2d2d;color:white;font-weight:600">0</td><td style="text-align:center;background:#2d2d2d;color:white;font-weight:600">0</td><td style="text-align:center;background:#e94560;color:white;font-weight:600">9</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td class="highlight">17.0h</td></tr><tr><td><b>石庆楠</b></td><td style="text-align:center;background:#2d2d2d;color:white;font-weight:600">0</td><td style="text-align:center;background:#4a7a4a;color:white;font-weight:600">4</td><td style="text-align:center;background:#4a7a4a;color:white;font-weight:600">4</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td class="highlight">16.0h</td></tr><tr><td><b>李汶隆</b></td><td style="text-align:center;background:#2d2d2d;color:white;font-weight:600">0</td><td style="text-align:center;background:#2d2d2d;color:white;font-weight:600">0</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td class="highlight">16.0h</td></tr><tr><td><b>李晴晴</b></td><td style="text-align:center;background:#2d2d2d;color:white;font-weight:600">0</td><td style="text-align:center;background:#2d2d2d;color:white;font-weight:600">0</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td class="highlight">16.0h</td></tr><tr><td><b>张磊-昆明</b></td><td style="text-align:center;background:#2d2d2d;color:white;font-weight:600">0</td><td style="text-align:center;background:#2d2d2d;color:white;font-weight:600">0</td><td style="text-align:center;background:#2d2d2d;color:white;font-weight:600">0</td><td style="text-align:center;background:#2ecc71;color:white;font-weight:600">8</td><td class="highlight">8.0h</td></tr><tr><td><b>陈星</b></td><td style="text-align:center;background:#2d2d2d;color:white;font-weight:600">0</td><td style="text-align:center;background:#2d2d2d;color:white;font-weight:600">0</td><td style="text-align:center;background:#2d2d2d;color:white;font-weight:600">0</td><td style="text-align:center;background:#2d2d2d;color:white;font-weight:600">0</td><td class="highlight">0.0h</td></tr></tbody></table>
+  <div style="margin-top:8px;font-size:11px;color:#95a5a6;display:flex;gap:12px;flex-wrap:wrap">
+    <span><span style="background:#2d2d2d;padding:2px 6px;border-radius:3px">0h</span> 未报工</span>
+    <span><span style="background:#3d5a3d;padding:2px 6px;border-radius:3px">1-4h</span> 较少</span>
+    <span><span style="background:#4a7a4a;padding:2px 6px;border-radius:3px">5-7h</span> 接近</span>
+    <span><span style="background:#2ecc71;padding:2px 6px;border-radius:3px">8h</span> 满勤</span>
+    <span><span style="background:#e94560;padding:2px 6px;border-radius:3px">&gt;8h</span> 加班</span>
+  </div>
+</div>
+
+<!-- 四、报工不足人员分析 -->
+<div class="section">
+  <div class="section-title">⚠️ 四、报工不足人员分析（缺口 &gt; 0h）</div>
+<table><thead><tr><th>姓名</th><th>城市</th><th>已报工时</th><th>缺口</th><th>标准</th><th>严重程度</th></tr></thead><tbody><tr>
+              <td><b>薛瑞</b></td><td>昆明</td>
+              <td>17.0h</td><td class="danger">-7.0h</td>
+              <td>32h</td><td><span style="background:#f39c12;color:white;padding:2px 8px;border-radius:10px;font-size:11px">🟠 偏少</span></td>
+            </tr><tr>
+              <td><b>石庆楠</b></td><td>贵阳</td>
+              <td>16.0h</td><td class="danger">-8.0h</td>
+              <td>32h</td><td><span style="background:#f39c12;color:white;padding:2px 8px;border-radius:10px;font-size:11px">🟠 偏少</span></td>
+            </tr><tr>
+              <td><b>李汶隆</b></td><td>昆明</td>
+              <td>16.0h</td><td class="danger">-8.0h</td>
+              <td>32h</td><td><span style="background:#f39c12;color:white;padding:2px 8px;border-radius:10px;font-size:11px">🟠 偏少</span></td>
+            </tr><tr>
+              <td><b>李晴晴</b></td><td>成都</td>
+              <td>16.0h</td><td class="danger">-8.0h</td>
+              <td>32h</td><td><span style="background:#f39c12;color:white;padding:2px 8px;border-radius:10px;font-size:11px">🟠 偏少</span></td>
+            </tr><tr>
+              <td><b>张磊-昆明</b></td><td>昆明</td>
+              <td>8.0h</td><td class="danger">-16.0h</td>
+              <td>32h</td><td><span style="background:#e94560;color:white;padding:2px 8px;border-radius:10px;font-size:11px">🔴 严重</span></td>
+            </tr><tr>
+              <td><b>陈星</b></td><td>成都</td>
+              <td>0.0h</td><td class="danger">-24.0h</td>
+              <td>32h</td><td><span style="background:#e94560;color:white;padding:2px 8px;border-radius:10px;font-size:11px">🔴 严重</span></td>
+            </tr></tbody></table>
+</div>
+
+<!-- 五、文档编写统计 -->
+<div class="section">
+  <div class="section-title">📄 五、文档编写统计（0 篇）</div>
+<div class="empty">📭 本周期无文档产出</div>
+</div>
+
+<!-- 六、工时类型分布 -->
+<div class="section">
+  <div class="section-title">📊 六、工时类型分布</div>
+  <div class="grid-cards" style="grid-template-columns:repeat(3,1fr)">
+    <div class="card"><div class="num" style="color:#00d4ff">0.0h</div><div class="label">售前</div></div>
+    <div class="card"><div class="num" style="color:#2ecc71">391.0h</div><div class="label">售后</div></div>
+    <div class="card"><div class="num" style="color:#f39c12">48.0h</div><div class="label">内部</div></div>
+  </div>
+  <div class="type-bar">
+    <div class="type-seg" style="width:0.0%;background:#00d4ff"></div>
+    <div class="type-seg" style="width:89.1%;background:#2ecc71"></div>
+    <div class="type-seg" style="width:10.9%;background:#f39c12"></div>
+  </div>
+  <div class="type-label">
+    <span>售前 0.0%</span>
+    <span>售后 89.1%</span>
+    <span>内部 10.9%</span>
+  </div>
+</div>
+
+<!-- 七、报工质量分析 -->
+<div class="section">
+  <div class="section-title">🎯 七、报工质量分析</div>
+  <div class="grid-cards" style="grid-template-columns:repeat(4,1fr)">
+    <div class="card"><div class="num" style="color:#2ecc71">5</div><div class="label">⭐ 优秀 ≥95</div></div>
+    <div class="card"><div class="num" style="color:#00d4ff">1</div><div class="label">✅ 良好 85-94</div></div>
+    <div class="card"><div class="num" style="color:#f1c40f">0</div><div class="label">⚠️ 一般 75-84</div></div>
+    <div class="card"><div class="num" style="color:#e94560">15</div><div class="label">❌ 待改进 &lt;75</div></div>
+  </div>
+  <table>
+    <thead><tr><th>姓名</th><th>评分</th><th>质量评级</th><th>报工条数</th><th>平均每条工时</th></tr></thead>
+    <tbody>
+<tr><td><b>黄进</b></td><td>96.0</td><td><span style="background:#2ecc71;color:white;padding:2px 8px;border-radius:10px;font-size:11px">⭐ 优秀</span></td><td>4</td><td>7.0h</td></tr><tr><td><b>刘明民</b></td><td>100.0</td><td><span style="background:#2ecc71;color:white;padding:2px 8px;border-radius:10px;font-size:11px">⭐ 优秀</span></td><td>5</td><td>5.2h</td></tr><tr><td><b>莫乾一</b></td><td>0.0</td><td><span style="background:#e94560;color:white;padding:2px 8px;border-radius:10px;font-size:11px">❌ 待改进</span></td><td>3</td><td>8.0h</td></tr><tr><td><b>丁岩松</b></td><td>0.0</td><td><span style="background:#e94560;color:white;padding:2px 8px;border-radius:10px;font-size:11px">❌ 待改进</span></td><td>3</td><td>8.0h</td></tr><tr><td><b>徐伟东</b></td><td>0.0</td><td><span style="background:#e94560;color:white;padding:2px 8px;border-radius:10px;font-size:11px">❌ 待改进</span></td><td>3</td><td>8.0h</td></tr><tr><td><b>何阳</b></td><td>0.0</td><td><span style="background:#e94560;color:white;padding:2px 8px;border-radius:10px;font-size:11px">❌ 待改进</span></td><td>3</td><td>8.0h</td></tr><tr><td><b>杨蕊</b></td><td>100.0</td><td><span style="background:#2ecc71;color:white;padding:2px 8px;border-radius:10px;font-size:11px">⭐ 优秀</span></td><td>3</td><td>8.0h</td></tr><tr><td><b>聂大爽</b></td><td>0.0</td><td><span style="background:#e94560;color:white;padding:2px 8px;border-radius:10px;font-size:11px">❌ 待改进</span></td><td>3</td><td>8.0h</td></tr><tr><td><b>陈伟棠</b></td><td>96.0</td><td><span style="background:#2ecc71;color:white;padding:2px 8px;border-radius:10px;font-size:11px">⭐ 优秀</span></td><td>3</td><td>8.0h</td></tr><tr><td><b>谢罗锣</b></td><td>0.0</td><td><span style="background:#e94560;color:white;padding:2px 8px;border-radius:10px;font-size:11px">❌ 待改进</span></td><td>3</td><td>8.0h</td></tr><tr><td><b>钟敏</b></td><td>90.0</td><td><span style="background:#00d4ff;color:white;padding:2px 8px;border-radius:10px;font-size:11px">✅ 良好</span></td><td>3</td><td>8.0h</td></tr><tr><td><b>冯彦苇</b></td><td>0.0</td><td><span style="background:#e94560;color:white;padding:2px 8px;border-radius:10px;font-size:11px">❌ 待改进</span></td><td>3</td><td>8.0h</td></tr><tr><td><b>罗海鸥</b></td><td>0.0</td><td><span style="background:#e94560;color:white;padding:2px 8px;border-radius:10px;font-size:11px">❌ 待改进</span></td><td>3</td><td>8.0h</td></tr><tr><td><b>张懿骉</b></td><td>0.0</td><td><span style="background:#e94560;color:white;padding:2px 8px;border-radius:10px;font-size:11px">❌ 待改进</span></td><td>3</td><td>8.0h</td></tr><tr><td><b>朱顶勋</b></td><td>0.0</td><td><span style="background:#e94560;color:white;padding:2px 8px;border-radius:10px;font-size:11px">❌ 待改进</span></td><td>3</td><td>8.0h</td></tr><tr><td><b>薛瑞</b></td><td>0.0</td><td><span style="background:#e94560;color:white;padding:2px 8px;border-radius:10px;font-size:11px">❌ 待改进</span></td><td>2</td><td>8.5h</td></tr><tr><td><b>石庆楠</b></td><td>0.0</td><td><span style="background:#e94560;color:white;padding:2px 8px;border-radius:10px;font-size:11px">❌ 待改进</span></td><td>6</td><td>2.7h</td></tr><tr><td><b>李汶隆</b></td><td>0.0</td><td><span style="background:#e94560;color:white;padding:2px 8px;border-radius:10px;font-size:11px">❌ 待改进</span></td><td>2</td><td>8.0h</td></tr><tr><td><b>李晴晴</b></td><td>97.0</td><td><span style="background:#2ecc71;color:white;padding:2px 8px;border-radius:10px;font-size:11px">⭐ 优秀</span></td><td>2</td><td>8.0h</td></tr><tr><td><b>张磊-昆明</b></td><td>0.0</td><td><span style="background:#e94560;color:white;padding:2px 8px;border-radius:10px;font-size:11px">❌ 待改进</span></td><td>1</td><td>8.0h</td></tr><tr><td><b>陈星</b></td><td>0.0</td><td><span style="background:#e94560;color:white;padding:2px 8px;border-radius:10px;font-size:11px">❌ 待改进</span></td><td>0</td><td>0h</td></tr></tbody></table>
+</div>
+
+<!-- 八、工时排名 TOP 10 -->
+<div class="section">
+  <div class="section-title">🏅 八、工时排名 TOP 10</div>
+  <table>
+    <thead><tr><th>排名</th><th>姓名</th><th>城市</th><th>总工时</th><th>趋势</th><th>状态</th></tr></thead>
+    <tbody>
+<tr>
+          <td>1</td><td><b>黄进</b></td><td></td>
+          <td class="highlight">28.0h</td><td>⬇️</td><td><span style="background:#f39c12;color:white;padding:2px 8px;border-radius:10px;font-size:11px">🟠 偏少</span></td>
+        </tr><tr>
+          <td>2</td><td><b>刘明民</b></td><td>成都</td>
+          <td class="highlight">26.0h</td><td>⬇️</td><td><span style="background:#f39c12;color:white;padding:2px 8px;border-radius:10px;font-size:11px">🟠 偏少</span></td>
+        </tr><tr>
+          <td>3</td><td><b>莫乾一</b></td><td></td>
+          <td class="highlight">24.0h</td><td>⬇️</td><td><span style="background:#f39c12;color:white;padding:2px 8px;border-radius:10px;font-size:11px">🟠 偏少</span></td>
+        </tr><tr>
+          <td>4</td><td><b>丁岩松</b></td><td>昆明</td>
+          <td class="highlight">24.0h</td><td>⬇️</td><td><span style="background:#f39c12;color:white;padding:2px 8px;border-radius:10px;font-size:11px">🟠 偏少</span></td>
+        </tr><tr>
+          <td>5</td><td><b>徐伟东</b></td><td>贵阳</td>
+          <td class="highlight">24.0h</td><td>⬇️</td><td><span style="background:#f39c12;color:white;padding:2px 8px;border-radius:10px;font-size:11px">🟠 偏少</span></td>
+        </tr><tr>
+          <td>6</td><td><b>何阳</b></td><td></td>
+          <td class="highlight">24.0h</td><td>⬇️</td><td><span style="background:#f39c12;color:white;padding:2px 8px;border-radius:10px;font-size:11px">🟠 偏少</span></td>
+        </tr><tr>
+          <td>7</td><td><b>杨蕊</b></td><td></td>
+          <td class="highlight">24.0h</td><td>⬇️</td><td><span style="background:#f39c12;color:white;padding:2px 8px;border-radius:10px;font-size:11px">🟠 偏少</span></td>
+        </tr><tr>
+          <td>8</td><td><b>聂大爽</b></td><td>昆明</td>
+          <td class="highlight">24.0h</td><td>⬇️</td><td><span style="background:#f39c12;color:white;padding:2px 8px;border-radius:10px;font-size:11px">🟠 偏少</span></td>
+        </tr><tr>
+          <td>9</td><td><b>陈伟棠</b></td><td>深圳</td>
+          <td class="highlight">24.0h</td><td>⬇️</td><td><span style="background:#f39c12;color:white;padding:2px 8px;border-radius:10px;font-size:11px">🟠 偏少</span></td>
+        </tr><tr>
+          <td>10</td><td><b>谢罗锣</b></td><td></td>
+          <td class="highlight">24.0h</td><td>⬇️</td><td><span style="background:#f39c12;color:white;padding:2px 8px;border-radius:10px;font-size:11px">🟠 偏少</span></td>
+        </tr></tbody></table>
+</div>
+
+<!-- 九、服务请求列表 -->
+<div class="section">
+  <div class="section-title">🛠️ 九、服务请求列表（0 条）</div>
+<div class="empty">📭 本周期无服务请求</div>
+</div>
+
+<!-- 十、团队人员分布 -->
+<div class="section">
+  <div class="section-title">👥 十、团队人员分布</div>
+  <div class="grid-cards" style="grid-template-columns:repeat(4,1fr)">
+    <div class="card"><div class="num">21</div><div class="label">总人数</div></div>
+    <div class="card"><div class="num" style="color:#2ecc71">0</div><div class="label">满勤人数</div></div>
+    <div class="card"><div class="num" style="color:#f39c12">6</div><div class="label">不足人数</div></div>
+    <div class="card"><div class="num" style="color:#00d4ff">71.4%</div><div class="label">满勤率</div></div>
+  </div>
+</div>
+
+<!-- 十一、综合评价 -->
+<div class="section">
+  <div class="section-title">🔍 十一、综合评价</div>
+  <div style="line-height:1.8;font-size:13px">
+<p><b>总体评价：</b>整体表现 <span class='highlight'>良好</span>，满勤率 71.4% 达标，仍有提升空间。</p><p style='margin-top:8px'><b>✨ 亮点：</b>加班总时长 12.0h，团队投入度高</p><p style='margin-top:8px'><b>⚠️ 待改进：</b>6 人报工不足，需跟进原因；文档产出为 0，建议加强知识沉淀；陈星 完全未报工，需重点关注</p>
+  </div>
+</div>
+
+<!-- 十二、未报工分析 -->
+<div class="section">
+  <div class="section-title">✅ 十二、未报工分析（1 人）</div>
+<table><thead><tr><th>姓名</th><th>城市</th><th>总工时</th><th>建议</th></tr></thead><tbody><tr>
+              <td><b>陈星</b></td><td>成都</td>
+              <td class="danger">0h</td><td>请确认是否漏报或请假</td>
+            </tr></tbody></table>
+</div>
+
+</div>
+</body>
+</html>

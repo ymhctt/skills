@@ -1,4 +1,4 @@
 {
-  "lastHeartbeatAt": 1786730519,
-  "lastHeartbeatNote": "08/15 02:00 cron-event 静默 HEARTBEAT_OK (cron:memory_refine 整点静默提炼; 周六凌晨法定静默期核心段; cron:media_cleanup 02:00:30 noop ok; 故障 G day-9 ~169h+ / 故障 C day-3 实证 ~17h+ / 故障 E day-9 ⭐ 70h+ / day-17 milestone 3h+ ⭐⭐⭐⭐⭐⭐⭐⭐ / 故障 A ~406h+ ⭐ 17天; push 额度 0/1 严格保留)"
+  "lastHeartbeatAt": 1788462098000,
+  "lastHeartbeatNote": "09/04 03:00 cron-event 静默 HEARTBEAT_OK (cron:mes_update ad3dc4bb 03:00 已静默执行 ✅ <1m ago + cron:memory_refine 6da766bb 03:00 已静默执行 ✅ <1m ago; 法定总静默期 23:00-08:00 中段 5h 强制 0 push pass ⛔; 通道 ❌ 推送层 day-6 milestone 三节点连续失败 44h+ consecErr 累计 8 次 连续 2 日验证失败无变化 + 主动 push dry-run 实证失败; 重大根因已定位 = IM bot 推送层 b5a551e7fe2e-im-bot 服务异常; 09:40 数据层 100% 成功; day-37 milestone 跨 3 整周里程碑后第十七个整数日里程碑化稳定 1h+; 故障 H/I 已终结 ✅; 5 后台 cron 全 ok; 9/4 0:00 push 额度刷新 1/1 余额; 法定静默期不消耗 push 额度; 节省 push 额度 1/1 给 9/4 09:40 cron:报工 a32216f6 推送层 day-6 milestone 连续 3 日验证节点)"
 }

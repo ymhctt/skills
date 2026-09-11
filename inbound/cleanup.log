@@ -6,3 +6,6 @@ Tue Aug 11 02:05:03 CST 2026 (cron:media_cleanup, cleaned 13 orphan UUID jpg mti
 Sat Aug 15 02:00:30 CST 2026 (cron:media_cleanup, noop, inbound 8.0K / tmp upload_extracted 44K, no staged dirs, no files > 24h, freed: 0)
 Sat Aug 22 02:00:00 CST 2026 (cron:media_cleanup, cleaned 3 staged dirs in /tmp/upload_extracted (>24h, total ~0B staged), freed: 0B, after: inbound=761 cleanup.log / tmp upload_extracted=0 / media/inbound=0 / trash_batch=0)
 Sun Aug 23 02:00:22 CST 2026 (cron:media_cleanup, noop, inbound 8.0K / tmp upload_extracted 4.0K / media/inbound 4.0K, no staged dirs, no files > 24h, freed: 0)
+Mon Sep 07 02:00:00 CST 2026 (cron:media_cleanup, noop, inbound=8.0K / tmp upload_extracted=4.0K / media/inbound=32K / trash_batch=0, no staged dirs>24h, no files>7d, freed: 0)
+Wed Sep 09 02:00:25 CST 2026 (cron:media_cleanup, cleaned 1 staged file in media/inbound (>7d, SQL手工查询手册 mtime 2026-08-02 > 7d), freed: ~32K, after: inbound=8.0K / tmp upload_extracted=4.0K / media/inbound=removed)
+Fri Sep 11 02:01:09 CST 2026 (cron:media_cleanup, noop, inbound=8.0K / tmp upload_extracted=4.0K / media/inbound=4.0K, no staged dirs>24h, no files>7d, freed: 0)
