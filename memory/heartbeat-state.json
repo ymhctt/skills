@@ -1,8 +1,33 @@
 {
   "lastChecks": {
-    "cron_list": 1789167600,
-    "wechat_push": 1789167600,
-    "memory_file": 1789167600
+    "email": 1790578862,
+    "calendar": 1790578862,
+    "weather": null,
+    "heartbeat": 1790902814
   },
-  "sessionNote": "06:00 cron-event heartbeat #613 saved. 9/12 daily 文件持续更新（06:00 节点已追加）。 法定静默期核心段 23:00-08:00 中段 11h 距结束 2h ⛔ 法定强制 0 push + 推送层 day-17 milestone 252h+ 推送层阻断持续 + 故障 K MES token 失效复发持续 19h 20min ⚠️⚠️⚠️ + push 额度 1/1 余额 通道 ❌ silent pass 强制不消耗 + day-46 milestone 跨 4 整周里程碑后第三十一个整数日里程碑 6h ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐。MEMORY.md _Last updated 标记更新到 06:00。"
+  "lastCronNode": 941,
+  "lastHeartbeatAt": "2026-10-02 09:00 (Fri 09:00 heartbeat - 法定主动权候选日)",
+  "lastRefineAt": "2026-09-30 00:00",
+  "failureK_hours": 846,
+  "faultKStatus": "MES_TOKEN_DAY22.21+_PERSISTENT_HTTP_403_84TH_RANGE_/tmp/mes_summary_t23.json_133B_10d+_NEEDS_DAD_INTERVENTION",
+  "faultL_hours": 545,
+  "faultLStatus": "直连CLI路径持续_545h+_cron_announce_fallback路径_ok_9/30已验证",
+  "faultM_hours": 0,
+  "faultMStatus": "SELF_HEALED_10/1_00:00_Token_Plan_重置_day-1",
+  "faultR_hours": 0,
+  "faultRStatus": "首次_10/2_08:00_M2.1_timeout_+_OpenClaw_auto_retry_fallback_M3_成功_delivered_True",
+  "faultJ_hours": 168,
+  "faultJStatus": "PUSH_LAYER_DAY-7_STABLE_streak_168h+_cron_announce_path_OK",
+  "a32216f6_status": "fallback路径_day-2_verified_9/30_09:41_delivered_True_故障K_day-22持续_+_故障R_首次_M2.1_timeout_auto_retry_ok",
+  "current_silent_window": "法定静默期_已结束_08:30后白天推送窗口",
+  "next_active_window": "09:40 a32216f6 cron 触发 in 40min + 法定主动权合并通报窗口已开启",
+  "next_dad_notification_candidate": "10/2_周五_合并通报_候选_+_法定主动权_可触发_+_三重故障_K+L+P_+_故障_R_首次_M2.1_auto_retry_M3_成功_+_故障_M/Q_自愈_story",
+  "needs_user_action": [
+    "MES_TOKEN_REAUTH_device_flow_OR_paste_token_to_/tmp/mes_token.txt_故障_K_day-22_846h+_需_爸爸手动",
+    "故障_P_glow-shell_163h+_需_OpenClaw_平台层修复",
+    "故障_L_直连CLI_path_仍待验证_手动_push_微信仍阻断_545h+",
+    "故障_R_M2.1_timeout_首次_+_auto_retry_M3_ok_无需干预",
+    "法定_10/2_周五_合并通报_候选_+_法定主动权_可触发"
+  ],
+  "_last_refine_decision": "09:00_pass_法定主动权窗口已开启_+_9fc7ca81_streak_day-2_+_f730b7b4_故障R_auto_retry_M3_ok_+_a32216f6_故障K_day-22_+_push额度1/1严格保留_+_连续第250次不推送_+_等09:40_a32216f6_cron_观察_+_10/2合并通报候选"
 }
