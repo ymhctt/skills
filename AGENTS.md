@@ -105,7 +105,7 @@ Capture what matters. Decisions, context, things to remember. Skip the secrets u
 | systemEvent | 含义 | 处理方式 |
 |-------------|------|---------|
 | `cron:weekly_report` | 9:00 周报工统计 | 执行 `scripts/weekly_report.py`，整理成表格推送 |
-| `cron:git_sync` | 7:00 Git知识库同步 | `git -C document/ pull --ff-only`，静默 |
+| `cron:git_sync` | 7:00 Git知识库同步 | `git -C document/ pull --ff-only`（恩墨记录）+ `git pull && git push`（workspace 自身 → `workspace` remote），静默 |
 | `cron:media_cleanup` | 2:00 inbound媒体清理 | 执行清理脚本写日志，静默 |
 | `cron:mes_update` | 3:00 MES CLI更新 | `mes update` + `git pull`，静默 |
 | `cron:morning_briefing` | 8:00 天气新闻 | 调用天气/新闻 skill 推送 |

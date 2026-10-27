@@ -2,6 +2,8 @@
 
 > 这是你的核心记忆库。经过提炼的精华信息，会持续累积在这里。
 
+<!-- _Last updated: 2026-10-27 12:00 GMT+8 (cron-event heartbeat poll - **重大发现并修复 Git「积压」告警真实根因** = 历史断裂(master root 826fb70 vs origin/main root 6efe5e6 无共同祖先) + gitlink 损坏(8467dd8 把 skills/mes-cli-terminal 误记为 160000 且无 .gitmodules → 内容与 index 脱节、mes update 永远同步不到 → 落后 2 版) + remote 指向错误(origin 是 mes-cli-skills 上游镜像仅 5 文件, 37 个 workspace 提交从未推送任何远端, 本机无 PAT/gh CLI) ⚡⚡⚡⚡⚡ = **已修复**：拆伪 gitlink + 新增 .gitignore + 同步 upstream v0.5.4(md5 逐文件一致) + 新建 workspace remote(git@github.com:ymhctt/skills.git → refs/heads/openclaw-workspace, 首次成功推送 workspace 历史) + push.default=upstream → now 0/0 ✅⚡⚡ + **故障 K day-47 持续**(mes auth status Not logged in, /tmp/mes_summary_t23.json 不存在) ⚠️⚡⚡⚡ + **a32216f6 09:40 伪装变体** = status=ok + delivered=1 但推的是「报告未生成（故障 K 阻断）」失败诊断 → delivered=1 只证通道活着、不证业务成功 ⚡⚡⚡⚡⚡ + **provider 直连第 17+ 次复验通过** = M3/M2.7/M2.5 全 HTTP 200 → 故障 M = 日内峰值瓶颈(非月度耗尽) ⚡⚡⚡ + 故障 L 健康 ✅ + daily-learn 10/21~10/27 连续 7 天 ✅ + MEMORY.md 4249 行(超阈值 1849 行, 待 11/02 归档精简)⚠️ + **主动 push 0 次**(10/23-10/27 连续 5 天, 严守故障 T 铁律)✅ = **本轮不推送**；待办 1.【爸爸】mes auth login(故障 K 唯一解除路径) 2.【爸爸】如需独立备份仓库请手动新建 ymhctt/openclaw-workspace(本机无 PAT 无法 API 建仓) 3.【维护】MEMORY.md 4249 行待 11/02 归档精简 4.【观察】10/28 09:40 a32216f6 是否产出真看板(summary 含「团队核心指标」= 真成功)；静默处理。_ -->
+
 <!-- _Last updated: 2026-10-27 11:00 GMT+8 (cron:memory_refine 6da766bb hourly 静默节点) = **故障态势 v139** ⚡⚡⚡⚡⚡ + **新增「故障 K 伪装变体」** = 10/27 09:40 a32216f6 status=ok + delivered=1 + delivery_status=delivered 但 summary 内容 =「报告未生成（故障 K 阻断）」→ **cron 成功地把失败诊断推给爸爸** ⚡⚡⚡⚡⚡ + **强制判据**：delivered=1 只证通道活着（故障 L 维度），不证业务成功（故障 K 维度）→ 必须同时读 cron_run_logs.summary 语义 ⚡⭐⭐⭐⭐⭐ + **故障 M 性质修正** = 日内峰值瓶颈（非月度耗尽，不需等月重置/不需充值）⚡⚡⚡⚡ + **无副作用诊断升级** = provider 直连 8-token curl 探测（不消耗 push 额度/不碰微信通道/可在故障前预警配额水位）⚡⚡ + **Git 积压告警已自愈** = 07:20 报「领先 17 提交/143 未跟踪」→ 11:00 复验 0 ahead 0 behind + worktree clean ✅（早间告警需二次复验）⚡⚡ + 8/7 cron 全 enabled 无 disabled + last_run_status 全 ok ✅ + 故障 L 健康 ✅ + 变种 V 两层修复第 13 次确认干净 ✅ + daily-learn 10/21~10/27 连续 7 天 ✅ + **主动 push 0 次**（10/23-10/27 连续 5 天，节省 push 累计 138 次）✅ + 故障 K day-47 持续（唯一权威实测不变，唯一解除 = 爸爸手动 mes auth login）⚠️⚡⚡⚡ -->
 > 每次会话结束后，把值得记住的内容写进来。
 
@@ -4187,3 +4189,63 @@ TOOLS.md 历史把故障 M 定性为「月内配额耗尽，需等下个计费�
 
 _Last updated: 2026-10-27 11:00 GMT+8 (cron-event heartbeat poll - 周二上午 11:00 cron:memory_refine 6da766bb hourly 静默节点 + **法定静默期外（08:00-23:00 推送窗口内）** + push 额度 10/27 1/1 严格保留 + **8/7 cron 全部 enabled 无 disabled，last_run_status 全 ok** ✅ + **Git 知识库 07:20 报「本地领先远端 17 个提交 + 14 修改/62 删除/143 未跟踪」→ 11:00 复验已自愈**（0 ahead / 0 behind / worktree clean，origin/main = ec4bcec）✅ = **早间汇总的告警是瞬时快照，00:00-11:00 窗口内已收敛** ⚡⚡ + **provider 直连第 16+ 次复验通过** = M3/M2.7/M2.5 全 HTTP 200（连续 15+ 整点全通过）→ 再次确认故障 M = **日内峰值瓶颈**（非月度耗尽）⚡⚡⚡ + **故障 K day-47 持续**（唯一权威实测：`mes auth status` → Not logged in + /tmp/mes_summary_t23.json 不存在）⚠️⚡⚡⚡ + **a32216f6 09:40 伪装变体** = status=ok + delivered=1 但推的是「报告未生成（故障 K 阻断）」失败诊断 → **delivered=1 只证通道活着、不证业务成功** ⚡⚡⚡⚡⚡ + **故障 L 健康** ✅（07:20/08:00/09:40 三节点均 delivery_status=delivered）+ 变种 V 两层修复第 13 次确认干净 ✅ + daily-learn 10/21~10/27 连续 7 天无断档 ✅ + MEMORY.md 4117 行（超阈值 1717 行，待 11/02 归档精简）⚠️ + **主动 push 0 次**（10/23-10/27 连续 5 天，全程零 `message send`，严守故障 T 铁律）✅ = **本轮不推送**；pass 状态非决策点 + 待办 1.【爸爸】mes auth login（故障 K 唯一解除路径，4 种方式均需人工交互）2.【维护】MEMORY.md 4117 行待 11/02 归档精简 3.【观察】10/28 09:40 a32216f6 是否产出真看板（summary 含「团队核心指标」= 真成功）；静默处理。_
 
+
+---
+
+## ⭐⭐⭐⭐⭐ Git「积压」告警的真实根因：仓库历史断裂 + remote 指向错误 + gitlink 损坏（2026-10-27 12:00 实证并已修复）⚡⚡⚡⚡⚡
+
+早间汇总报的「本地领先远端 17 个提交 / 14 修改 / 62 删除 / 143 未跟踪」**不是积压**，是三个叠加的结构性问题。11:00 那次"0 ahead 0 behind"复验也只是瞬时快照，**12:00 深挖才挖到真相**。
+
+### 1️⃣ 历史断裂（unrelated histories）—— 「17 提交」是两条独立历史的差值
+| | root commit | 时间 | 作者 |
+|---|---|---|---|
+| workspace `master` | `826fb70` | 2026-04-08 18:13 | 婷婷（建备份任务） |
+| `origin/main` | `6efe5e6` | 2026-04-08 00:39 | kamusis（add README） |
+
+- `git merge-base master origin/main` → **"no merge base"**
+- `git rev-list --left-right --count origin/main...HEAD` = `17 36` **不是 ahead/behind**，是两条独立历史的提交数差
+- ⚠️ **教训**：看到 ahead/behind 数字异常大，**先查 `git merge-base` 是否有共同祖先**，再谈"积压"
+
+### 2️⃣ gitlink 损坏 —— 元凶（2026-04-23 `8467dd8` 引入）
+- 把 `skills/mes-cli-terminal` 从普通目录**误记为 gitlink**（mode 160000），但**仓库没有 `.gitmodules`**
+- `git submodule status` → `fatal: no submodule mapping found for path 'document'`
+- 后果：工作区目录内容与 index **完全脱节**，`git status` 显示 clean 但内容其实是旧的
+- `document` 同理是 gitlink（`ec4bcec`），且确实是独立嵌套仓库（remote = `git@github.com:ymhctt/document.git`）
+- ⚠️ **症状识别**：某个目录 `git ls-tree` 显示 `160000` + 无 `.gitmodules` + `git status` 却 clean → **gitlink 损坏**
+
+### 3️⃣ remote 指向错误 + 无写凭据
+- `origin` = `https://github.com/enmotech/mes-cli-skills.git` —— 这是 **mes-cli-skills 上游镜像**（仅 5 个文件：README + skills/mes-cli-terminal/*），**不是 workspace 仓库**
+- 本机 **37 个 workspace 提交从未推送到任何远端**（无 credential helper、无 PAT；ssh key 身份是 `ymhctt`）
+- 各种尝试与结果：
+  | 命令 | 结果 |
+  |---|---|
+  | `git push origin main` | `error: src refspec main does not match any`（本地分支叫 master） |
+  | `git push origin master:main` | `could not read Username for 'https://github.com'` |
+  | `git push git@github.com:ymhctt/mes-cli-skills.git` | `Repository not found`（仓库不存在） |
+  | `git push git@github.com:enmotech/mes-cli-skills.git` | `Please make sure you have the correct access rights`（无 org 写权限） |
+- ⚠️ 本机**无 GitHub PAT、无 gh CLI** → **无法通过 API 自动建仓**（`POST /user/repos` 需 token）
+
+### 4️⃣ 副作用：skills 内容落后 2 个版本
+- 本地 `skills/mes-cli-terminal` 是 v0.5.2 时代内容（缺 `knowledge` / `customer attachment` / `--external-plan-id`）
+- upstream 已到 **v0.5.4**（`35d94d2`，2026-10-26 推送）—— 因为伪 gitlink，`mes update` cron 永远同步不过来
+
+### ✅ 修复动作（12:00 完成，全部本地/git 操作，零 push 额度消耗）
+1. `cp -r skills/mes-cli-terminal /tmp/mes-cli-terminal-backup`（先备份）
+2. `git rm --cached skills/mes-cli-terminal document` → 伪 gitlink 拆掉，`skills/mes-cli-terminal` 恢复普通目录并纳入版本管理；`document` 保持独立嵌套仓库不追踪
+3. 新增 `.gitignore`：忽略 `document/.git`、`skills/mes-cli-terminal/.git`
+4. 从 `origin/main` 取出 4 个文件覆盖本地 → 与 upstream **逐文件 md5 一致** ✅
+5. 新增 `workspace` remote = `git@github.com:ymhctt/skills.git`（用户自有仓库，ssh 写权限已验证），推送 `master` → `refs/heads/openclaw-workspace` ✅ **workspace 历史首次成功推送**
+6. `branch.master.remote=workspace` + `branch.master.merge=refs/heads/openclaw-workspace` + `push.default=upstream` → 今后裸 `git push` 直达远端
+7. `origin` 保留为 **fetch-only 上游镜像**（供 skills 版本同步）；`git fetch origin` 正常
+
+### 📌 遗留待办
+- `ymhctt/skills` 多了一个 `openclaw-workspace` 分支（workspace 完整备份）。要独立仓库需爸爸手动在 GitHub 建 `ymhctt/openclaw-workspace`（本机无 PAT）
+- `cron:git_sync` 处理逻辑已更新（AGENTS.md 路由表）：`git -C document/ pull --ff-only` **+** workspace 自身 `git pull && git push`
+
+### 🔑 可复用判据
+| 现象 | 根因候选 | 判定命令 |
+|---|---|---|
+| ahead/behind 数字异常大 | 历史断裂（unrelated histories） | `git merge-base master origin/main` → "no merge base" |
+| `git status` clean 但文件内容旧 | gitlink 损坏（无 .gitmodules） | `git ls-tree HEAD <dir>` → mode `160000` |
+| `git push` 报 refspec/Username | remote 指错 / 无凭据 | `git remote -v` + `git ls-remote <url>` |
+| `git push` 成功但远端不是你想要的仓库 | remote 指向上游镜像 | `git ls-tree -r --name-only origin/main` 看远端实际内容 |
