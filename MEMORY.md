@@ -4249,3 +4249,13 @@ _Last updated: 2026-10-27 11:00 GMT+8 (cron-event heartbeat poll - 周二上午 
 | `git status` clean 但文件内容旧 | gitlink 损坏（无 .gitmodules） | `git ls-tree HEAD <dir>` → mode `160000` |
 | `git push` 报 refspec/Username | remote 指错 / 无凭据 | `git remote -v` + `git ls-remote <url>` |
 | `git push` 成功但远端不是你想要的仓库 | remote 指向上游镜像 | `git ls-tree -r --name-only origin/main` 看远端实际内容 |
+
+### 🕐 2026-10-28 01:00 GMT+8 状态戳（cron:memory_refine 6da766bb hourly 静默节点）
+- **cron 全绿**：`cron list --all` = 8 个 job 全在，enabled 全 1，status 全 ok；SQLite `cron_jobs` 8 行，fallback 链统一 `["MiniMax-M2.7","MiniMax-M2.5"]` 无僵尸模型（故障 N 修复持续有效）✅
+- **provider 直连**：M3 / M2.7 / M2.5 全 HTTP 200 ✅（深夜低水位，故障 M 不活跃）
+- **Git**：`@{u}` = `workspace/openclaw-workspace`，`rev-list --left-right --count @{u}...HEAD` = **0 / 0**，worktree clean ✅（本轮新提交已 push）
+- **故障 K day-48 持续**（9/11 起）：`mes auth status` → `Not logged in (no token saved)`，`/tmp/mes_summary_t23.json` 不存在 → **唯一剩余阻断，需爸爸 `mes auth login`**，已穷举确认无自助路径
+- **🎯 关键前瞻**：**今天 10/28 09:00 是 8a13c219 重建后首次触发**（Last="-"，从未跑过）。若故障 K 未解除，预计会再推一次「报告未生成（故障 K 阻断）」诊断 —— 爸爸在 09:00 前登录即可拿到真看板
+- **MEMORY.md** = 4251 行（> 2400 阈值，待 11/02 归档精简，不做合并通报）
+- **daily-learn** 覆盖 10-21 → 10-28 ✅ 无断档（新增「跨日首轮 heartbeat 建文件纪律」）
+- **主动 push 0 次**（10/23 起连续 6 天零 `message send`，严守故障 T 铁律）✅
