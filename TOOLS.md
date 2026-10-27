@@ -329,6 +329,34 @@ for m in MiniMax-M3 MiniMax-M2.7 MiniMax-M2.5; do
 done
 ```
 
+### 🚨 故障 N：a32216f6 报工统计 cron 被误删 + fetch_data.py 被搬走（2026-10-27 15:00 固化 ⚡⚡⚡⚡⚡）
+
+**新故障类型**：不是 disabled，而是**记录整体从 `cron_jobs` 表消失**。
+
+| 判据 | 观察 |
+|------|------|
+| `cron list --all` | 只有 **7 个** job，a32216f6 **缺失** |
+| SQLite `cron_jobs` where job_id like 'a32216f6%' | **0 行** = 已删除（非 disabled） |
+| `cron_run_logs` | 172 条历史，最后一次 = **2026-10-27 09:40** |
+| `cron/jobs.json.migrated` | **完整定义仍在**（expr `0 9 * * *`，announce→openclaw-weixin，timeout 600） |
+
+**删除时点**：10/27 09:40 之后（今日 12:00 的 git commit `fe61863` 前后）。
+
+**伴随根因**：`git show fe61863 --name-status` 显示
+`R100 skills/mes-work-report/scripts/fetch_data.py → skills/mes-work-report.bak.9-17/scripts/fetch_data.py`
+→ **fetch_data.py 被改名搬进 .bak 目录，live skill 目录里没了**。
+- live `scripts/` 现有：analyze.py / generate_report.py / generate_*_report.py ✅
+- 备份里仍有 `skills/mes-work-report.bak.9-17/scripts/fetch_data.py`（16391 bytes）✅ 可原样恢复
+
+→ ⚠️ **恢复 cron 单独不够**，必须同时把 fetch_data.py 搬回 live 目录，否则报告仍跑不起来。
+
+**⭐ 判定口诀（重要）**：
+- `cron list --all` 里 job 消失 → **先查 SQLite `cron_jobs` 行数**：
+  - 有行 + enabled=0 → disabled → `openclaw cron enable`
+  - **无行 → 已被删除 → 需 `openclaw cron add` 重建**（不是 enable！）
+- 重建前**先看 `cron/jobs.json.migrated`** 拿原始定义（schedule/expr/delivery/timeout），别凭记忆重写
+- 历史 job（0409aca7 等 38 个）也在 `cron_run_logs` 里但不在 `cron_jobs` → 那是迁移期自然淘汰，属正常
+
 ### ❌ 故障 K 最新权威实测（2026-10-26 07:03 → day-46 持续，仍需爸爸）
 
 | 检查项 | 结果 |

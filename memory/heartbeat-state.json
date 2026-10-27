@@ -6,12 +6,15 @@
     "heartbeat": 1793070083,
     "cron_list_all": 1793070083,
     "cron_runs": 1793070083,
-    "mes_auth": 1793070083,
+    "mes_auth": 1793074202,
     "provider_probe": 1793070083,
     "delivery_queue": 1793012511,
     "memory_files": 1793070083,
     "cron_run_logs_tokens": 1793062928,
-    "git_sync": 1793070083
+    "git_sync": 1793070083,
+    "git": 1793074202,
+    "cron": 1793074202,
+    "provider": 1793074202
   },
   "lastCronNode": 992,
   "lastHeartbeatAt": "2026-10-27 11:00 (cron:memory_refine 静默节点) — 8/7 cron 全 enabled 且 last_run_status 全 ok ✅ + 07:20/08:00/09:40 三推送 cron 均 delivered=1/delivery_status=delivered (故障 L 健康) + a32216f6 09:40 = 故障 K 伪装变体 (status=ok+delivered=1 但推的是失败诊断, 非报工看板) ⚡ + Git 知识库 07:20 告警 (领先17提交/143未跟踪) 11:00 复验已自愈 (0 ahead/0 behind, worktree clean) ✅ + provider 三模型全 200 (连续15+整点) = 故障 M 确认为日内峰值瓶颈 + 故障 K day-47 持续 (Not logged in) → 法定精准执行: 零 push, 等爸爸 mes auth login",
