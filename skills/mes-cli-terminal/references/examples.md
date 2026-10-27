@@ -70,7 +70,10 @@
 > ⚠️ **已关闭的服务请求上传附件**：必须加 `--internal`，否则报"您没有资源权限"。
 
 - "帮我创建一个服务请求，标题是 '数据库连接失败'"
-  `mes sr create --title "数据库连接失败" --company-id 4 --acc-id "2025103112176" --type 3 --body-md "### 问题背景\n\n今天早上 9 点开始连接不上数据库。\n\n### 报错信息\n\n\`\`\`\n[错误提示]\n\`\`\`" --dry-run`
+  `mes sr create --title "数据库连接失败" --company-id 4 --external-plan-id "PLAN-0001" --acc-id "2025103112176" --type 3 --body-md "### 问题背景\n\n今天早上 9 点开始连接不上数据库。\n\n### 报错信息\n\n\`\`\`\n[错误提示]\n\`\`\`"`
+
+- "按实施计划创建一个服务请求，无需指定 acc-id / company-id"
+  `mes sr create --mode plan --title "巡检发现的问题" --external-plan-id "PLAN-0001" --type 4 --body-md "巡检记录"`
 
 ### 实施计划
 
@@ -93,21 +96,41 @@
   `mes -o json contract list-items --contract-num "00032597"`
 - "查某合同下实际工时为0的子项"  
   `mes contract list-items --contract-id 12345 --actual-hours-zero-only`
+- "查已过期合同的全部子项（含历史记录）"  
+  `mes -o json contract list-items --contract-id 1380 --unlimited-end-time`  
+  （`--include-expired` 是同名别名；不传该 flag 时仍只返回 `end_time >= today` 的子项。）
 - "查合同 12345 详情"  
   `mes -o json contract view 12345`
 
 ### 知识库与文章
 
+- “检索知识库里关于 ORA-01555 的文章”
+  `mes -o json knowledge search "ORA-01555" --source mes --limit 5`
+- “检索知识库（MES 内部库 + 墨天轮社区），按更新时间排序”
+  `mes -o json knowledge search "快照过旧" --sort time --time month`
+- “只提取检索结果的标题”
+  `mes -o json knowledge search "巡检" --jq '.mesItems[].title'`
+- “读知识库文章 1687 的正文”
+  `mes knowledge read 1687`
+- “读知识库文章 1687 的原始 HTML”
+  `mes -o json knowledge read 1687 --raw`
+- “打开社区文章 5321”
+  `mes knowledge read 5321 --source modb`（社区无公开正文接口，只返回文章页链接；需用浏览器 User-Agent 打开）
 - “查知识库待审核数”
-  `mes article review-count`
+  `mes knowledge review-count`
 - “保存一篇知识库文章”
-  `mes article create --title “Oracle 巡检指南” --content-md “## 巡检项\n\n1. 检查表空间使用率” --tags “oracle,巡检” --menu-id 506`
+  `mes knowledge create --title “Oracle 巡检指南” --content-md “## 巡检项\n\n1. 检查表空间使用率” --tags “oracle,巡检” --menu-id 506`
 - “保存知识库文章（正文从文件读取）”
-  `mes article create --title “Oracle 巡检指南” --content-md-file ./report.md --tags “oracle,巡检”`
+  `mes knowledge create --title “Oracle 巡检指南” --content-md-file ./report.md --tags “oracle,巡检”`
 - “仅更新文章 123 的标题”
-  `mes article update --id 123 --title “新标题”`
+  `mes knowledge update --id 123 --title “新标题”`
 
   **Heuristics & Guidance**:
+  - **检索 vs 列表**: 用户要“找资料/查解决方案”时用 `knowledge search`（全库全文检索）；用户要“我管理的文章/待审核”时用 `knowledge list`（管理态列表）。二者互不等价。
+  - **检索需要登录**: 未登录时 `knowledge search` 直接返回「未登录，请先执行 `mes auth login`」且不发起任何请求，先让用户登录再重跑同一条命令。
+  - **检索结果分两块**: `knowledge search --source all` 的结果分 MES 内部库（`mesItems`）与墨天轮社区（`modbItems`），**不跨源排名**（两个源的相关度分值不可比），由 Agent 自行判断采用哪一块。
+  - **条数与可用性**: 分区标题给出后端命中总数与本次返回条数（如 `命中 451 条，返回 3 条`），`--limit` 是每源返回条数上限；某个源不可用时该分区标注「不可用（原因）」，据分区标记判断是否有结果，不要把不可用读成没有命中。
+  - **读正文的边界**: 只有 MES 内部库命中能 `knowledge read`；社区命中请打开 `modbItems[].url`（`https://www.modb.pro/db/{id}`，需用浏览器 User-Agent，curl 默认 UA 会被 403；HTTP 200 不代表文章存在，看标题是不是「404 - 墨天轮」）。⚠️ 两个库的 ID 区间重叠，社区 ID 传给 `knowledge read` 会静默读到另一篇无关文档。
   - **分类映射**:
     - `menuId: 505` 对应 `dict: “其他”` (通用架构/流程类)。
     - `menuId: 506` 对应 `dict: “数据库/Oracle”` (Oracle 专门技术类)。
@@ -119,11 +142,11 @@
 服务报告是 type=7 的知识库文章，自动设置 encrypt-level=INTERNAL 和 menu-id=505，仅内部可见。
 
 - “为服务请求 5183 编写服务报告”
-  `mes article create --title “服务请求 5183 处理报告” --content-md “## 问题摘要\n\n...” --tags “服务报告” --sr-id 5183`
+  `mes knowledge create --title “服务请求 5183 处理报告” --content-md “## 问题摘要\n\n...” --tags “服务报告” --sr-id 5183`
 - “为服务请求 5183 编写服务报告（正文从文件读取）”
-  `mes article create --title “服务请求 5183 处理报告” --content-md-file ./report.md --tags “服务报告” --sr-id 5183`
+  `mes knowledge create --title “服务请求 5183 处理报告” --content-md-file ./report.md --tags “服务报告” --sr-id 5183`
 - “为已有关联文章的服务请求 456 更新服务报告”
-  `mes article update --id 123 --sr-id 456 --content-md “## 补充内容\n\n...”`
+  `mes knowledge update --id 123 --sr-id 456 --content-md “## 补充内容\n\n...”`
 
 ### 管理看板
 
@@ -165,6 +188,22 @@
 
 > ⚠️ 场景：当用户需要在回复服务请求或保存文档时嵌入本地图片，请先使用 `oss upload image` 获取 URL，再将 URL 填入正文。目前**仅支持图片**，不支持其他文件。
 
+### 客户附件（customer attachment）
+
+- "列出客户 861 的全部附件"
+  1. 先查公司 ID（如果用户没给）：
+     `mes util search-company "云和恩墨虚拟客户" -o json` → 取 `companies[].ID`
+  2. 拉取全量附件：
+     `mes customer attachment list --company-id 861 --all`
+- "下载客户 861 的某个附件到 /tmp"
+  `mes customer attachment download --company-id 861 --file-id 7368 --output-dir /tmp/cust-861`
+- "把客户 861 的全部附件打包下载"
+  `mes customer attachment batch --company-id 861 --zip-output /tmp/cust-861.zip`
+- "上传一份 PDF 到客户 861"
+  `mes customer attachment upload --company-id 861 --file /path/to/report.pdf`
+
+> ⚠️ `--company-id` 在每个子命令上都是**必填**，CLI 不会从 `/user/detail` 推断，避免 token 持有者批量下载任意客户。原 `view` 子命令已移除，等价预览使用 `list --all`。
+
 ### 发现链 (Discovery Chain): 从公司名找实施计划
 
 - "找到 '云和恩墨虚拟客户' 公司的合同子项"
@@ -200,15 +239,13 @@
 
 1. 先读取截图内容，提炼关键信息。
 2. 上传截图，获取到截图的URL。
-3. 用 `sr create` 生成并提交服务请求（支持 dry-run）。
+3. 用 `sr create` 生成并提交服务请求。
 
 **Command**
 
 `mes oss upload image /path/to/img.png`
 
-`mes sr create --title "SQL 执行速度较慢分析" --company-id 4 --acc-id "2025103112176" --type 3 --body-md "## 问题描述\n\n数据库存储过程中的一条 SQL 执行速度较慢（约1分钟），客户要求分析是否正常。\n\n## 分析结论\n\n该 SQL 走了索引（LINE_NO字段），但返回行数和数据量仍然很大：\n\n- LINE_NO 字段 distinct value 仅 26 个，选择性差\n- 索引访问预估 944MB，全表访问预估 34.75GB\n- 走索引比全表快约 36 倍，已为最优执行计划\n- 执行 1 分钟左右属于正常现象，非索引问题\n\n## 截图\n\n![](https://oss-esprod-public.enmotech.com/image/base/uploaded-image.jpg)" --dry-run`
-
-提交时去掉 `--dry-run`。
+`mes sr create --title "SQL 执行速度较慢分析" --company-id 4 --external-plan-id "PLAN-0001" --acc-id "2025103112176" --type 3 --body-md "## 问题描述\n\n数据库存储过程中的一条 SQL 执行速度较慢（约1分钟），客户要求分析是否正常。\n\n## 分析结论\n\n该 SQL 走了索引（LINE_NO字段），但返回行数和数据量仍然很大：\n\n- LINE_NO 字段 distinct value 仅 26 个，选择性差\n- 索引访问预估 944MB，全表访问预估 34.75GB\n- 走索引比全表快约 36 倍，已为最优执行计划\n- 执行 1 分钟左右属于正常现象，非索引问题\n\n## 截图\n\n![](https://oss-esprod-public.enmotech.com/image/base/uploaded-image.jpg)"`
 
 ### 自动归纳服务请求内容并报工
 

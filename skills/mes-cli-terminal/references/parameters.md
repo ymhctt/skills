@@ -11,10 +11,12 @@
   - `list|view|reply|recover|edit|download`
 - `mes plan`
   - `list`, `view`, `end`
-- `mes article`
-  - `list`, `view`, `save`, `delete`, `assign-reviewer`, `set-level`, `set-type`, `review-count`
+- `mes knowledge`（别名：`article`、`kb`）
+  - `search`, `read`, `list`, `view`, `create`, `update`, `delete`, `assign-reviewer`, `set-level`, `set-type`, `review-count`
 - `mes contract`
   - `list`, `list-items`, `view`
+- `mes customer`
+  - `attachment list`, `attachment upload`, `attachment download`, `attachment batch`
 - `mes dashboard`
   - `base`
   - `contract`
@@ -147,23 +149,25 @@
 
 - `sr create`
   - `--title` **（必填）**
-  - `--company-id` **（必填）**
-  - `--acc-id` **（必填，内部用户）**
+  - `--company-id` **（必填，合同/资产模式；plan 模式可由实施计划派生）**
+  - `--external-plan-id` **（必填：内部用户合同模式 / `--mode plan`；外部用户非必填）**
+  - `--acc-id` **（可选一致性校验；后端将其作为 `pickImplementationPlan` 的二级匹配键）**
   - `--type` **（必填，P0-P5，默认P4=4）**
   - `--body-md` / `--body-html` **（必填，推荐优先使用 --body-md）**
   - `--body-html-file`
   - `--attach-url`（可重复）
-  - `--mode contract|asset`
-  - `--contract-id`
-  - `--asset-id`
+  - `--mode contract|asset|plan`
+  - `--contract-id`（外部用户必填）
+  - `--asset-id`（`--mode asset` 时必填）
   - `--recover-type`
   - `--menu-id`
   - `--team-id`
   - `--executor-id`
   - `--email`
   - `--phone`
-  - `--external-plan-id`
   - `--json`
+
+> ⚠️ **后端契约变更**（`enmo_support 11127ba7`）：内部员工合同模式必须传 `--external-plan-id`，否则后端返回 `请选择实施计划`。CLI 在 `mes sr create` 进入 HTTP 之前就会 fail-fast，提示用户使用 `mes plan list --company-id <id>` 查实施计划。`--mode plan` 是新增绑定模式，公司ID / accId 可由实施计划派生。
 
 ### `mes sr` 字典
 
@@ -313,10 +317,35 @@
   - `--feedback`
   - `--json`
 
-### `mes article`
+### `mes knowledge`
 
-- `article list [search]`
-  - **位置参数**：`mes article list <关键词>` 等效于 `--search <关键词>`
+> 别名：`mes article`、`mes kb` 等价于 `mes knowledge`。
+> **职责区分**：`knowledge list` 是管理态列表（只列出当前账号有权限管理的文章），`knowledge search` 是全库全文检索（ES）。两者互不等价，不要互相替代。
+
+- `knowledge search <query>`
+  - **位置参数**：`mes knowledge search <query>` 为必填的检索关键词
+  - ⚠️ **检索需要登录**：未登录时命令直接返回「未登录，请先执行 `mes auth login`」，不发起任何请求（MES 与社区都不请求）
+  - `--source all|mes|modb`（默认 `all`）：检索来源，`mes` = MES 内部知识库，`modb` = 墨天轮社区
+    - `all` 的结果分两块返回（`mesItems` / `modbItems`），**不跨源排名**（两个源的相关度分值不可比）；文本输出是两个分区，各一张表，分区标题同时给出后端命中总数与本次返回条数（如 `MES 内部知识库（命中 451 条，返回 3 条）`）
+    - 某个源不可用时，该分区输出 `MES 内部知识库：不可用（原因）`，stderr 另有 `提示:`，JSON 里是 `sources[].ok=false`；不要把「源不可用」误读成「没有命中」
+    - MES 命中带控制台文章页链接 `mesItems[].url`（`<站点根>/article/search/{id}`），社区命中带文章页链接 `modbItems[].url`（`https://www.modb.pro/db/{id}`）
+  - `--limit`（默认 10）：每个来源的返回条数，必须 > 0；后端返回更多记录时由客户端截断
+  - `--page`（默认 1）：页码，必须 > 0
+  - `--sort relevance|time`（默认 `relevance`）：按相关度或按更新时间排序（时间排序按解析后的时间，两个源各自排序）
+  - `--time week|month|year|all`（默认 `all`）：时间范围过滤
+  - `--tag`：按标签过滤
+  - `--platform`：按平台过滤
+  - `--version`：按版本过滤
+  - `--json`
+- `knowledge read <id>`
+  - **位置参数**：文章 ID（整数）
+  - `--source mes|modb`（默认 `mes`）：`mes` 读 MES 内部知识库正文；`modb` 社区无公开正文接口，只返回文章页链接（`https://www.modb.pro/db/{id}`），不发请求
+  - ⚠️ 社区链接要用浏览器 User-Agent 打开（curl 默认 UA 会被 403）；HTTP 200 不代表文章存在，页面标题为「404 - 墨天轮」即文章不存在
+  - ⚠️ **只把 MES 命中的 ID 传给 read**：MES 内部 ID 与社区 ID 区间重叠，混用会静默读到另一篇无关文档；社区命中请直接打开结果里的 URL
+  - `--raw`：输出原始 HTML 正文而非 Markdown
+  - `--json`
+- `knowledge list [search]`
+  - **位置参数**：`mes knowledge list <关键词>` 等效于 `--search <关键词>`
   - `--mode manage|audit|my`
   - `--page`, `--page-size`
   - `--status`
@@ -326,9 +355,9 @@
   - `--search`
   - `--start-time`, `--end-time`
   - `--json`
-- `article view <id>`
+- `knowledge view <id>`
   - `--json`
-- `article create`
+- `knowledge create`
   - `--title` **（必填）**
   - `--content-md` **（必填，与 --content 二选一）**
   - `--tags` **（必填，逗号分隔）**
@@ -347,7 +376,7 @@
   - `--evaluate`
   - `--sr-id`（传入时自动设置 type=7, encrypt-level=INTERNAL, menu-id=505）
   - `--json`
-- `article update`
+- `knowledge update`
   - `--id` **（必填，必须 > 0）**
   - `--title`
   - `--content-md`
@@ -367,21 +396,21 @@
   - `--evaluate`
   - `--sr-id`（传入时自动设置 type=7, encrypt-level=INTERNAL, menu-id=505）
   - `--json`
-- `article delete <id>`
+- `knowledge delete <id>`
   - `--json`
-- `article assign-reviewer`
+- `knowledge assign-reviewer`
   - `--id`
   - `--reviewer-id`
   - `--json`
-- `article set-level`
+- `knowledge set-level`
   - `--id`
   - `--level`
   - `--json`
-- `article set-type`
+- `knowledge set-type`
   - `--id`
   - `--type`
   - `--json`
-- `article review-count`
+- `knowledge review-count`
   - `--unclosed`
   - `--json`
 
@@ -408,6 +437,7 @@
   - `--date-range-start`, `--date-range-end` - both item start and end must be in range
   - `--min-progress-ratio`, `--max-progress-ratio` - Filter by actualHours/planHour
   - `--actual-hours-zero-only` - Only items with actualHours == 0
+  - `--unlimited-end-time` / `--include-expired` - Include items from contracts that have already ended (forwards `unlimitedEndTime=true`; default still filters by `end_time >= today`)
   - `--page`, `--page-size`, `--all` - Pagination
   - `--json`
 
@@ -445,6 +475,23 @@
 - `util search-company <keyword>`
   - 通过公司名称关键字搜索公司，返回 companyID、companyName，支持 `-o json` 输出
 
+### `mes customer attachment`
+
+> ⚠️ 所有子命令都要求显式传入 `--company-id`（不接受 `--company-id 0`）；CLI 不会从 `/user/detail` 推断。必须先用 `util search-company` 查到 ID 再调用。
+
+- `attachment list --company-id <id>`
+  - 列出客户维度的附件。`--all` 取所有页（默认 `--page-size 50`），否则按 `page-num/page-size` 取单页。
+  - 参数：`--company-id --page-num --page-size --all --json`
+- `attachment upload --company-id <id> --file <path>`
+  - 上传本地文件到客户范围 OSS，自动完成 OSS presign → PUT → `/enclosure/save` 三步。
+  - 参数：`--company-id --file --json`
+- `attachment download --company-id <id> [--file-id <id> | --all]`
+  - 下载单个附件或全部附件。省略 `--file-id` 且未指定 `--all` 时默认走 `--all`。同名标题自动附加 `_<id>` 后缀避免覆盖。
+  - 参数：`--company-id --file-id --all --output-dir (-O) --page-size --json`
+- `attachment batch --company-id <id> --zip-output <path>`
+  - 把所有附件打包成单个 zip；0 条成功时删除空 zip 并以非零退出。
+  - 参数：`--company-id --page-size --zip-output --json`
+
 ### `mes oss`
 
 - `oss upload image <file-path>`
@@ -459,3 +506,6 @@
 - 用户给 URL（plan/request）时，优先 `--from-url`，避免手工错填 `type/rid`。
 - `statistics add` 若无交互必须带齐：`--start --end --hours --remark` + 关联参数。
 - 周报 create/update 正文三选一：`--md` / `--md-file` / `--html`（避免同时给）。
+- `customer attachment` 子命令必须显式传入 `--company-id`；不要尝试从 `/user/detail` 推断或省略该 flag。
+- `customer attachment upload` 自动完成 OSS + `/enclosure/save` 三步；上传后无需手工注册。
+- `customer attachment download --all` / `batch` 在 0 条成功时退出码非零；解析 `--json` 输出的 `errors[]` 字段查看失败行。
