@@ -384,7 +384,19 @@ done
   - 有行 + enabled=0 → disabled → `openclaw cron enable`
   - **无行 → 已被删除 → 需 `openclaw cron add` 重建**（不是 enable！）
 - 重建前**先看 `cron/jobs.json.migrated`** 拿原始定义（schedule/expr/delivery/timeout），别凭记忆重写
+  - ⚠️ **真实路径 = `/root/.openclaw/cron/jobs.json.migrated`**（**不是** `/root/.openclaw/state/cron/`，该目录不存在）
+  - 16:00 实测取到的完整定义（可直接照抄重建）：
+    - `id`=a32216f6-35cb-4d15-81f3-cd93f4a7e197 / `expr`=`0 9 * * *` / `sessionTarget`=isolated
+    - `payload`: kind=agentTurn, timeoutSeconds=600, message=「生成东西大区4部报工统计HTML并推送微信：执行 fetch_data.py → generate_report.py → openclaw-weixin 推送到 o9cq807ovdcJ6xWRU5uplq0N5vKA@im.wechat」
+    - `delivery`: mode=announce, channel=openclaw-weixin, to=o9cq807ovdcJ6xWRU5uplq0N5vKA@im.wechat
 - 历史 job（0409aca7 等 38 个）也在 `cron_run_logs` 里但不在 `cron_jobs` → 那是迁移期自然淘汰，属正常
+
+**📌 16:00 状态复核（故障 N 仍未修复）**：
+- `cron_jobs` 仍 0 行 / `cron list --all` 仍 7 个 job / live `scripts/` 仍无 fetch_data.py
+- ⚠️ 但 `cron_run_logs` 显示 **10/27 09:40 该 job 实际跑过一次**（run_at_ms=1793065200011, ok/delivered=1）
+  → 说明 job 实体在 09:40 后才被删；**且**该次 summary = 「报告未生成（故障 K 阻断）」
+  → 属于「delivered=1 但业务失败」伪装变体，**禁止记为自愈** ✅
+- 🔑 **两处必须同时修**：① `openclaw cron add` 重建 job ② 把 fetch_data.py 搬回 live 目录
 
 ### ❌ 故障 K 最新权威实测（2026-10-26 07:03 → day-46 持续，仍需爸爸）
 
