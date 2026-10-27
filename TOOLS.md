@@ -300,6 +300,35 @@ for r in c.execute('''select run_at_ms,status,delivered,substr(summary,1,600) fr
 
 **规则**：早间汇总报的 Git 积压**必须二次复验**再判定为真积压，不能直接当待办。
 
+### 🚨🚨 Git 积压判定必须用正确的 remote（2026-10-27 16:00 固化 ⚡⚡⚡⚡）
+
+**根因**：workspace 有两个 remote，**只有 `workspace` 才是本仓库的上游**：
+
+| remote | 指向 | 用途 |
+|---|---|---|
+| `origin` | `github.com/enmotech/mes-cli-skills.git` | ❌ **另一个项目**（MES CLI 技能库），历史断裂 |
+| `workspace` | `git@github.com:ymhctt/skills.git` | ✅ **本仓库**（分支 `openclaw-workspace`） |
+
+→ 用 `origin/main` 比对会得到**完全虚假的积压数字**（历史断裂 + gitlink 损坏 → 假分叉）。
+
+**正确判据**：
+```bash
+cd /root/.openclaw/workspace
+git rev-parse --abbrev-ref --symbolic-full-name @{u}   # → workspace/openclaw-workspace
+git rev-list --left-right --count @{u}...HEAD          # (behind, ahead)
+git status --porcelain | wc -l                         # 未提交文件数
+```
+
+**历史教训链**：
+- 11:00 复验 `origin/main...HEAD` = 0/0 → 判定"瞬时快照、已收敛"（**结论偶然正确，但用的 ref 是错的**）
+- 15:00 复验 `origin/main...HEAD` = 18/40 → 判定"**真积压**"（**❌ 结论错误**，用的是错 ref）
+- 16:00 正确实测 `@{u}...HEAD` = **0/1**（落后 0，领先 1）→ **Git 健康，无积压** ✅
+
+📌 **硬规则**：workspace 的 Git 状态判定**一律用 `@{u}`**（或 `workspace/openclaw-workspace`），
+**禁止**用 `origin/main`。11:00 与 15:00 两次结论都是这个坑造成的。
+（顺带修正：TOOLS.md 旧段落写 `cron/jobs.json.migrated` 位置也不对 ——
+ 真实路径是 `/root/.openclaw/cron/jobs.json.migrated`，`/root/.openclaw/state/cron/` **不存在**。）
+
 ### ⭐⭐ provider 直连探测 = 无副作用心跳诊断手段（2026-10-27 11:00 固化 ⚡⚡）
 
 心跳自检除 `cron runs` / `cron list --all` / SQLite `mode=ro` 外，
