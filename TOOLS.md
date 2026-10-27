@@ -241,6 +241,21 @@ ls -la /tmp/mes_summary_t23.json   # 不存在 = fetch 阶段失败 = K 未修�
 
 - **10/21 15:00 再次权威实测**：`Not logged in` + artifact 不存在 → **day-41 持续**，10/19 的"自愈"结论维持撤销。
 
+**🔒 故障 K 无自助路径 = 已穷举确认（2026-10-28 00:00 固化）**：
+穷举了所有可能的自助解除手段，**全部需要真实凭证**：
+
+| 尝试 | 结果 |
+|---|---|
+| `mes auth login --help` | 三种方式：`--web`（浏览器 OAuth）/ `--device`（设备码）/ `--with-token`（已知 token） |
+| `/root/.mes/config.yaml` | `token: ""` —— 空串，**凭据已被清空** |
+| `/root/.mes/state.json` | 仅含 `lastPageByKey`（业务分页缓存，**不含任何凭据**） |
+| 环境变量 | 无任何 MES 相关变量 |
+| `/root/.mes/profiles/` | 目录不存在（无命名 profile 备份） |
+
+→ **结论：故障 K 只能由爸爸执行 `mes auth login` 解除，我没有自助路径，等不来自愈。**
+以后**不用再重复排查**这条路径，直接告诉爸爸需要登录即可（每次 heartbeat 只做 `mes auth status` 确认即可）。
+（10-28 00:00 实测：**day-48 持续**，9/11 起。）
+
 **a32216f6 error 文本的解读要点（2026-10-21 15:00 实证）**：
 - 10/21 09:40 error = `Exec failed: run mes auth → print text → list files in /tmp/mes_summary_t23.json → ... → search "mes" in /tmp`
 - ⚠️ 该文本**本身就是 subagent 主动排查故障 K 的证据**（它在查 auth、查 artifact、搜 /tmp）
@@ -323,11 +338,44 @@ git status --porcelain | wc -l                         # 未提交文件数
 - 11:00 复验 `origin/main...HEAD` = 0/0 → 判定"瞬时快照、已收敛"（**结论偶然正确，但用的 ref 是错的**）
 - 15:00 复验 `origin/main...HEAD` = 18/40 → 判定"**真积压**"（**❌ 结论错误**，用的是错 ref）
 - 16:00 正确实测 `@{u}...HEAD` = **0/1**（落后 0，领先 1）→ **Git 健康，无积压** ✅
+- 10-27 07:20 早间汇总报「领先 17 个提交 / 143 未跟踪」→ 10-28 00:00 用 `@{u}` 实测 **0/0** → **第三次误判** ✅
+
+**🔑 误判根因是「双错叠加」**：错 remote（`origin/main`）+ 瞬时快照（07:20 时 git_sync 刚 push 完，
+worktree 被并发写入污染）→ 两个误差源相乘，放大出假积压数字。
 
 📌 **硬规则**：workspace 的 Git 状态判定**一律用 `@{u}`**（或 `workspace/openclaw-workspace`），
-**禁止**用 `origin/main`。11:00 与 15:00 两次结论都是这个坑造成的。
+**禁止**用 `origin/main`。11:00 / 15:00 / 07:20 三次结论都是这个坑造成的。
 （顺带修正：TOOLS.md 旧段落写 `cron/jobs.json.migrated` 位置也不对 ——
  真实路径是 `/root/.openclaw/cron/jobs.json.migrated`，`/root/.openclaw/state/cron/` **不存在**。）
+
+### 🚨 Git push 必须用 refspec 显式指定分支名（2026-10-28 00:00 固化 ⚡⚡）
+
+**坑**：本地分支叫 `master`，但上游分支叫 `openclaw-workspace`。
+→ `git push workspace openclaw-workspace` 直接报错：
+```
+error: src refspec openclaw-workspace does not match any
+error: failed to push some refs to 'github.com:ymhctt/skills.git'
+```
+（因为本地根本没有 `openclaw-workspace` 这个分支名。）
+
+**正确命令**：
+```bash
+cd /root/.openclaw/workspace
+git push workspace master:openclaw-workspace
+# 或最省心：git push（默认 push.default=simple 会自动匹配上游）
+git push
+```
+✅ 验证：`git fetch -q workspace && git rev-list --left-right --count @{u}...HEAD` → 应为 `0  0`
+
+**速查表**：
+| 想做的事 | 正确命令 |
+|---|---|
+| 查积压 | `git rev-list --left-right --count @{u}...HEAD` |
+| 推送 | `git push workspace master:openclaw-workspace` |
+| 提交 | `git add -A && git commit -m "..."` |
+
+⚠️ 本地 `master` 与远端 `workspace/openclaw-workspace` **同名不同名** ——
+`git branch -vv` 显示 `[workspace/openclaw-workspace: ahead 1]` 即为正常状态。
 
 ### ⭐⭐ provider 直连探测 = 无副作用心跳诊断手段（2026-10-27 11:00 固化 ⚡⚡）
 
