@@ -1,0 +1,3 @@
+# gitlink 恢复为普通目录后，忽略嵌套仓库内部状态
+document/.git
+skills/mes-cli-terminal/.git
