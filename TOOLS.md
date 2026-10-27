@@ -50,13 +50,7 @@ Skills are shared. Your setup is yours. Keeping them apart means you can update 
 
 | 任务 | 时间 | cron ID | 说明 |
 |------|------|---------|------|
-| 每小时Memory提炼 | 每小时 :00 | ea9ca7d6-fe43-407d-a5f3-68fa92600380 | isolated (静默) |
-
-## ⏰ 定时任务（静默）
-
-| 任务 | 时间 | cron ID | 说明 |
-|------|------|---------|------|
-| inbound媒体清理 | 每天 2:00 | ce65d49c-6f01-40b5-b33e-3b1153f4f706 | main session |
+| inbound媒体清理 | 每天 2:00 | **07c53bc1-a187-439d-aba8-cb660a3873a6**（2026-10-28 校正，旧 id ce65d49c 已失效） | main session |
 | MES CLI 自动更新 | 每天 3:00 | ad3dc4bb-b1aa-43aa-9a77-eb2b94839b7a | main session |
 | Git 知识库同步 | 每天 7:00 | f193150b-c2c8-47b7-85e6-59ce1b57ed95 | main session |
 | 每小时Memory提炼 | 每小时 :00 | 6da766bb-d17e-4f9c-9ce3-fc0ad8649e12 | main+system-event |
@@ -69,6 +63,28 @@ Skills are shared. Your setup is yours. Keeping them apart means you can update 
   - 注意：isolated 有冷启动约60秒，轻量任务可忽略
 - **main session**：在主会话中处理，可能被聊天延迟
   - 适用：后台静默任务
+
+## 🔎 Cron ID 对账（2026-10-28 新增）
+
+`openclaw cron show <id>` 报 **`not found`** ≠ job 被删除 —— 可能是 **id 漂移**（job 被重建/迁移后 id 重新生成，文档没跟）。
+
+**权威 id 清单（只读，不写库）**：
+```bash
+cd /root/.openclaw/state
+python3 -c "
+import sqlite3
+c=sqlite3.connect('file:openclaw.sqlite?mode=ro',uri=True)
+for r in c.execute('select job_id,name,enabled from cron_jobs'): print(r[0],'|',r[1],'| en=',r[2])"
+```
+
+**对账文档**：
+```bash
+cd /root/.openclaw/workspace
+grep -oE "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}" TOOLS.md | sort -u
+```
+→ 与上方清单逐一比对。历史故障记录里的旧 id（如 a32216f6）可保留，但**表格里的活 id 必须准确**。
+
+📌 详见 AGENTS.md 规则十。
 
 ---
 

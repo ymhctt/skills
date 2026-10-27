@@ -514,3 +514,22 @@ for r in c.execute('select job_id,name,enabled,payload_fallbacks_json from cron_
 3. `memory/YYYY-MM-DD.md` —— 追加本轮修复的执行日志 + 验证证据
 
 **恢复手册要能脱离上下文独立执行**：含完整命令、md5/校验期望值、验证断言（如「cron list --all 应显示 8 个 job」）。
+
+### 规则十：cron ID 文档漂移 = 静默故障（2026-10-28 02:00 固化）
+
+**症状**：`openclaw cron show <文档里的 id>` → **`cron job not found`**，但 job 实际活着。
+
+**根因**：job 被**重建 / 迁移**后 id 会重新生成，而 TOOLS.md / MEMORY.md 还写着旧 id。
+（规则九只覆盖了「手动重建」，没覆盖「平台侧迁移」——本次 07c53bc1 就是历史 id ce65d49c 迁移后的结果）
+
+**硬规则**：
+- ❌ **`cron show` 返回 `not found` ≠ job 被删除** —— 不要据此下「消失」结论
+- ✅ 判定顺序：
+  1. `openclaw cron list --all`
+  2. **权威 id 清单**：`sqlite3 file:/root/.openclaw/state/openclaw.sqlite?mode=ro "SELECT job_id,name,enabled FROM cron_jobs"`（必须 `mode=ro`，不写库）
+  3. 对账：`grep -oE "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}" TOOLS.md | sort -u`
+- ✅ 修文档时同时改 **TOOLS.md + MEMORY.md** 两处（规则九的三处同步在 cron ID 场景同样适用）
+
+**2026-10-28 实测**：live 8 job；文档里 `ce65d49c`(→07c53bc1) / `ea9ca7d6`(不存在) / `bcae370c`(→8a13c219) 三处漂移，已全部修正。
+
+**预防**：cron ID **至少每季度**用 SQLite 对一次账。文档漂移是**静默故障** —— 不报错、不影响运行，只在「照着文档执行」时才炸。

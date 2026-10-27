@@ -522,8 +522,8 @@ for ts,rat,jid,st,tok in c.execute('select ts,run_at_ms,job_id,status,total_toke
 | **当前版本** | 0.5.0（2026-05-05 更新） |
 | **升级方式** | CLI：`mes update`；Skill：git pull 最新版仓库覆盖安装 |
 | **自动更新** | 每天凌晨 3:00 自动执行更新任务（cron ID: ad3dc4bb-b1aa-43aa-9a77-eb2b94839b7a） |
-| **每日周报工统计** | 每天早上 9:00 统计东西大区4部本周报工并推送（cron ID: bcae370c，isolated+600s） |
-| **inbound媒体清理** | 每天凌晨 2:00 清理临时文件（cron ID: ce65d49c-6f01-40b5-b33e-3b1153f4f706） |
+| **每日周报工统计** | 每天早上 9:00 统计东西大区4部本周报工并推送（cron ID: 8a13c219-697d-4037-8ead-c2eabaec3b70，isolated+announce→openclaw-weixin；旧 id a32216f6 已于 2026-10-27 重建后失效） |
+| **inbound媒体清理** | 每天凌晨 2:00 清理临时文件（cron ID: **07c53bc1-a187-439d-aba8-cb660a3873a6**，2026-10-28 校正；旧 id ce65d49c 已失效） |
 
 ---
 
@@ -535,7 +535,7 @@ for ts,rat,jid,st,tok in c.execute('select ts,run_at_ms,job_id,status,total_toke
 | **路径** | /root/.openclaw/media/inbound/ |
 | **保留** | 1 天内的新文件 |
 | **日志** | 清理结果写入 cleanup.log |
-| **cron ID** | ce65d49c-6f01-40b5-b33e-3b1153f4f706 |
+| **cron ID** | 07c53bc1-a187-439d-aba8-cb660a3873a6（旧 id ce65d49c-… 已失效，2026-10-28 校正） |
 | **创建日期** | 2026-04-16 |
 
 ## 📢 通知规则
@@ -4258,4 +4258,28 @@ _Last updated: 2026-10-27 11:00 GMT+8 (cron-event heartbeat poll - 周二上午 
 - **🎯 关键前瞻**：**今天 10/28 09:00 是 8a13c219 重建后首次触发**（Last="-"，从未跑过）。若故障 K 未解除，预计会再推一次「报告未生成（故障 K 阻断）」诊断 —— 爸爸在 09:00 前登录即可拿到真看板
 - **MEMORY.md** = 4251 行（> 2400 阈值，待 11/02 归档精简，不做合并通报）
 - **daily-learn** 覆盖 10-21 → 10-28 ✅ 无断档（新增「跨日首轮 heartbeat 建文件纪律」）
+- **主动 push 0 次**（10/23 起连续 6 天零 `message send`，严守故障 T 铁律）✅
+
+### 🕐 2026-10-28 02:00 GMT+8 状态戳（cron:memory_refine 6da766bb hourly 静默节点）
+- **cron 全绿**：`cron list --all` + SQLite `cron_jobs` = **8 个 job 全在**，enabled 全 1，status 全 ok；fallback 链统一 `["MiniMax-M2.7","MiniMax-M2.5"]` 无僵尸模型 ✅
+- **provider 直连**：M3 / M2.7 / M2.5 全 HTTP 200 ✅（夜间低水位，故障 M 不活跃）
+- **Git**：`@{u}` = `workspace/openclaw-workspace`，`rev-list --left-right --count @{u}...HEAD` = **0 / 0**，porcelain = 0 ✅
+- **media_blobs** = 0 ✅；`/root/.openclaw/media/inbound/` 剩 13 个历史文件（mtime 8/30~10/21，均在保留窗口外但清理脚本按"需人工确认"策略未自动删）
+- **故障 K day-48 持续**（9/11 起）：`mes auth status` → `Not logged in (no token saved)`，`/tmp/mes_summary_t23.json` 不存在 → **唯一剩余阻断，需爸爸 `mes auth login`**，已穷举确认无自助路径
+- **🎯 关键前瞻**：**今天 10/28 09:00 是 8a13c219 重建后首次触发**（Last="-"，从未跑过）。若故障 K 未解除，预计会再推一次「报告未生成（故障 K 阻断）」诊断 —— 爸爸在 09:00 前登录即可拿到真看板
+
+### ⚠️ 本轮新发现 + 修复：TOOLS.md / MEMORY.md 的 cron ID 漂移（2026-10-28 02:00）
+- **现象**：执行 `openclaw cron show ce65d49c-6f01-40b5-b33e-3b1153f4f706` → **`cron job not found`**
+- **根因**：SQLite `cron_jobs` 实际只有 **8 行**，其中 inbound媒体清理的真实 id 是 **`07c53bc1-a187-439d-aba8-cb660a3873a6`**；
+  文档里的 `ce65d49c-…` 是**历史 id**（2026-04-16 建 job 时的旧值，job 被重建/迁移后 id 变了但文档没跟）
+  → 文档漂移已累积：TOOLS.md 还残留 `ea9ca7d6-…`（isolated 版 Memory提炼，**当前根本不存在**）+ 重复的「定时任务（静默）」表
+  → MEMORY.md 另有 `bcae370c`（报工统计，**同样不存在**）
+- **修复（已执行）**：
+  1. TOOLS.md 校正 inbound媒体清理 id → `07c53bc1-a187-439d-aba8-cb660a3873a6`，**删除**失效的 `ea9ca7d6` 表格 + 合并重复表
+  2. MEMORY.md 校正 inbound媒体清理 id + 报工统计 id（`bcae370c` → `8a13c219-697d-4037-8ead-c2eabaec3b70`）
+  3. 校验方式：`grep -oE "[0-9a-f]{8}-..." TOOLS.md | sort -u` 与 SQLite `cron_jobs` 逐一比对
+- **🔑 可复用判据（写进 AGENTS.md 规则九的配套检查）**：
+  > 任何 `openclaw cron show <id>` 返回 `not found` 时，**不要**以为 job 被删了 ——
+  > 先 `SELECT job_id,name FROM cron_jobs` 看真实 id，再判定「漂移」还是「消失」。
+  > 文档里的 cron ID 至少每季度用 SQLite 对一次账。
 - **主动 push 0 次**（10/23 起连续 6 天零 `message send`，严守故障 T 铁律）✅
