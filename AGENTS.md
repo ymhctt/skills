@@ -477,3 +477,40 @@ for r in c.execute('select job_id,name,payload_model,payload_fallbacks_json from
   把真正的 `rate_limit`（故障 M）误判成「模型配置坏了 → 要爸爸」，走错修复路径
 - 查历史推送成功与否用同库 `cron_run_logs` 表的 `delivered` / `delivery_status` 字段
 - ⚠️ `openclaw cron run` **没有 `--dry-run`** → 不能用它自检推送通道（会真推送、消耗 push 额度）
+
+### 规则八：cron job「消失」与「disabled」必须分清（2026-10-27 17:00 固化）
+
+`cron list --all` 里看不到某个 job，**有两种完全不同的原因，修复路径相反**：
+
+| 判据 | 原因 | 正确修复 |
+|------|------|---------|
+| SQLite `cron_jobs` **有行** + `enabled=0` | 被自动 disable（如 Token Plan rate_limit 自我保护） | `openclaw cron enable <id>` |
+| SQLite `cron_jobs` **0 行** | **被删除**（误删 / 迁移淘汰） | `openclaw cron add` **重建**（enable 完全无效！） |
+
+```bash
+cd /root/.openclaw/state
+python3 -c "
+import sqlite3
+c=sqlite3.connect('file:openclaw.sqlite?mode=ro',uri=True)
+for r in c.execute('select job_id,name,enabled,payload_fallbacks_json from cron_jobs'): print(r[0][:8],r[1],r[2],r[3])"
+```
+
+**重建前必读原始定义**：`/root/.openclaw/cron/jobs.json.migrated`
+（⚠️ 不是 `/root/.openclaw/state/cron/` —— 该目录不存在）
+→ 用 `python3` 解析出该 job 的 `schedule.expr` / `sessionTarget` / `payload.message` / `payload.timeoutSeconds` / `delivery.*` 原样照抄，**别凭记忆重写**。
+
+**同时检查被搬走的脚本**：cron 被删常常伴随 `git` 操作把脚本挪进 `.bak` 目录 →
+`ls skills/<skill>/scripts/` 对比 `ls skills/<skill>.bak.*/scripts/`，缺失的**原样 cp 回 live 目录**并 `md5sum` 校验。
+⚠️ 只搬**缺失**的文件；live 里已有的新版（如 `generate_report.py` live 55KB vs bak 34KB）**不要**覆盖。
+
+**重建后不要立刻验证推送**：`openclaw cron run` **没有 `--dry-run`** → 会真发微信、消耗 push 额度（违反故障 T 铁律）→ 等次日自然触发即可。
+
+### 规则九：故障修复后必须更新三处文档（2026-10-27 17:00 固化）
+
+修复完成后**立刻**把这三处同步，否则下个 session 会照着过期 id 找不到东西：
+
+1. `TOOLS.md` 顶部的 **cron 任务表**（id / 时间 / 模式）—— 重建后 **id 会变**，必须换掉
+2. `TOOLS.md` 对应的故障章节 —— 追加「✅ 修复完成」小节 + **完整可复制恢复手册**（Step 1/2/3）
+3. `memory/YYYY-MM-DD.md` —— 追加本轮修复的执行日志 + 验证证据
+
+**恢复手册要能脱离上下文独立执行**：含完整命令、md5/校验期望值、验证断言（如「cron list --all 应显示 8 个 job」）。

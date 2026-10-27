@@ -41,7 +41,7 @@ Skills are shared. Your setup is yours. Keeping them apart means you can update 
 |------|------|---------|------|
 | 每日早间汇总(新) | 7:20 | 9fc7ca81-320b-4be7-ae2c-72631aab1629 | isolated+announce→**openclaw-weixin** |
 | 每日早间简报(新) | 8:00 | f730b7b4-9439-46f0-8243-b17bbb7d3070 | isolated+announce→**openclaw-weixin** |
-| 东西大区4部报工统计（11章节完整版） | 9:40 | a32216f6-35cb-4d15-81f3-cd93f4a7e197 | isolated+announce→**openclaw-weixin** |
+| 东西大区4部报工统计（11章节完整版） | 9:00 | **8a13c219-697d-4037-8ead-c2eabaec3b70**（2026-10-27 重建，旧 id a32216f6 已随删除消失） | isolated+announce→**openclaw-weixin** |
 
 **fallback 链（2026-10-26 全部对齐 ✅）**：三者均 `MiniMax-M3 → M2.7 → M2.5`
 （f730b7b4 原为 `M3 → M2.5 → M2.1`，M2.1 已下线 → 10/26 07:03 修正）
@@ -397,6 +397,42 @@ done
   → 说明 job 实体在 09:40 后才被删；**且**该次 summary = 「报告未生成（故障 K 阻断）」
   → 属于「delivered=1 但业务失败」伪装变体，**禁止记为自愈** ✅
 - 🔑 **两处必须同时修**：① `openclaw cron add` 重建 job ② 把 fetch_data.py 搬回 live 目录
+
+### ✅ 故障 N 修复完成（2026-10-27 17:00）— 恢复手册
+
+**新 cron id = `8a13c219-697d-4037-8ead-c2eabaec3b70`**（旧 id a32216f6 随删除永久消失，**不可复用**）
+名称「东西大区4部每日报工统计」/ expr `0 9 * * *` @ Asia/Shanghai / isolated / announce→openclaw-weixin
+
+**Step 1 — 恢复脚本**（必须先做，否则重建的 cron 也会失败）：
+```bash
+cd /root/.openclaw/workspace
+cp skills/mes-work-report.bak.9-17/scripts/fetch_data.py skills/mes-work-report/scripts/fetch_data.py
+chmod +x skills/mes-work-report/scripts/fetch_data.py
+md5sum skills/mes-work-report/scripts/fetch_data.py skills/mes-work-report.bak.9-17/scripts/fetch_data.py   # 应一致 b7e22d8a2896e482d39fc9878b14e05c
+```
+⚠️ 只搬 `fetch_data.py`；**不要**覆盖 live 的 `generate_report.py`（live 55558B 是新版，bak 34122B 是旧版，内容不同）
+
+**Step 2 — 重建 cron**（照抄 `jobs.json.migrated` 原始定义）：
+```bash
+openclaw cron add \
+  --cron "0 9 * * *" --tz "Asia/Shanghai" \
+  --name "东西大区4部每日报工统计" \
+  --session isolated --announce \
+  --channel openclaw-weixin --to "o9cq807ovdcJ6xWRU5uplq0N5vKA@im.wechat" \
+  --agent main --timeout-seconds 600 \
+  --fallbacks "MiniMax-M2.7,MiniMax-M2.5" \
+  --message "生成东西大区4部报工统计HTML并推送微信：执行 /root/.openclaw/workspace/skills/mes-work-report/scripts/fetch_data.py 获取数据，然后用 generate_report.py 生成HTML，最后通过 openclaw-weixin 推送到 o9cq807ovdcJ6xWRU5uplq0N5vKA@im.wechat"
+```
+**Step 3 — 验证**：`openclaw cron list --all` 应显示 **8 个 job**（含 8a13c219）；SQLite `cron_jobs` 应 8 行。
+
+**🔑 故障 N 通用判定口诀**：
+- `cron list --all` 里 job 消失 → 查 SQLite `cron_jobs` 行数：
+  - **有行 + enabled=0** → disabled → `openclaw cron enable`
+  - **无行** → **已被删除** → 必须 `openclaw cron add` 重建（enable 无效！）
+- 重建前**先读 `/root/.openclaw/cron/jobs.json.migrated`** 拿原始定义，别凭记忆重写
+- 📌 **真实路径 = `/root/.openclaw/cron/jobs.json.migrated`**（**不是** `/root/.openclaw/state/cron/`，该目录不存在）
+- ⚠️ 恢复 cron **不够**：必须同时把脚本搬回 live 目录，否则 subagent 会崩在 `Exec failed: python3 fetch_data.py`
+- ⚠️ 重建后**不要**立刻 `openclaw cron run` 验证（会真推送、消耗额度，违反故障 T）→ 等次日 09:00 自然触发，或看 `cron_run_logs`
 
 ### ❌ 故障 K 最新权威实测（2026-10-26 07:03 → day-46 持续，仍需爸爸）
 
