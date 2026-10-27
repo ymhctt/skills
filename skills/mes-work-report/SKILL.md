@@ -1,292 +1,683 @@
 ---
-name: mes-work-report
-description: >
-  生成团队或大区的 MES 报工统计分析 HTML 可视化看板。
-  当用户需要查看某个团队（如东西大区4部、东西大区2部）或某个大区（如东西大区、南北大区）的报工工时统计、满勤率、加班、不达标人员等汇总信息时触发，
-  尤其是需要将结果以可视化报告或HTML看板形式输出时。
-
-  触发关键词：报工统计报告、报工看板、工时报表、各团队报工对比、大区报工分析、
-  周报统计、满勤率、工时不达标、加班统计、报工汇总HTML、生成报工报告、生成看板、
-  报工周报、团队周报、大区周报、项目未报工、合同未报工、子项未报工、合同子项统计、
-  每人每周工作总结、周报内容、周报详情、周报摘要、周报查看。
-
-  风格选择关键词：默认风格、科技风格、暗色风格、Apple风格、苹果风格、PlayStation风格、PS风格、索尼风格、
-  Starbucks风格、星巴克风格、绿色风格、Notion风格、笔记风格、简约风格、
-  Figma风格、专业风格、黑白风格、Anthropic风格、温暖风格、羊皮纸。
-
-  默认风格：用户未指定风格时，使用默认暗色科技风格（深蓝背景 + 青色强调色），即 default-design.css。
+name: mes_dongxi_weekly_report
+description: 东西大区四团队报工周报/月报/季度报自动分析 + 客户项目服务总结/进展分析报告。当用户需要生成东西大区报工报告、东西大区周报、东西大区月报、东西大区季度报、Q1/Q2/Q3/Q4报工、四团队报工对比分析、项目报工排名、单团队报工分析、单人员报工分析时触发此技能（团队内部管理看板场景）。当用户需要生成客户项目验收报告、项目服务总结报告、项目进展分析时（对外客户交付场景）触发 `mes_project_report/` 子模块。支持按周、按月或自定义日期范围统计，输出 HTML 可视化报告。单团队/单人员/项目报告分析使用深蓝色主题模板。
 ---
 
-# MES 报工统计报告生成器
+# 东西大区四团队报工分析
 
-## 架构概述
+## 目标
 
-> **`$SKILL_DIR`** = 本 Skill 的安装目录（即 `~/.workbuddy/skills/mes-work-report`）。Agent 执行命令时需将 `$SKILL_DIR` 替换为实际绝对路径。
+自动采集东西大区四个团队的报工数据，生成结构化的 HTML 可视化报告，包含核心指标对比、成员工时明细、报工不足分析、文档统计、项目成本消耗、报工质量（含人员质量明细）、项目报工排名（含工时分布可视化）、每人季度工作总结、服务请求分析、项目未报工分析和综合评价十一大维度。
 
-本 Skill 采用 **混合方案**：
+## 触发词
 
-1. **`$SKILL_DIR/scripts/fetch_data.py`** — 纯数据拉取层，调用 `mes` CLI 拉取所有原始数据，输出 JSON
-2. **Agent（本 SKILL.md）** — 报告编排层，读取 JSON 数据，按 14 章节结构生成完整 HTML
+- 东西大区报工、东西大区周报、东西大区月报、东西大区季度报
+- 四团队报工分析、团队报工对比
+- 单团队报工分析、单人员报工分析
+- 生成本周报工报告、生成本月报工报告、生成季度报工报告
+- Q1报工、Q2报工、Q3报工、Q4报工
+- 项目报工排名、报工最多项目
+- 项目未报工分析、未报工合同子项、合同子项报工情况
+- 1部报工、2部报工、4部报工、5部报工
+- XX报工分析（指定团队名或人员名）
+- **客户项目验收报告、项目服务总结报告** → 转到 `mes_project_report/`（客户/合同视角，深蓝主题 + Chart.js）
+- **客户项目进展分析、项目进展跟踪** → 转到 `mes_project_report/`（项目进行中场景）
+- **XX 项目服务总结、XX 项目进展**（指定客户名或项目名）
 
-```
-用户请求 → Agent 读 SKILL.md → 执行 fetch_data.py 拉取 JSON → Agent 读取 JSON → 生成 HTML
-```
+## 固定配置
 
-> Agent 负责全部 HTML 生成逻辑，不依赖硬编码模板。新增/修改章节只需改本文件或 references/ 下的章节定义文件。
+### 团队列表
+| 团队 | MES team-id |
+|------|-------------|
+| 东西大区1部 | 2 |
+| 东西大区2部 | 3 |
+| 东西大区4部 | 23 |
+| 东西大区5部 | 19 |
 
-## 预设风格系统
+### 默认排除人员
+许文榕、杨明翰、周瑞斌
 
-提供 7 种预设视觉风格，用户通过自然语言选择：
+### 工时标准
+- 工作日 8h/天
+- 周报：5 个工作日 × 8h = 40h/人·周
+- 月报：当月实际工作日数 × 8h/人·月
+- 季度报：当季所有工作日 × 8h（Q1约64天=512h，以实际日历为准）
+- **周六周日工时视为加班**
 
-| 风格 | CSS 文件 | 特点 | 适用场景 |
-|------|----------|------|----------|
-| **默认** ⭐ | `default-design.css` | 深蓝背景 `#1a1a2e`，青色强调色 `#00d4ff`，红色警示色 `#e94560` | **默认风格**，通用场景 |
-| **Apple** | `apple-design.css` | 蓝白渐变背景，SF Pro 字体，毛玻璃效果 | 正式汇报、演示展示 |
-| **PlayStation** | `ps-design.css` | 深色科技风，蓝色主调，渐变卡片 | 技术团队、开发者 |
-| **Starbucks** | `starbucks-design.css` | 温暖绿色主题，咖啡店氛围 | 轻松氛围、客户展示 |
-| **Notion** | `notion-design.css` | 极简浅色，清晰层次 | 文档风格、办公协作 |
-| **Figma** | `figma-design.css` | 黑白极简，专业工具感 | 专业工具、数据分析 |
-| **Anthropic** | `anthropic-design.css` | 温暖羊皮纸质感，衬线字体 | 阅读体验、知识沉淀 |
+## 执行流程
 
-> ⭐ **默认风格**：用户未指定风格时，自动使用默认暗色科技风格。
+### Step 1：确定统计范围
 
-**风格关键词映射**：
-- 未指定 / "默认风格" / "科技风格" / "暗色风格" → `default-design.css`
-- "Apple 风格" / "苹果风格" → `apple-design.css`
-- "PlayStation 风格" / "PS 风格" / "索尼风格" → `ps-design.css`
-- "Starbucks 风格" / "星巴克风格" / "绿色风格" → `starbucks-design.css`
-- "Notion 风格" / "笔记风格" / "简约风格" → `notion-design.css`
-- "Figma 风格" / "专业风格" / "黑白风格" → `figma-design.css`
-- "Anthropic 风格" / "温暖风格" / "羊皮纸" → `anthropic-design.css`
+根据用户请求确定模式和目标团队：
 
-**CSS 内嵌方式**：将 CSS 文件内容直接写入 `<style>` 标签，确保 HTML 可独立分享。
+**⚠️ 严格执行规则：**
+- 当用户要求分析**东西大区四团队**报工情况时，必须包含以下所有维度：
+  1. 四团队核心指标对比
+  2. 成员工时明细 & 每日工时
+  3. 报工不足人员（工作日8h/天，周六周日视为加班）
+  4. 文档编写数量
+  5. 报工质量分析
+  6. 报工内容工作总结
+  7. 项目成本消耗
+  8. 项目报工排名（各团队TOP15）
+  9. 服务请求情况（按用户要求的时间范围）
+  10. 🆕 **项目未报工分析**（东西大区维保项目支持团队下未产生报工的合同子项）
+  11. 综合评价
 
-**统一字体大小体系**：
+**判断规则：**
+- 如果用户指定了**单个团队**（如"服务2部报工分析"、"1部Q1报告"）或**单个人员**（如"吴伟龙的报工"），则标记为 `single_team=true`
+- 如果用户指定了**多个团队**或**四团队对比**（如"东西大区报工"、"四团队对比"），则标记为 `single_team=false`
 
-| 元素 | 字号 | 字重 |
-|------|------|------|
-| Hero 主标题 | 32px | 700 |
-| 章节标题 | 18px | 600 |
-| 卡片标题 | 14px | 600 |
-| 正文内容 | 13px | 400 |
-| 表格/标签 | 12px | 400 |
-| 辅助说明 | 11px | 400 |
+| 请求 | 模式 | 目标团队 | 报告模板 |
+|------|------|----------|----------|
+| "本周报工"、"周报" | `week` | 四团队(2,3,23,19) | generate_report.py |
+| "本月报工"、"月报" | `month` | 四团队(2,3,23,19) | generate_report.py |
+| "Q1"、"一季度"、"1-3月" | `quarter` | 四团队(2,3,23,19) | generate_quarter_report.py |
+| "服务2部Q1"、"1部报工分析" | `quarter` | 单团队 | **generate_single_team_report.py** |
+| "吴伟龙报工" | `quarter` | 单人员所在团队 | **generate_single_team_report.py** |
+| 自定义范围（四团队） | `custom` | 四团队(2,3,23,19) | generate_quarter_report.py |
+| 自定义范围（单团队） | `custom` | 单团队 | **generate_single_team_report.py** |
 
----
+默认取**当前日期**。若未指定，周报取本周，月报取本月。
 
-## 报告维度
+### Step 2：用 mes CLI 采集数据
 
-根据请求范围，报告分为两种维度，影响 Hero 标题、章节结构、汇总层级等：
+**确定要采集的团队：**
+- 四团队模式：对所有团队（team-id: 2, 3, 23, 19）执行以下命令
+- 单团队/单人员模式：只对**目标团队**执行以下命令
 
-| 维度 | 触发条件 | 典型请求 |
-|------|---------|---------|
-| **🌍 区-团队** | 请求包含大区名且拉取该大区下多个子团队 | "南北大区报工看板"、"东西大区周报" |
-| **👥 按团队** | 请求指定具体团队名，或多个不属同一大区的团队 | "4部看板"、"2部和4部的报告" |
-
-**判定逻辑**：
-- "东西大区" / "南北大区" → 检查是否拉取了该大区下多个子团队 → 是 → 🌍
-- "4部" / "2部和5部" → 👥
-- "东西大区4部" → 单团队 → 👥
-- "东西大区2部和4部"（同大区但非全团队）→ **默认 👥**（不是完整大区对比）
-
-**维度对报告的影响**：
-
-| 报告元素 | 🌍 区-团队 | 👥 按团队 |
-|---------|-----------|----------|
-| Hero 标题 | "{大区名}报工统计" | "{团队名}报工统计"（多团队顿号连接） |
-| Hero 副标题 | "覆盖 {N} 个团队 · {M} 人" | "{N} 人 · {工作日}个工作日" |
-| 第一章 | 大区汇总卡片 + 各团队卡片 + **综合评价**（总体/亮点/待改进/服务统计） | 各团队卡片（无大区汇总层） + **综合评价** |
-| 第六章 A 表 | **必须有**团队横向对比表 | 单团队省略，多团队保留 |
-| 第十三章 | ~~已合并至第一章~~ | ~~各团队独立评价~~ |
-| 报告文件名 | `{大区名}_报工看板_{日期}.html` | `{团队名}_报工看板_{日期}.html` |
-
-> 详细的章节定义和维度差异，见 `references/report-sections.md`。
-
----
-
-## 团队 ID 查找
-
-读取 `references/team_ids.md` 获取团队名称 → ID 的映射。
-
-**常用 ID 速查：**
-- 东西大区1部=2，东西大区2部=3，东西大区4部=23，东西大区5部=19
-- 南北大区2部=25，南北大区4部=11，南北大区5部=22
-- 东西大区（整体）=96，南北大区（整体）=94
-
-未知团队 ID 时执行：`mes -o json util list-teams` 并搜索。
-
-## 工作流
-
-### Step 0：环境检查
-
-确认 Python 和 mes CLI 可用：
+对每个目标团队（team-id: {tid}）执行：
 
 ```bash
-which python 2>/dev/null && python --version 2>/dev/null || which python3 2>/dev/null && python3 --version 2>/dev/null
-mes auth status
+# ⚠️ 重要：团队 ID 必须带 "t" 前缀（t2/t3/t23/t19），与 analyze.py 中的 DEFAULT_TEAMS 一致
+# 1. 团队摘要数据
+mes -o json statistics summary --from {date_start} --to {date_end} --team-id {real_tid} > /tmp/mes_summary_t{real_tid}.json
+
+# 2. 详细报工记录（⚠️ 必须加 --page-size，默认只返回100条，月度/季度数据量很大）
+# ⚠️⚠️ 重要：月度数据用 --page-size 2000，季度数据用 --page-size 5000，否则可能超时或截断
+mes -o json statistics list --from {date_start} --to {date_end} --team-id {real_tid} --page-size 2000 > /tmp/mes_list_t{real_tid}.json
+
+# 3. 文章/文档数据（注意时间格式必须是 YYYY-MM-DD HH:mm:ss）
+mes -o json article list --mode manage --team-id {real_tid} --start-time "{date_start} 00:00:00" --end-time "{date_end} 23:59:59" --page-size 100 > /tmp/mes_article_t{real_tid}.json
+
+# 4. 服务请求数据（⚠️ mes 0.5.3 起命令改为 `sr list`，不支持 --team-id）
+# ⚠️ 需全局查询后由 analyze.py 按团队名称过滤东西大区
+mes -o json sr list --start-time "{date_start} 00:00:00" --end-time "{date_end} 23:59:59" --page-size 500 > /tmp/mes_service_requests.json
+# ⚠️ analyze.py 读取 /tmp/mes_service_t{tid}.json，需将全局文件复制到各团队：
+cp /tmp/mes_service_requests.json /tmp/mes_service_t2.json
+cp /tmp/mes_service_requests.json /tmp/mes_service_t3.json
+cp /tmp/mes_service_requests.json /tmp/mes_service_t23.json
+cp /tmp/mes_service_requests.json /tmp/mes_service_t19.json
 ```
 
-> **Python 命令选择**：若 `python` 可用则使用 `python`，否则使用 `python3`。后续所有脚本调用均使用检测到的命令，不要硬编码 `python3`。
+**示例：**
+```bash
+mes -o json statistics summary --from 2026-04-20 --to 2026-04-26 --team-id 2 > /tmp/mes_summary_t2.json
+mes -o json statistics list --from 2026-04-20 --to 2026-04-26 --team-id 2 --page-size 2000 > /tmp/mes_list_t2.json
+mes -o json article list --mode manage --team-id 2 --start-time "2026-04-20 00:00:00" --end-time "2026-04-26 23:59:59" --page-size 100 > /tmp/mes_article_t2.json
+mes -o json sr list --start-time "2026-04-20 00:00:00" --end-time "2026-04-26 23:59:59" --page-size 500 > /tmp/mes_service_requests.json
+cp /tmp/mes_service_requests.json /tmp/mes_service_t2.json
+```
 
-若未登录，提示用户先执行 `mes auth login --web`。
+### Step 2.5：查询项目未报工合同子项（用于报告第十一节）
 
-### Step 1：解析请求
+**目标**：找出"东西大区维保项目支持团队"下所有未结束合同中，`actualHours=0` 的合同子项。
 
-从用户请求中提取：
-- **目标范围**：单团队 or 多团队 or 整个大区（多个团队对比）
-- **时间范围**：本周/上周/本月/具体日期，转换为 `--from YYYY-MM-DD --to YYYY-MM-DD`
-- **报告维度**：🌍 区-团队 or 👥 按团队（见上方「报告维度」章节）
-- **预设风格**：识别用户指定的视觉风格
+```python
+# 内联 Python 脚本执行（无需写文件）
+import json, subprocess
+from datetime import datetime
+from collections import defaultdict
 
-**日期推算规则：**
-- "本周"：本周一 ~ 今天（或本周五）
-- "上周"：上周一 ~ 上周五
-- "本月"：本月1日 ~ 今天
-- 直接说"4.14到4.17"：转换为 2026-04-14 ~ 2026-04-17
+# 1. 拉取全部合同（⚠️ page-size 500 可能超时，需分页查询，page-size 默认15）
+subprocess.run('mes -o json contract list --page 1 > /tmp/mes_all_contracts.json', shell=True)
+with open('/tmp/mes_all_contracts.json', 'r', encoding='utf-8') as f:
+    data = json.load(f)
 
-**注意：** 若用户要求"整个东西大区"对比，分别用 team-id=2,3,23,19（四个服务团队），而**不是** team-id=96（大区整体，无法分团队对比）。
+today = datetime.now().strftime('%Y-%m-%d')
 
-### Step 2：执行数据拉取
+# 2. 筛选东西大区维保项目支持团队且合同未结束的
+target_contracts = []
+for item in data.get('list', []):
+    service_teams = item.get('serviceTeams', [])
+    if not isinstance(service_teams, list):
+        continue
+    has_target_team = any('东西大区维保' in t.get('name', '') for t in service_teams)
+    if not has_target_team:
+        continue
+    end_time = item.get('contractEndTime', '') or item.get('endTime', '')
+    if end_time and end_time > today:
+        target_contracts.append({
+            'contract_id': item.get('id'),
+            'contract_name': item.get('name'),
+            'manager': item.get('manager') or '未指定',
+            'start_time': item.get('contractStartTime'),
+            'end_time': end_time,
+        })
 
-调用 `fetch_data.py` 拉取全部数据（JSON 输出）：
+# 3. 批量查询每个合同的子项，按 v2 格式分组（generate_report.py 读取 v2 格式）
+results_v2 = []
+for contract in target_contracts:
+    cid = contract['contract_id']
+    cmd = f'mes -o json contract list-items --contract-id {cid}'
+    result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+    try:
+        resp = json.loads(result.stdout)
+        items = resp.get('operateCallBackObj', {}).get('list', [])
+        no_work_items = []
+        has_work_items = []
+        for ni in items:
+            actual = ni.get('actualHours', 0) or 0
+            entry = {
+                'item_name': ni.get('itemName', ''),
+                'item_type': ni.get('itemType', ''),
+                'actual_hours': actual,
+                'plan_hour': ni.get('planHour', 0) or 0,
+                'remaining_task': ni.get('remainingTask', 0) or 0,
+            }
+            if actual == 0:
+                no_work_items.append(entry)
+            else:
+                has_work_items.append(entry)
+        # 只保留有未报工子项的合同
+        if no_work_items:
+            results_v2.append({
+                'contract': contract,
+                'no_work_items': no_work_items,
+                'has_work_items': has_work_items,
+            })
+    except:
+        pass
+
+# 4. 保存 v2 格式（generate_report.py 读取 /tmp/mes_no_work_items_v2.json）
+with open('/tmp/mes_no_work_items_v2.json', 'w', encoding='utf-8') as f:
+    json.dump(results_v2, f, ensure_ascii=False, indent=2)
+
+total_no_work = sum(len(d['no_work_items']) for d in results_v2)
+print(f"涉及合同数: {len(results_v2)}, 未报工子项总数: {total_no_work}")
+```
+
+**分析逻辑说明：**
+
+本节分析目标是：**找出"东西大区维保项目支持团队"下，合同未结束但子项实际报工为零的项目**，帮助管理层识别"有合同、无推进"的风险项目。
+
+筛选规则（三层过滤）：
+1. **团队过滤**：合同的 `serviceTeams` 字段中，至少有一个 team 的 `name` 包含"东西大区维保"
+2. **时效过滤**：合同的结束时间（`contractEndTime` 或 `endTime`）> 今日，即合同仍在有效期内
+3. **报工过滤**：合同子项的 `actualHours == 0`，即该子项未产生任何实际报工记录
+
+输出格式（v2 格式，按合同分组）：
+- `contract`：合同基础信息（合同名、项目经理、起止时间）
+- `no_work_items`：该合同下未报工的子项列表
+- `has_work_items`：该合同下已有报工的子项列表（用于提示"部分子项正常"）
+
+报告呈现（generate_report.py 第十一节）：
+- 汇总卡片：涉及合同数 / 未报工子项数 / 剩余工时合计
+- 按合同分组展示，按未报工子项数降序排列
+- 每个合同展示：合同名、项目经理、合同时间、计划工时、剩余工时、未报工子项数
+- 若该合同同时存在已报工子项，用绿色角标提示"部分子项有报工"
+- 子项明细表格：子项名称 / 类型 / 计划工时 / 实际工时(0h 红色标注) / 剩余工时进度条
+
+**关键字段说明：**
+- `serviceTeams`：合同的服务团队列表，需匹配 name 包含"东西大区维保"
+- `actualHours`：实际报工工时，0 表示未报工
+- `planHour`：计划工时
+- `remainingTask`：剩余工时
+- 结果保存至 `/tmp/mes_no_work_items_v2.json`（v2 按合同分组格式）供 generate_report.py 读取
+- **⚠️ 注意**：generate_report.py 读取 `/tmp/mes_no_work_items_v2.json`（含 `contract`/`no_work_items`/`has_work_items` 三字段）；旧扁平格式 `mes_no_work_items.json` 已废弃，不可使用
+
+**踩坑提醒：**
+- `article list` 的 `--start-time` / `--end-time` **必须包含时分秒**，否则返回"参数非法"
+- **`statistics list` 可能超时！** 月度数据必须用 `--page-size 2000`，季度用 `--page-size 5000`。如果 list 文件大小 <1KB（如 93字节），说明超时失败，需重新采集。验证方法：`wc -c /tmp/mes_list_t*.json`
+- 如果 list 文件超过 100KB，用 Python 脚本解析而非 `read_file`
+- `statistics summary` 返回的数据在 `operateCallBackObj` 字段（列表），不是 `data.list`
+- `statistics list` 返回的数据在顶层 `list` 字段
+- `article list` 返回的数据在顶层 `list` 字段
+- 所有工时单位均为**小时**（不是分钟）
+- **⚠️ mes 0.5.3+ 服务请求命令从 `service request list` 改为 `sr list`**，且 `sr list` 不支持 `--team-id` 参数，需全局查询后由 analyze.py 按团队名称过滤
+- **⚠️ 未报工数据格式陷阱**：generate_report.py 读取 `/tmp/mes_no_work_items_v2.json`（v2 格式），绝对不能只生成旧扁平格式 `mes_no_work_items.json`，否则第十一节显示为空。v2 格式每条记录是 `{contract: {...}, no_work_items: [...], has_work_items: [...]}`，不是扁平列表
+- **contract list-items 返回路径**：数据在 `resp['operateCallBackObj']['list']`，不是顶层 `list`。拿到的 `actualHours=0` 才是未报工子项
+- **⚠️ contract list 分页陷阱**：`--page-size 500` 在 0.5.3 版本会超时，必须用默认 page-size（15条/页）+ 分页遍历（page=1,2,3...），结合 `hasNextPage` 判断是否继续
+- **企业微信 Webhook 消息生成**：`generate_wecom_summary.py` 在报告生成后执行，读取 `/tmp/mes_summary_*.json`、`/tmp/mes_no_work_items_v2.json`、`/tmp/mes_service_requests.json`（或 `/tmp/mes_service_*.json`）生成 Markdown 格式催办消息。⚠️ **默认只展示不发送**，用户确认后加 `--send` 参数才推送
+
+### Step 3：运行分析脚本
+
+#### 周/月报模式（直接使用 analyze.py）
 
 ```bash
-python $SKILL_DIR/scripts/fetch_data.py \
-  --team-ids 2,3,23,19 \
-  --team-names "东西大区1部,东西大区2部,东西大区4部,东西大区5部" \
-  --from 2026-04-21 \
-  --to 2026-04-23 \
-  --fetch-extra \
-  --output /tmp/mes_report_data.json
+python3 {SKILL_DIR}/scripts/analyze.py \
+  --mode {week|month} \
+  --date {YYYY-MM-DD} \
+  --exclude "许文榕,杨明翰,周瑞斌" \
+  --tmpdir /tmp \
+  --output /tmp/mes_analysis_result.json
 ```
 
-**参数说明：**
-- `--team-id` / `--team-ids`：目标团队 ID（必填二选一）
-- `--team-name` / `--team-names`：对应团队名称
-- `--from` / `--to`：日期范围（必填）
-- `--std-hours-per-day`：每日标准工时，默认 8
-- `--fetch-extra`：拉取额外数据（文档、评分、服务请求、服务统计、工时分布表），默认开启
-- `--fetch-weekly-reports`：拉取周报（含完整正文，按团队分组），默认开启
-- `--fetch-project-unreported`：拉取项目未报工分析（合同子项维度），默认开启
-- `--output`：输出 JSON 文件路径
+#### 季度/自定义范围模式（需用桥接脚本）
 
-**JSON 输出结构（顶层）**：
+季度或跨月范围时，`analyze.py` 的 `--mode` 不支持，需用 Python 脚本调用 `run_analysis` 函数并手动计算工作日：
+
+```python
+# 桥接脚本示例（直接内联执行，无需写文件）
+import sys, json
+sys.path.insert(0, '{SKILL_DIR}/scripts')
+from analyze import *
+from datetime import date, timedelta
+
+start = date(2026, 1, 1)
+end = date(2026, 3, 31)
+dates = []
+d = start
+while d <= end:
+    if d.weekday() < 5:
+        dates.append(d)
+    d += timedelta(days=1)
+
+excluded = parse_excluded("许文榕,杨明翰,周瑞斌")
+standard_total = len(dates) * STANDARD_DAILY
+
+all_teams_data, meta = run_analysis('quarter', '2026-01-01', "许文榕,杨明翰,周瑞斌", DEFAULT_TEAMS, '/tmp')
+# 覆盖 meta 为自定义范围
+meta = {
+    'mode': 'quarter',
+    'date_start': '2026-01-01',
+    'date_end': '2026-03-31',
+    'date_strs': [d.strftime('%Y-%m-%d') for d in dates],
+    'standard_total': standard_total,
+    'work_days': len(dates),
+    'excluded': list(excluded),
+    'target_date': '2026-01-01',
+    'report_time': __import__('datetime').datetime.now().strftime('%Y-%m-%d %H:%M'),
+}
+result = {'meta': meta, 'teams': all_teams_data, 'teams_config': DEFAULT_TEAMS}
+with open('/tmp/mes_analysis_result.json', 'w') as f:
+    json.dump(result, f, ensure_ascii=False, indent=2)
 ```
-meta: { fromDate, toDate, workDays, workDates, stdHoursPerDay, stdHoursTotal, teamNames }
-teams: [{ teamId, teamName, memberCount, reportedMemberCount, totalHours, avgHours,
-          fullCount, fullRate, overtimeHours, preHours, afterHours, internalHours,
-          docCount, avgScore, members[], unreportedMembers[], projectRanking[] }]
-articles: [...]
-scores: [...]
-serviceRequests: [...]
-serviceStats: {...}
-taskTable: [...]
-weeklyReports: [...]      # 默认拉取
-projectUnreported: {...}  # 默认拉取
-```
 
-### Step 3：读取 JSON 数据
-
-用 `read_file` 读取输出的 JSON 文件，解析数据结构。
+**注意：** 季度模式下 `run_analysis` 内部会再次调用 `get_date_range('quarter', ...)`，但其按月逻辑只返回单月日期。**必须**在执行后用上面代码手动覆盖 `meta` 的 `date_strs` 和 `standard_total`。或者，也可以直接内联执行完整分析逻辑（参考 Q1 报告生成的桥接脚本）。
 
 ### Step 4：生成 HTML 报告
 
-Agent 根据 JSON 数据，按 14 个章节生成完整 HTML 文件。**所有 HTML 由 Agent 在本步骤中生成，不依赖预编码模板。**
+根据 `single_team` 判断使用哪个报告生成器：
 
-**生成前必须读取**：
-1. **`references/report-sections.md`** — 14 个章节的内容定义、字段映射、视觉规范、维度差异
-2. **`references/color-rules.md`** — 配色对比度规范、CSS 变量选择规则
-3. **CSS 文件内容**（内嵌到 `<style>` 标签）：
-   - 使用默认风格时：读取 `$SKILL_DIR/styles/default-design.css`
-   - 使用其他风格时：读取 `default-design.css` + 对应风格 CSS（如 `apple-design.css`）
+#### ① 四团队周/月报 → generate_report.py
 
-**HTML 整体结构**（内嵌 CSS）：
-
-```html
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>{报告标题}</title>
-  <style>
-    /* 内嵌 CSS 内容 */
-    /* default-design.css 内容... */
-    /* 若使用其他风格，追加风格 CSS 内容... */
-  </style>
-</head>
-<body>
-  <!-- 报告内容 -->
-</body>
-</html>
+```bash
+python3 {SKILL_DIR}/scripts/generate_report.py \
+  --input /tmp/mes_analysis_result.json \
+  --output {workspace}/dongxi_{mode}_report_{date}.html
 ```
 
-**CSS 内嵌逻辑**：
-- 默认风格：直接内嵌 `default-design.css` 全部内容
-- 其他风格（如 Apple）：内嵌 `default-design.css` + `apple-design.css`（追加）
-- 两段 CSS 合并时，风格 CSS 的变量会覆盖 default 的同名变量
+#### ② 四团队季度/长周期 → generate_quarter_report.py
 
-**章节列表（1~14）**：
+```bash
+python3 {SKILL_DIR}/scripts/generate_quarter_report.py \
+  --input /tmp/mes_analysis_result.json \
+  --output {workspace}/dongxi_q{quarter}_{year}_report.html
+```
 
-| 章 | 标题 | 核心数据源 |
-|----|------|-----------|
-| 1 | 团队核心指标对比 | `teams[*]` 顶层字段 |
-| 2 | 成员工时明细 & 每日工时 | `teams[*].members[]` |
-| 3 | 报工不足人员分析 | `teams[*].members[]`（full==false） |
-| 4 | 文档编写统计 | `articles[]` |
-| 5 | 项目成本消耗分析 | `teams[*].preHours/afterHours/internalHours` |
-| 6 | 报工质量分析 | `scores[]` + `teams[*]` |
-| 7 | 项目报工排名（TOP10） | `teams[*].projectRanking[]`（按accName+companyName聚合hours降序，取TOP10） |
-| 8 | 每人每周工作总结 | `weeklyReports[]` |
-| 9 | 服务请求列表 | `serviceRequests[]` |
-| 10 | 服务请求统计 | `serviceRequestStats` |
-| 11 | 项目未报工分析 | `projectUnreported` |
-| 12 | 未报工人员名单（附属性） | `teams[*].unreportedMembers[]` |
-| 13 | ~~综合评价~~ → **已合并至第一章** | 综合评价内容现于第一章展示 |
+#### ③ 单团队/单人员 → generate_single_team_report.py（深蓝色模板）
 
-> 每个章节的详细字段映射、展示规则、维度差异，见 `references/report-sections.md`。
+```bash
+# 单团队全量报告
+python3 {SKILL_DIR}/scripts/generate_single_team_report.py \
+  --input /tmp/mes_analysis_result.json \
+  --output {workspace}/dongxi_team{name}_q{quarter}_{year}_report.html
 
-### Step 5：输出文件
+# 单人员报告（只输出该人员的工作总结，其他维度正常显示全团队）
+python3 {SKILL_DIR}/scripts/generate_single_team_report.py \
+  --input /tmp/mes_analysis_result.json \
+  --output {workspace}/dongxi_{person}_q{quarter}_{year}_report.html \
+  --person "吴伟龙"
+```
 
-**文件命名**：`{大区或团队}_报工看板_{日期区间}.html`
-- 🌍 区-团队示例：`东西大区报工看板_2026-04-21至04-23.html`
-- 👥 按团队示例：`东西大区4部报工看板_2026-04-21至04-23.html`
+**三个报告生成器的区别：**
 
-**输出路径**：默认输出到当前工作空间。
+| 特性 | generate_report.py | generate_quarter_report.py | generate_single_team_report.py |
+|------|-------------------|---------------------------|-------------------------------|
+| 适用范围 | 周报、单月报 | 季度、跨月、自定义范围 | **单团队、单人员** |
+| 团队数 | 四团队对比 | 四团队对比 | **单团队**深度分析 |
+| CSS主题 | 基础样式 | 增强样式（绿色系） | **深蓝色主题**（#1a237e / #283593） |
+| 工时明细 | 按天展示 | **按月聚合**展示 | **按月聚合**展示 |
+| 汇总卡片 | 无 | ✅ 顶部6指标汇总卡片 | ✅ 顶部6指标KPI卡片 |
+| 项目报工排名 | ❌ | ✅ 各团队TOP15 + 汇总TOP20 | ✅ **TOP20 + TOP10柱状图** |
+| 维度数 | 七大维度 | 十一大维度 | **十大维度** |
+| 能效排名 | 按团队 | 按团队 | **按人员**（金银铜徽章） |
+| 人员工作总结 | ❌ | ✅ 简要版 | ✅ **详细版**（月度条形图+项目+工作内容） |
+| `--person` 参数 | ❌ | ❌ | ✅ **支持**过滤单人员 |
+| 导航栏 | 无 | 无 | ✅ **顶部锚点导航** |
 
-### Step 6：展示结果
+### Step 5：交付结果
 
-使用 `preview_url` 工具以 `file://` 路径打开 HTML 预览。
+1. 将 HTML 报告复制到工作区
+2. 用 `preview_url` 预览报告
+3. 用 `deliver_attachments` 交付报告文件
+
+### Step 5.5：生成企业微信 Webhook 总结消息
+
+**⚠️ 默认行为：只生成消息内容并展示给用户，不自动发送。必须用户明确确认"发送"后才调用 curl 发送到 webhook。**
+
+HTML 报告生成后，调用 `generate_wecom_summary.py` 生成企业微信催办消息。该脚本会自动采集 `/tmp/mes_summary_*.json`、`/tmp/mes_no_work_items_v2.json`、`/tmp/mes_service_*.json` 中的数据，生成以下三块内容的 Markdown 消息：
+
+1. **报工不足提醒** — 低于标准工时的团队成员，按缺口降序排列（🔴 ≥20h、🟠 ≥10h、🟡 <10h）
+2. **维保合同未报工子项** — 东西大区维保项目下 actualHours=0 的子项，取前 10 个
+3. **未关闭服务请求** — 仅统计东西大区四团队成员的未关闭请求，按处理人待办数排名
+
+**执行命令（仅生成，不发送）：**
+
+```bash
+python3 {SKILL_DIR}/scripts/generate_wecom_summary.py \
+  --date-start {date_start} \
+  --date-end {date_end} \
+  --standard-hours {standard_hours} \
+  --exclude "许文榕,杨明翰,周瑞斌" \
+  --tmpdir /tmp
+```
+
+**执行后：**
+1. 向用户展示生成的消息内容预览
+2. 告知用户："消息已生成，请确认是否发送到企业微信 Webhook。"
+3. **仅当用户明确回复"发送"、"确认发送"、"发到群里"等肯定语时**，才执行发送：
+
+```bash
+python3 {SKILL_DIR}/scripts/generate_wecom_summary.py \
+  --date-start {date_start} \
+  --date-end {date_end} \
+  --standard-hours {standard_hours} \
+  --exclude "许文榕,杨明翰,周瑞斌" \
+  --tmpdir /tmp \
+  --send \
+  --webhook-key {webhook_key}
+```
+
+**Webhook Key 配置：**
+- 默认读取环境变量 `WECOM_WEBHOOK_KEY`
+- 也可通过 `--webhook-key` 参数直接传入
+- 当前已知的 Webhook Key：`b2195beb-977b-4e29-8ae5-454ef7e0fbed`
+
+**⚠️ 安全规则：**
+- 绝对不可在未获用户明确同意的情况下自动发送消息
+- 用户说"看一下内容"、"生成就行"等只展示不发送
+- 只有用户明确说"发送"、"发出去"、"确认发送"时才执行 `--send`
+
+**未关闭服务请求过滤规则：**
+- 仅统计东西大区四团队（team-id: 2/3/23/19）的成员
+- 通过 `/tmp/mes_summary_*.json` 提取全员名单，过滤服务请求的 `executorEmployeeName`
+- 关闭判定关键词：`['已关闭', '关闭', '已解决', '已完成', '已结束']`
+
+### Step 6：清理临时文件
+
+```bash
+rm -f /tmp/mes_summary_t*.json /tmp/mes_list_t*.json /tmp/mes_article_t*.json /tmp/mes_service_t*.json /tmp/mes_all_contracts.json /tmp/mes_no_work_items_v2.json /tmp/mes_analysis_result*.json
+```
+
+## 报告包含维度（严格执行）
+
+**⚠️ 重要：每次分析四团队报工情况时，以下维度必须全部包含，不可遗漏：**
+
+1. **四团队核心指标对比** — 总工时、人均工时、满勤率、各工时类型、文档数（含排名徽章）
+2. **成员工时明细 & 每日工时** — 按天工时热力矩阵 + 售前/售后/内部/加班分解
+3. **报工不足人员分析** — 工时缺口明细，高亮标识，**工作日8h/天，周六周日工时视为加班**
+4. **文档编写统计** — 各团队/成员文档产出数量与标题
+5. **报工质量分析** — 团队级操作标准分、零记录成员预警 + **人员质量明细表**（每人操作标准分、审批通过率、记录数、通过数、知识库、证书）
+6. **项目成本消耗** — 售前/售后/内部工时占比分析（含合计行）
+7. **🆕 项目报工排名（各团队TOP15）** — 按工时降序，含进度条可视化
+8. **🆕 每人每周工作总结** — 按项目聚合智能总结（完成/进行中/阻塞状态）+ 后续计划 + 三维度评价 + **姓名后置「支持项目/合同」标签**
+9. **🆕 服务请求列表** — 东西大区服务请求，含：①按客户排名（TOP10进度条）②按处理人排名（TOP10进度条）③服务等级分布（P0~P5彩色标签）④明细表格
+10. **🆕 项目未报工分析** — 东西大区维保项目支持团队下未产生报工的合同子项，按合同分组展示（合同名称/项目经理/合同时间/子项名称/计划工时/剩余工时）
+11. **综合评价** — 团队排名 + 管理建议
+
+## 脚本文件清单
+
+```
+mes-work-report/
+├── SKILL.md                           # 本文件（东西大区四团队报工分析）
+├── agents/openai.yaml                  # agent 配置
+├── references/                        # 设计参考文档
+├── scripts/
+│   ├── analyze.py                        # 通用数据分析脚本（周/月报）
+│   ├── build_contract_item_map.py        # 🆕 构建 报工accId(itemId)→合同 精确映射（缓存/tmp/mes_item_contract_map.json）
+│   ├── generate_report.py                # HTML报告生成器（周/月报，七大维度，四团队）
+│   ├── generate_quarter_report.py        # HTML报告生成器（季度/长周期，十大维度，四团队，绿色系）
+│   ├── generate_single_team_report.py    # HTML报告生成器（单团队/单人员，十大维度，深蓝色主题）
+│   └── generate_wecom_summary.py         # 企业微信 Webhook 总结消息生成（催办通知，默认不发送）
+└── mes_project_report/                # 🆕 客户项目报告子模块（2026-09-17 合并入 v2）
+    ├── SKILL.md                          # 客户项目服务总结/进展分析技能说明
+    ├── template.html                     # 模式A：服务总结报告模板（深蓝主题 + Chart.js）
+    └── template_progress.html            # 模式B：项目进展分析模板（深蓝主题）
+```
+
+### 🆕 mes_project_report 子模块（2026-09-17 合并）
+
+**与本 skill（团队内部管理）的边界**：
+
+| 维度 | mes-work-report（团队管理）| mes_project_report（客户交付）|
+|------|---------------------------|-------------------------------|
+| 视角 | 自下而上：团队 → 人员 → 工时 | 自上而下：合同 → 子项 → 工时 → 交付 |
+| 输出对象 | 内部管理看板 | **对外客户验收/进展汇报** |
+| 数据查询 | `--team-id` + `--page-size 2000/5000` | `--company-id` + `--acc-id` 精确关联 |
+| 报告模式 | 周/月/季报自动模板 | 模式A 服务总结 / 模式B 进展分析（手动选）|
+| 企微推送 | generate_wecom_summary.py 自动 | LLM 生成 markdown + 人工确认 webhook |
+| 风险识别 | 无 | ✅ 从报工 remark 提取风险关键词 |
+| 模板风格 | 暗色/绿色/蓝色多主题 | **统一深蓝色 + Chart.js 图表** |
+
+**触发路由**：客户提到"项目验收"/"服务总结"/"项目进展"/"项目跟踪"/指定客户名 → 路由到 `mes_project_report/SKILL.md` 流程；其他"团队"/"1部/2部/4部/5部"/"周报/月报/季度报" → 留在本 skill。
+
+## MES 数据结构参考
+
+### statistics summary 返回格式
+```json
+{
+  "operateCallBackObj": [
+    {
+      "userName": "张三",
+      "totalTaskTime": 40,      // 总工时（小时）
+      "preTaskTime": 0,          // 售前工时
+      "afterTaskTime": 38,       // 售后工时
+      "internalTaskTime": 2,     // 内部工时
+      "overTaskTime": 0,         // 加班工时
+      "certCount": 0,
+      "docCount": 1,
+      "operationStandardScore": 80,
+      "groupType": ""
+    }
+  ]
+}
+```
+
+### statistics list 返回格式
+```json
+{
+  "list": [
+    {
+      "executorName": "张三",
+      "taskTime": 8,              // 工时（小时）
+      "start": "2026-04-13 09:00:00",
+      "end": "2026-04-13 18:00:00",
+      "remark": "XX项目实施",
+      "accName": "XX客户",
+      "reviewStatus": 0           // 0=待审核, 1=已审核
+    }
+  ]
+}
+```
+
+### article list 返回格式
+```json
+{
+  "total": 5,
+  "list": [
+    {
+      "account": "张三",
+      "title": "Oracle 故障排查手册"
+    }
+  ]
+}
+```
+
+### service request list 返回格式
+```json
+{
+  "list": [
+    {
+      "id": "SR20260422001",
+      "title": "生产库频繁出现ORA-04031",
+      "statusLabel": "处理中",
+      "typeLabel": "P4-咨询，业务暂未受影响",   // 级别字段，取 "-" 前前缀即 P0~P5
+      "companyName": "XX客户",
+      "submitterName": "提交人",
+      "executorEmployeeName": "吴伟龙",           // 处理人中文姓名（优先使用）
+      "executorName": "wuweilong",                // 处理人英文账号（备用）
+      "createdTime": "2026-04-22 10:30:00"
+    }
+  ]
+}
+```
+
+**服务请求关键字段说明：**
+- `typeLabel`：格式 `"P4-咨询，业务暂未受影响"`，取 `-` 前的前缀（P0~P5）作为 `level`
+- `executorEmployeeName`：优先使用（中文姓名），若为空则 fallback 到 `executorName`
+- 第九节包含三层结构：排名分析（客户/处理人 TOP10 进度条）+ 等级分布条 + 明细表格
+
+### contract list 返回格式（Step 2.5 第一步）
+```json
+{
+  "list": [
+    {
+      "id": 2304,
+      "name": "2025年XX公司Oracle运维服务合同",
+      "manager": "吴伟龙",
+      "contractStartTime": "2025-01-01",
+      "contractEndTime": "2026-12-31",
+      "endTime": "2026-12-31",
+      "serviceTeams": [
+        { "id": 5, "name": "东西大区维保项目支持团队" }
+      ]
+    }
+  ]
+}
+```
+
+### contract list-items 返回格式（Step 2.5 第三步）
+```bash
+mes -o json contract list-items --contract-id {cid}
+```
+```json
+{
+  "operateCallBackObj": {
+    "list": [
+      {
+        "itemName": "数据库日常巡检",
+        "itemType": "运维服务",
+        "actualHours": 0,       // 实际报工工时，0 = 未报工
+        "planHour": 40,         // 计划工时
+        "remainingTask": 40     // 剩余工时
+      },
+      {
+        "itemName": "故障应急响应",
+        "itemType": "应急支持",
+        "actualHours": 16,
+        "planHour": 80,
+        "remainingTask": 64
+      }
+    ]
+  }
+}
+```
+**注意**：返回路径是 `resp['operateCallBackObj']['list']`，不是顶层 `list`。
 
 ---
 
-## 关键注意事项
+## 自定义团队扩展（2026-09-03 新增）
 
-1. **数据安全**：`fetch_data.py` 产出的临时 JSON 文件（`/tmp/mes_report_data.json`、`/tmp/weekly_reports.json`）在报告生成完成后**必须删除**。
-2. **JSON 读取**：mes CLI 返回值可能是 dict 或 list，`fetch_data.py` 已做 `isinstance` 防御，Agent 处理时也需注意。
-3. **大区报告**：用户说"东西大区"时，查 4 个子团队（2,3,23,19），而非整体大区 ID（96）。
-4. **标准工时**：默认 8h/天，可通过 `--std-hours-per-day` 调整。
-5. **依赖**：Python 3.10+、已登录的 `mes` CLI。
-6. **周报拉取**（第八章）：已默认开启，每条周报需单独调用 `view` 接口获取正文，调用量较大。
+### 适用场景
+默认配置只覆盖「东西大区 1/2/4/5 部」（team-id 2/3/23/19）。当目标团队是**其他部门组合**时
+（如 南北大区服务2/4/5部 + 电信行业服务部），用下方一键 CLI，无需手工改脚本。
 
----
+### 一键 CLI：generate_custom_teams_report.py
+```bash
+python3 {SKILL_DIR}/scripts/generate_custom_teams_report.py \
+  --teams "南北大区服务2部:25,南北大区服务4部:11,南北大区服务5部:22,电信行业服务部:7293" \
+  --from 2026-08-01 --to 2026-08-31 \
+  --label "南北·电信四团队" \
+  --sr-keywords "南北大区,电信行业服务部" \
+  --output /path/to/report.html
+```
+- `--teams`：`"显示名:teamId,..."`；teamId 用 `mes dashboard team`（**无 `team list` 命令**）
+- 自动完成：采集 → 分析（复用 analyze.py）→ 未报工子项（按 team-id 拉合同）→ 动态定制渲染器 → HTML
+- 报告与 generate_quarter_report.py 同款 12 章节；团队配色自动分配（蓝/绿/橙/紫…）
+- `--sr-member` 默认开启：SR 归属 = 「teamName 含关键词」∪「处理人/提交人 ∈ 四团队名单」
+  （解决 SR.teamName 常挂在部门/维保团队名下导致按关键词漏数的问题）
+- `--skip-sr` / `--skip-unreported` 可跳过对应采集
 
-## 踩坑经验
+### 已知团队 id（dashboard team 实测）
+| 团队 | team-id |
+|------|---------|
+| 南北大区服务2部（南北大区2部） | 25 |
+| 南北大区服务4部（南北大区4部） | 11 |
+| 南北大区服务5部（南北大区5部） | 22 |
+| 电信行业服务部 | 7293 |
+| 东西大区1/2/4/5部 | 2 / 3 / 23 / 19 |
 
-- `statistics list` / 日期字段名：返回记录中没有 `taskDate`，日期在 `start` 字段（如 "2026-04-23 08:00:00"），需取 `[:10]`
-- **`statistics list` / `taskTime` 字段单位 = 小时（不是分钟）**（2026-07-19 踩坑固化）：
-  - 每条记录的 `taskTime` 字段是**小时**，例如 `taskTime=8` = 8 小时，`taskTime=4` = 4 小时
-  - 验证方法：同一时间窗拉满勤同事数据，`sum(taskTime)` 应等于 `工作日数 × 8h ± 2h`；如石庆楠 7/13~7/17 5 个工作日 9 条记录累加 = 40h ✅
-  - 历史教训：2026-07-19 查黄进本周报工时，错误把 `taskTime` 当分钟处理，导致显示 0.7h（实际 40h 满勤），方向性错误险些误判为「严重报工不足」
-  - **交叉验证套路**：单点拿不准时，拉一个**肯定满勤**的同事同期数据比照字段值范围——石庆楠本周 9 条记录 taskTime 取值 [2,4,8]，如果是分钟就只能是 2/4/8 分钟（不合理）；如果是小时就合理（半天/4h/8h）
-  - **不要再除以 60**：脚本里看到 `taskTime / 60` 是错的，直接 `taskTime` 累加就是小时
-- `statistics list` / 分页结构：返回 `{list:[], hasNextPage, endRow, ...}`，不是 `{operateCallBackObj:...}`
-- `article list` / 分页结构：返回 `{list:[], total}`，作者字段是 `employeeName`（非 `createdByName`），时间字段是 `createdTime`（非 `createTime`）
-- `dashboard score list` / 分页结构：返回 `{operateCallBackObj:{list:[], hasNextPage}}`，需要两层解包
-- `service request list` / 日期参数：用 `--start-time` / `--end-time`（非 `--from` / `--to`），且需指定 `--person-id` 筛选范围
-- `service request list` / 返回结构：返回 `{list:[], total}`
-- `dashboard weeklyReport` / 周报正文：列表接口只返回简短摘要，完整正文需额外调用 `view {id}` 接口
-- `dashboard weeklyReport` / view 接口返回结构：`{operateCallBackObj: {contentMd, content, employeeName, adminTeamName, ...}}`，需解一层
-- `dashboard weeklyReport` / 周期字段：列表中有 `periodStartDate`/`periodEndDate`，`createdTime` 是提交时间，与报告周期不同
-- `report-sections.md` 热力图 HTML 结构：日期标题行必须包裹在 `<div class="heatmap-row">` 内，否则 CSS `display: flex` 失效导致日期竖排
-- 表格 `#`/`ID` 排名列：需显式设置 `style="width:30px"`（#列）或 `style="width:50px"`（ID列），否则浏览器默认列宽过大导致换行
+### analyze.py 扩展说明（向后兼容，默认行为不变）
+- `parse_service_requests(tmpdir, start, end, excluded, team_keywords=None, member_team_ids=None)`
+  - `team_keywords` 默认 `['东西大区']`；`member_team_ids` 传入后启用成员并集过滤
+- `run_analysis(..., sr_keywords=None, sr_member_team_ids=None)` 透传上述两参数
+- 新增 `build_result(all_teams_data, meta, teams_config)`：将 SR **双写**兼容两个生成器：
+  - generate_report.py（周/月报）→ `teams[first]['service_requests']`（legacy 字段 company/handler/submitTime）
+  - generate_quarter_report.py（季度/长周期）→ `result['service_requests']`（字段 company_name/executor/created_time）
+  - **修复**：此前季度/长周期报告 SR 章节读取顶层而 analyze 只挂团队内 → 恒为空
+
+### 数据一致性提醒（重要）
+- `statistics list --page-size 2000` 服务端偶发**短暂异常窗口**（返回部分记录，文件明显变小，
+  如 t25 正常 ~1.26MB / 异常 ~1.04MB，总工时差 ~100h）。复现验证：同一命令连跑 2 次，
+  若两次一致即稳定。**生成正式报告前务必校验 list 文件大小与 total 条数**，异常时重采。
+
+### 姓名后置「合同名／实施计划」标签（2026-09-06 新增）
+
+**需求**：每人工作总结里，直接在姓名下方列出其报工所支持的 **合同名 + 实施计划名**，
+一眼看出"这周他到底在给哪些合同干活"。
+
+**⚠️ 关键数据事实（踩坑必读）**：
+- 报工记录(statistics list)的 **`accName` = 实施计划/合同子项名**（如"3人驻场"、"人天服务"），**不是合同名**
+- 报工 `title` 看似合同名，实测与合同库 **0 命中**，不可用作合同名
+- **`accId` == 合同子项(`mes contract list-items`)的 `itemId`** → 可**精确关联**（实测 61/66 命中）
+- 子项自带 `companyName`（= **合同名**）、`contractNum`（合同编号）、`itemName`（= accName）
+
+**实现（三个生成器均已支持，样式统一靛蓝标签条）**：
+
+1. 先构建映射缓存（约 1~2 分钟，388 合同并行拉子项）：
+```bash
+python3 {SKILL_DIR}/scripts/build_contract_item_map.py            # 有缓存直接用
+python3 {SKILL_DIR}/scripts/build_contract_item_map.py --refresh  # 强制重建（合同有新增时）
+```
+   缓存 `/tmp/mes_item_contract_map.json`：`by_item_id`（accId 精确主路径）+ `by_item_name`（同名模糊兜底，
+   多合同时按报工 `companyName` 消歧）
+
+2. 生成器自动解析并渲染 `合同名／实施计划` 标签：
+| 生成器 | 章节 | 数据源 |
+|--------|------|--------|
+| `generate_quarter_report.py` | 八-A 每人季度/本周/每月工作总结 | 原始 list 的 accId/accName/companyName |
+| `generate_report.py` | 八、每人每周工作总结 | `person_daily`（analyze.py 已补 accId/companyName 字段） |
+| `generate_single_team_report.py` | 7. 每人工作总结 | `calc_project_ranking` 返回的 person_acc_meta |
+
+- 显示规则：合同名加粗在前、实施计划名淡色在后；**合同名与实施计划名互为包含时只显示更长者**（避免"德邦证券／德邦证券"式冗余）
+- 无合同映射缓存时**静默降级**为仅显示实施计划名；无任何报工项目显示灰色斜体「本期报工无关联项目」
+- 实测命中率 97~98%（未命中者多为合同库外的内部报工/非常规子项）
+- CSS 类：`.person-contracts` / `.pc-label` / `.pc-tag` / `.pc-sub` / `.pc-empty`
+
+**⚠️ 踩坑 1：`generate_report.py` 内不可直接用 `Counter`**
+该函数后半段（第九节 9.1）有局部 `from collections import Counter`，会把 `Counter` 变成
+**函数局部变量**，导致在其之前（第八节）调用 `Counter()` 抛
+`UnboundLocalError: cannot access local variable 'Counter'`。
+第八节需改用**普通 dict 累加**再 `sorted(..., key=lambda x: -x[1])[:8]`。
+
+**⚠️ 踩坑 2：自定义 CLI 渲染器在 tmpdir 运行**
+`generate_custom_teams_report.py` 把 generate_quarter_report.py 拷贝为 `/tmp/gen_custom_report.py` 执行，
+导致渲染器相对导入 `build_contract_item_map` 失败并静默降级。render_report 已修复为**同步拷贝该模块到 tmpdir**。
+
+### 周期自适应（2026-09-06 新增）
+`generate_custom_teams_report.py` 按统计跨度自动适配分组粒度与措辞：
+- **≤7 天（周报）**：第二节改为「按日汇总」（每日一列，标准 8h），第八节「每人本周工作总结」——避免跨月周报被拆成 2026-08/2026-09 两列
+- **≤45 天（月报）**：维持按月分组，第八节「每人每月工作总结」
+- **更长（季度）**：保持基础模板默认（按月分组 + 季度措辞）

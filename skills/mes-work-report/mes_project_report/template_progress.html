@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{PROJECT_NAME}} — 项目进展分析</title>
+<style>
+:root { --primary: #1a237e; --primary-light: #283593; --accent: #1565c0; --bg: #f5f7fa; --card: #ffffff; --text: #333333; --text-light: #666666; --border: #e0e0e0; --status-closed: #4caf50; --status-processing: #ff9800; --status-submitted: #2196f3; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+.header { background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; padding: 40px 32px; }
+.header h1 { font-size: 28px; margin-bottom: 8px; }
+.header .sub { font-size: 14px; opacity: 0.85; }
+.container { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px; }
+.kpi-card { background: var(--card); border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.kpi-card .label { font-size: 13px; color: var(--text-light); margin-bottom: 6px; }
+.kpi-card .value { font-size: 32px; font-weight: 700; }
+.kpi-card .value.blue { color: var(--accent); }
+.kpi-card .value.orange { color: #ff9800; }
+.kpi-card .value.green { color: #4caf50; }
+.kpi-card .value.red { color: #f44336; }
+.kpi-card .unit { font-size: 14px; font-weight: 400; color: var(--text-light); }
+.section { background: var(--card); border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.section h2 { font-size: 18px; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid var(--accent); display: flex; align-items: center; gap: 8px; }
+.section h2 .icon { font-size: 22px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th { background: var(--primary-light); color: white; padding: 10px 12px; text-align: left; white-space: nowrap; }
+tbody td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+tbody tr:hover { background: #f0f4ff; }
+.badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; color: white; }
+.badge.closed { background: var(--status-closed); }
+.badge.processing { background: var(--status-processing); }
+.badge.submitted { background: var(--status-submitted); }
+.risk-list { list-style: none; }
+.risk-list li { padding: 12px 16px; margin-bottom: 10px; border-radius: 8px; border-left: 4px solid; }
+.risk-list li.high { background: #fff3e0; border-color: #ff9800; }
+.risk-list li.medium { background: #fff8e1; border-color: #ffc107; }
+.risk-list li .risk-title { font-weight: 600; margin-bottom: 4px; }
+.risk-list li .risk-desc { font-size: 13px; color: var(--text-light); }
+.team-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+.team-card { background: #f8f9ff; border-radius: 10px; padding: 16px; border: 1px solid #e8eaf6; }
+.team-card .name { font-size: 16px; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
+.team-card .dept { font-size: 12px; color: var(--text-light); margin-bottom: 8px; }
+.team-card .tasks { font-size: 13px; }
+.team-card .hours { font-size: 13px; color: var(--accent); font-weight: 600; margin-top: 6px; }
+.timeline { position: relative; padding-left: 24px; }
+.timeline::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: #e0e0e0; }
+.timeline-item { position: relative; margin-bottom: 20px; }
+.timeline-item::before { content: ''; position: absolute; left: -20px; top: 6px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--accent); background: white; }
+.timeline-item.done::before { background: var(--status-closed); border-color: var(--status-closed); }
+.timeline-item.active::before { background: var(--status-processing); border-color: var(--status-processing); animation: pulse 2s infinite; }
+.timeline-item .date { font-size: 12px; color: var(--text-light); }
+.timeline-item .desc { font-size: 14px; font-weight: 500; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+.next-steps { list-style: none; counter-reset: step; }
+.next-steps li { counter-increment: step; padding: 12px 16px 12px 48px; margin-bottom: 8px; background: #f0f4ff; border-radius: 8px; position: relative; font-size: 14px; }
+.next-steps li::before { content: counter(step); position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; }
+footer { text-align: center; padding: 24px; font-size: 12px; color: #999; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>{{PROJECT_NAME}}</h1>
+  <div class="sub">{{SUBTITLE}}</div>
+</div>
+
+<div class="container">
+
+<!-- KPI -->
+<div class="kpi-grid">
+  <div class="kpi-card"><div class="label">服务请求数</div><div class="value blue">{{TOTAL_TICKETS}}</div><div class="unit">本项目工单</div></div>
+  <div class="kpi-card"><div class="label">处理中</div><div class="value orange">{{PROCESSING_COUNT}}</div><div class="unit">当前活跃工单</div></div>
+  <div class="kpi-card"><div class="label">已关闭</div><div class="value green">{{CLOSED_COUNT}}</div><div class="unit">已完成工单</div></div>
+  <div class="kpi-card"><div class="label">总报工工时</div><div class="value red">{{TOTAL_HOURS}}</div><div class="unit">小时（仅本项目）</div></div>
+  <div class="kpi-card"><div class="label">项目参与人</div><div class="value blue">{{TEAM_COUNT}}</div><div class="unit">人</div></div>
+</div>
+
+<!-- 项目概览 -->
+<div class="section">
+  <h2><span class="icon">📋</span> 项目概览</h2>
+  <table>
+    <thead><tr><th>项目</th><th>详情</th></tr></thead>
+    <tbody>
+      <tr><td>项目名称</td><td>{{PROJECT_NAME}}</td></tr>
+      <tr><td>客户</td><td>{{CLIENT_NAME}}</td></tr>
+      <tr><td>合同子项</td><td>{{ACC_NAME}}</td></tr>
+      <tr><td>项目目标</td><td>{{PROJECT_GOAL}}</td></tr>
+      <tr><td>项目启动</td><td>{{START_DATE}}</td></tr>
+      <tr><td>当前状态</td><td><span class="badge processing">{{CURRENT_STATUS}}</span></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- 团队成员 -->
+<div class="section">
+  <h2><span class="icon">👥</span> 执行团队与分工</h2>
+  <div class="team-grid">
+    {{TEAM_CARDS}}
+  </div>
+</div>
+
+<!-- 服务请求明细 -->
+<div class="section">
+  <h2><span class="icon">📄</span> 服务请求明细（本项目）</h2>
+  <table>
+    <thead><tr><th>工单ID</th><th>标题</th><th>执行人</th><th>类型</th><th>状态</th><th>创建时间</th><th>报工(h)</th></tr></thead>
+    <tbody>
+      {{TICKET_ROWS}}
+    </tbody>
+  </table>
+</div>
+
+<!-- 实施进度时间线 -->
+<div class="section">
+  <h2><span class="icon">📅</span> 实施进度时间线</h2>
+  <div class="timeline">
+    {{TIMELINE_ITEMS}}
+  </div>
+</div>
+
+<!-- 风险点 -->
+<div class="section">
+  <h2><span class="icon">⚠️</span> 当前风险点</h2>
+  <ul class="risk-list">
+    {{RISK_ITEMS}}
+  </ul>
+</div>
+
+<!-- 报工详情 -->
+<div class="section">
+  <h2><span class="icon">⏱️</span> 报工详情（本项目）</h2>
+  <table>
+    <thead><tr><th>日期</th><th>执行人</th><th>工时(h)</th><th>报工内容摘要</th></tr></thead>
+    <tbody>
+      {{WORK_RECORD_ROWS}}
+    </tbody>
+    <tfoot>
+      <tr><td colspan="2"><strong>合计</strong></td><td><strong>{{TOTAL_HOURS}}</strong></td><td></td></tr>
+    </tfoot>
+  </table>
+</div>
+
+<!-- 下一步建议 -->
+<div class="section">
+  <h2><span class="icon">🎯</span> 下一步建议</h2>
+  <ol class="next-steps">
+    {{NEXT_STEPS}}
+  </ol>
+</div>
+
+</div>
+<footer>{{FOOTER_TEXT}}</footer>
+</body>
+</html>

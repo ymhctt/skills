@@ -247,6 +247,88 @@ ls -la /tmp/mes_summary_t23.json   # 不存在 = fetch 阶段失败 = K 未修�
 - → 判定：**故障 K 下游症状**，归入故障 K，**不计独立故障 Q**
 - 推广规则：**error 里出现 `mes auth` / `mes_summary_t23.json` 字样 → 一律归故障 K**
 
+### ⚠️ 故障 K 伪装变体：cron `ok` + `delivered=1` 但业务失败（2026-10-27 10:00 固化 ⚡⚡⚡⚡⚡）
+
+**新发现**：a32216f6 报工统计 cron 在 10/27 09:40 呈现 `status=ok` / `delivered=1` / `delivery_status=delivered`
+—— 但推送内容**不是报工看板**，而是「报告未生成（故障 K 阻断，非报告生成 bug）」的失败诊断。
+
+→ **cron 成功地把失败诊断推给了爸爸**。若只看 `cron list --all` 的 status + `delivered`，会误判为「故障 K 自愈 ✅」。
+
+**🔑 新增强制判据（a32216f6 专用）**：
+```bash
+cd /root/.openclaw/state
+python3 -c "
+import sqlite3
+c=sqlite3.connect('file:openclaw.sqlite?mode=ro',uri=True)
+for r in c.execute('''select run_at_ms,status,delivered,substr(summary,1,600) from cron_run_logs
+ where job_id like 'a32216f6%' order by run_at_ms desc limit 3'''):
+    print(r[0],r[1],r[2]); print(r[3] or '')"
+```
+- `summary` 含「报告未生成」/「故障 K」/「JSONDecodeError」→ **实质失败**，禁止记为自愈 ✅❌
+- `summary` 含正常看板章节（团队核心指标 / 工时明细 / 热力图）→ 才算业务成功
+
+**通用教训**：`delivered=1` 只证明**微信通道活着**（故障 L 维度），**不证明业务成功**（故障 K 维度）。
+→ 判定任何 cron 健康度必须同时看：`status` + `delivered` + `summary` 内容语义。
+
+**10/27 10:00 实测**：故障 K 持续 **day-47**（9/11 起）。
+- `mes auth status` → `Not logged in (no token saved)`
+- `/tmp/mes_summary_t23.json` → 不存在
+- `analyze.py` 崩在 `analyze.py:344 load_json(summary_file)` → 根因：读 fetch 阶段预写文件，fetch 依赖鉴权
+- 09:40 已通过 cron 把失败诊断推给爸爸 → **本轮不重复主动 push**（省额度，故障叙事 day-1+ 可等下轮）
+
+### ⭐⭐ 故障 M 性质修正：日内峰值瓶颈（不是月度耗尽）— 2026-10-27 11:00 固化 ⚡⚡⚡⚡
+
+**历史定性（已推翻）**：TOOLS.md 旧记载说故障 M = 「月内配额耗尽，需等下个计费周期（10/1）重置」。
+
+**10/26-10/27 实测推翻**：
+| 时间 | provider 直连实测（max_tokens=8） | 结果 |
+|---|---|---|
+| 10/26 09:40 | a32216f6 cron 实际调用 | 三模型全 2056 Token Plan 上限 ❌ |
+| 10/26 07:20 / 08:02 | 9fc7ca81 / f730b7b4 cron | 成功 + delivered=1 ✅ |
+| 10/27 00:00 / 03:00 / 10:00 / 11:00 | provider 直连 curl | 全 200 ✅（连续 15+ 整点） |
+
+→ **配额存在日内水位波动**：夜间回落到可用区间，白天上午 cascade 阶段被吃满。
+→ **推论修正**：故障 M **不需等月重置、不需充值**，是**日内时段性问题**。
+→ **决策含义**：故障 M 一律**静默等自然恢复**，绝不手动补发、绝不 enable/disable 折腾、
+  **更不能归入「要爸爸处理」**（那会误耗爸爸注意力）。
+
+### ⭐ Git 积压告警需二次复验（2026-10-27 11:00 固化 ⚡）
+
+07:20 早间汇总报「本地领先远端 17 个提交，14 修改 / 62 删除 / 143 未跟踪」，
+11:00 复验 `git rev-list --left-right --count origin/main...HEAD` = **0 0**，worktree **完全 clean**
+→ **早间汇总的 Git 告警是瞬时快照**（00:00-11:00 窗口内 git_sync + push 已收敛）。
+
+**规则**：早间汇总报的 Git 积压**必须二次复验**再判定为真积压，不能直接当待办。
+
+### ⭐⭐ provider 直连探测 = 无副作用心跳诊断手段（2026-10-27 11:00 固化 ⚡⚡）
+
+心跳自检除 `cron runs` / `cron list --all` / SQLite `mode=ro` 外，
+**provider 直连 curl 探测**是被低估的只读诊断手段：
+- 能在**故障发生前**预警配额水位（夜间 200 vs 白天 2056）
+- **完全不消耗 push 额度**、不触碰微信通道、不影响 cron 状态 → 与「故障 T 铁律」完全兼容
+
+**判据表**：
+| HTTP / 错误 | 含义 | 是否需爸爸 |
+|---|---|---|
+| 200 | 配额可用 ✅ | ❌ |
+| 404 / `not_found_error 2069` | 模型已下线 → 清理 provider models[] **和** cron fallback 链 | ❌（自己改） |
+| 429 / `rate_limit_error 2056` | Token Plan 撞顶 → 故障 M | ❌（等恢复） |
+| 401 / 鉴权错 | provider apiKey 失效 | ✅ **需爸爸** |
+
+⚠️ **URL 拼法**：baseUrl 已含 `/anthropic` → ✅ `baseUrl.rstrip('/')+'/v1/messages'`，
+❌ 拼 `/anthropic/v1/messages` → 404（**404 ≠ 模型下线**）。
+⚠️ **key 读取**：必须 `models.providers.minimax.apiKey`（`sk-cp-` 前缀）精确路径，
+猜 `ey`/`sk` 前缀 → 401 authentication_error（会被误判成模型故障）。
+
+```bash
+KEY=$(python3 -c "import json;print(json.load(open('/root/.openclaw/openclaw.json'))['models']['providers']['minimax']['apiKey'])")
+for m in MiniMax-M3 MiniMax-M2.7 MiniMax-M2.5; do
+  curl -s -o /dev/null -w "$m %{http_code}\n" -X POST "https://api.minimaxi.com/anthropic/v1/messages" \
+    -H "x-api-key: $KEY" -H "anthropic-version: 2023-06-01" -H "content-type: application/json" \
+    -d "{\"model\":\"$m\",\"max_tokens\":8,\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}]}"
+done
+```
+
 ### ❌ 故障 K 最新权威实测（2026-10-26 07:03 → day-46 持续，仍需爸爸）
 
 | 检查项 | 结果 |

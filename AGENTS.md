@@ -375,3 +375,105 @@ document/  (恩墨记录)
 ## Make It Yours
 
 This is a starting point. Add your own conventions, style, and rules as you figure out what works.
+
+---
+
+## 规则三：heartbeat 自检严禁使用 push 命令（2026-10-16 12:01 事故固化）
+
+**🚨 硬规则**：任何 heartbeat / cron 静默节点的「自检 / 验证 / 测试」操作**严禁使用 push 通道命令**。
+
+**严禁的命令**：
+- ❌ `openclaw message send --channel openclaw-weixin --message "..."`（任何形式）
+- ❌ `openclaw wechat send --message "..."`
+- ❌ `message action=send` 任何 channel 参数为 `openclaw-weixin` / `discord` / `telegram` / `slack` 等
+- ❌ **即便**冠以"自检 / 测试 / 验证"名义也不行 — push 命令 = 主动 push = 消耗 push 额度
+
+**允许的自检命令**（只读 + 静默）：
+- ✅ `openclaw cron list --all`（查 cron 状态）
+- ✅ `openclaw cron runs --id <id> --limit <n>`（查 cron run 历史）
+- ✅ `openclaw cron show <id>`（查 cron 配置）
+- ✅ `read /root/.openclaw/workspace/memory/<file>`（读 daily 文件）
+- ✅ `cat <file> / ls -la`（查文件状态）
+- ✅ `wc -l <file>`（查文件行数）
+- ✅ `date / echo`（仅本机打印）
+- ✅ `openclaw cron enable / disable`（启停 cron，不推送）
+
+**事故案例（2026-10-16 12:01）**：
+- cron:memory_refine 12:00 触发，想要自检故障 L 直连 CLI 自愈状态
+- 错误决策：直接 `openclaw message send` 推微信自检
+- 结果：3 条消息已送达爸爸微信（无法撤回），push 额度 10/16 已透支
+
+**例外**：只有明确「法定主动 push 内容」（如合并通报 / 紧急告警 / 修复询问）才允许 `message send`，且必须经过 silent pass v146+ 决策。
+
+**事故后查询路径**：TOOLS.md「故障 T」段有详细教训 + 修复路径 + 监控 / 预防。
+
+### 规则四：内部配置修复 vs 推送行为改动的静默期区分（2026-10-26 07:00 固化）
+
+法定静默期（23:00-08:00）内**可以**执行的：
+
+- ✅ **内部配置修复**（删已下线模型、改 fallback 链、调 provider 参数）
+  - 前提：备份 → 精确替换 → 改后校验 → diff 确认无副作用
+  - 不推送 = 不消耗 push 额度 = 不打扰爸爸 → 静默期可做
+- ✅ 只读诊断（cron list --all / cron runs / mes auth status / ls / curl 实测）
+
+法定静默期内**不可**执行的：
+
+- ❌ 任何 `message send`（见规则三）
+- ❌ 改变**推送行为**的改动（新增/修改推送 cron 的 schedule、channel、target、announce 策略）
+- ❌ 影响爸爸微信收到内容的任何变更
+
+**判定口诀**：*改「怎么跑」可以静默做；改「会不会打扰爸爸」必须等白天窗口或爸爸确认。*
+
+### 规则五：gateway 配置热重载，无需 restart（2026-10-26 07:00 实证）
+
+修改 `~/.openclaw/openclaw.json` 后 **gateway 会自动热重载**，不需要重启服务：
+
+```
+{"subsystem":"gateway/reload"} "config change detected; evaluating reload (models.providers.minimax.models)"
+{"subsystem":"gateway/reload"} "config hot reload applied (models.providers.minimax.models)"
+```
+
+- 实证：gateway uptime 12 天，改配置后 ~0.5s 即 hot reload 生效
+- → **不要为了应用配置改动就 restart gateway**（会打断正在运行的会话 / cron）
+- 验证方式：`openclaw models list` 应立即反映新配置
+- 注意：`cron show` 回显的 `last error` / `diagnostic` 是**历史文本**，不代表当前配置状态
+
+### 规则六：改配置前先向 provider 实测，不要凭记忆（2026-10-26 固化）
+
+「某模型已下线」这类结论必须**实测验证**，不能凭记忆或旧笔记：
+
+```bash
+# 直连 provider 实测每个模型的可用性（anthropic-messages 接口示例）
+curl -s -X POST "https://api.minimaxi.com/anthropic/v1/messages" \
+  -H "x-api-key: <apiKey>" -H "anthropic-version: 2023-06-01" \
+  -H "content-type: application/json" \
+  -d '{"model":"MiniMax-M3","max_tokens":8,"messages":[{"role":"user","content":"hi"}]}'
+```
+
+- ✅ 先实测 → 再改配置 → 再验证（3 步）
+- ⚠️ 查配置结构时要用**真实路径**（`models.providers.minimax.models[]`），
+  写错路径会得到「空结果」假象，误以为配置没问题
+- ⚠️ `grep <已删模型>` 在日志里仍会命中 —— 那可能是 `cron show` 回显的历史错误文本，
+  判据要看是否有真实的 `model-fetch ... model=<该模型>` 记录
+
+### 规则七：清理下线模型必须查两处（2026-10-26 07:03 固化）
+
+下线一个模型 = **两处**都要清，漏一处 = 僵尸模型复活：
+
+1. `~/.openclaw/openclaw.json` → `models.providers.<prov>.models[]`
+2. **每个 cron job 自己的 fallback 链** → SQLite `cron_jobs.payload_fallbacks_json`
+
+```bash
+cd /root/.openclaw/state
+python3 -c "
+import sqlite3
+c=sqlite3.connect('file:openclaw.sqlite?mode=ro',uri=True)
+for r in c.execute('select job_id,name,payload_model,payload_fallbacks_json from cron_jobs'):
+    print(r[0][:8],'|',r[1],'| model=',r[2],'| fallbacks=',r[3])"
+```
+
+- 修复走 CLI：`openclaw cron edit <id> --fallbacks "M2.7,M2.5"`（**不要手改 SQLite**）
+- ⚠️ 漏掉 ② 的后果：末级僵尸模型返回 `model_not_found` → **覆盖** `errorReason`，
+  把真正的 `rate_limit`（故障 M）误判成「模型配置坏了 → 要爸爸」，走错修复路径
+- 查历史推送成功与否用同库 `cron_run_logs` 表的 `delivered` / `delivery_status` 字段
+- ⚠️ `openclaw cron run` **没有 `--dry-run`** → 不能用它自检推送通道（会真推送、消耗 push 额度）

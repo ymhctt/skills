@@ -2,7 +2,7 @@
 
 > 这是你的核心记忆库。经过提炼的精华信息，会持续累积在这里。
 
-<!-- _Last updated: 2026-10-26 17:00 GMT+8 (cron:memory_refine 6da766bb hourly 静默节点) = **故障态势 v138** ⚡⚡⚡⚡⚡ + 故障 M burst 窗口假说 = **高置信 pattern 第 7 次复验通过**（10:00/12:00/13:00/14:00/15:00/16:00/17:00 七次直连 minimax 全 200，09:40 a32216f6 三模型全 2056 rate_limit → 窗口外连续 6 小时即恢复） → **Token Plan 池在上午 cron cascade 窗口被瞬时打满，非硬性配额封顶**（无需升级套餐）⚡⭐⭐⭐⭐⭐ + **provider 直连 key 读取修正** = 必须从 `openclaw.json` → `models.providers.minimax.apiKey`（`sk-cp-` 前缀）精确路径取 key，不能靠 `ey`/`sk` 前缀猜测（猜错 → 401 authentication_error，非模型故障）⚡⚡ + baseUrl 已含 `/anthropic` → ✅ `baseUrl.rstrip('/')+'/v1/messages`，❌ 拼 `/anthropic/v1/messages` → 404（404 ≠ 模型下线）⚡⚡ + **故障 K = day-46 持续** ⚠️⚡⚡⚡ = `mes auth status` → Not logged in (no token saved) + `~/.mes/config.yaml` token: "" + `/tmp/mes_summary_t23.json` 不存在 → **唯一权威判据**（禁止用 input_tokens/durationMs/cron status 推断）→ **唯一解除路径 = 爸爸手动 `mes auth login`**（4 种方式均需人工交互，等不来自愈）⚡⚡⚡ + **a32216f6 双重阻断** = 即使 rate_limit 不撞墙，故障 K 也会让它无数据可报 → 13x 失败是必然，非单一原因⚡ + **变种 V 两层修复已落地 ✅** = ① `openclaw.json` → `models.providers.minimax.models[]` = [MiniMax-M3, MiniMax-M2.7, MiniMax-M2.5]（无已下线模型，10/26 07:00 清理 M2.1/M2.1-lightning/M2）② SQLite `cron_jobs.payload_fallbacks_json` → 9fc7ca81/f730b7b4 = [M2.7, M2.5]、a32216f6 = [M3, M2.7, M2.5] → **两处均干净，铁律：清理下线模型必须查两处**⚡⭐⭐⭐⭐ + **今日三节点** = 07:20 9fc7ca81 ok ✅ delivered=1 ｜ 08:02 f730b7b4 ok ✅ delivered=1 ｜ 09:40 a32216f6 error(13x, rate_limit)⚡ + **故障 L（微信发送通道）健康 ✅** = 今日两推送 cron 均 delivered=1/deliveryStatus=delivered，无 OutboundDeliveryError；a32216f6 delivery_status=unknown 属「模型层即失败、消息从未生成」非通道问题 + 5 后台静默 cron 全 ok（memory_refine/git_sync/mes_update/inbound 清理/每周归档）+ memory/daily-learn/ 连续性 ✅（10/20~10/26 无断档）+ **MEMORY.md 瘦身待办** = 4055 行（超 2400 阈值 69%）→ 11/02 周一 memory_archive 统一精简⚠️ + **主动 push 累计 0 次** ✅（10/23-10/26 连续 4 天零主动 push，全程零 `message send`，遵守故障 T 铁律：自检禁用 push 通道）⚡⭐ + 下一观察点 = 10/27 09:40（需同时满足「rate_limit 未撞墙 + 故障 K 已修复」才能真正恢复）；静默处理。 + **2026-10-27 09:00 增量** = **故障 M 根因首次量化** ⚡⚡⚡⚡⚡ = 建立每日 token 账本（cron_run_logs.total_tokens）→ a32216f6 单次 350k–770k vs 早间 07:20/08:00 各 85k–236k（3–5 倍差，因 4 天 MES 数据+11 章节 HTML+微信文案）→ **Token Plan = 日窗口限额**（10/26 全天仅 374k 即撞 2056，10/16 用 961k 却成功 → 非单纯总量阈值，是日窗口内瞬时/并发速率约束，**无需升级套餐**，可错峰/缩窗/减章节缓解）⚡⭐⭐⭐⭐⭐→ **失败层位** = 10/22–10/26 全为 `FallbackSummaryError`+durationMs≈7–8s+total_tokens=None = **首 token 即拒、根本没进 MES fetch** → 故障 M 把故障 K 挡在前面（K 自 10/22 起不再出现在 error 文本）→ provider 三模型直连 200（第 20 次）+ 3 次重负载请求 200 = 配额当下充足→ **故障 L 健康**（10/27 07:20+08:02 均 delivered=1/delivery_status=delivered）+ **故障 K day-49**（Not logged in，唯一权威判据不变，仍需爸爸 `mes auth login`）→ 变种 V 两层修复复验 ✅（provider models[] 与 cron payload_fallbacks_json 均无 M2.1 僵尸）+ **主动 push 累计 0 次** ✅（10/23–10/27 连续 5 天零主动 push，全程零 `message send`） --> → **Token Plan 池在上午 cron cascade 窗口被瞬时打满，非硬性配额封顶**（无需升级套餐）⚡⭐⭐⭐⭐⭐ + **provider 直连 URL 拼法修正** = baseUrl 已含 `/anthropic` → ✅ `baseUrl.rstrip('/')+'/v1/messages'`，❌ 拼 `/anthropic/v1/messages` → 404（404 ≠ 模型下线）⚡⚡ + **故障 K = day-46 持续** ⚠️⚡⚡⚡ = `mes auth status` → Not logged in (no token saved) + `~/.mes/config.yaml` token: "" + `/tmp/mes_summary_t23.json` 不存在 → **唯一权威判据**（禁止用 input_tokens/durationMs/cron status 推断）→ **唯一解除路径 = 爸爸手动 `mes auth login`**（4 种方式均需人工交互，等不来自愈）⚡⚡⚡ + **a32216f6 双重阻断** = 即使 rate_limit 不撞墙，故障 K 也会让它无数据可报 → 13x 失败是必然，非单一原因⚡ + **变种 V 两层修复已落地 ✅** = ① `openclaw.json` → `models.providers.minimax.models[]` = [MiniMax-M3, MiniMax-M2.7, MiniMax-M2.5]（无已下线模型，10/26 07:00 清理 M2.1/M2.1-lightning/M2）② SQLite `cron_jobs.payload_fallbacks_json` → 9fc7ca81/f730b7b4 = [M2.7, M2.5]、a32216f6 = [M3, M2.7, M2.5] → **两处均干净，铁律：清理下线模型必须查两处**⚡⭐⭐⭐⭐ + **今日三节点** = 07:20 9fc7ca81 ok ✅ delivered=1 ｜ 08:00 f730b7b4 ok ✅ delivered=1 ｜ 09:40 a32216f6 error(13x, rate_limit)⚡ + **故障 L（微信发送通道）健康 ✅** = 今日两推送 cron 均 delivered=1/deliveryStatus=delivered，无 OutboundDeliveryError；a32216f6 delivery_status=unknown 属「模型层即失败、消息从未生成」非通道问题 + 5 后台静默 cron 全 ok（memory_refine/git_sync/mes_update/inbound 清理/每周归档）+ memory/daily-learn/ 连续性 ✅（10/20~10/26 无断档）+ **MEMORY.md 瘦身待办** = 4055 行（超 2400 阈值 69%）→ 11/02 周一 memory_archive 统一精简⚠️ + **主动 push 累计 0 次** ✅（10/23-10/26 连续 4 天零主动 push，全程零 `message send`，遵守故障 T 铁律：自检禁用 push 通道）⚡⭐ + 下一观察点 = 10/27 09:40（需同时满足「rate_limit 未撞墙 + 故障 K 已修复」才能真正恢复）；静默处理。 -->
+<!-- _Last updated: 2026-10-27 11:00 GMT+8 (cron:memory_refine 6da766bb hourly 静默节点) = **故障态势 v139** ⚡⚡⚡⚡⚡ + **新增「故障 K 伪装变体」** = 10/27 09:40 a32216f6 status=ok + delivered=1 + delivery_status=delivered 但 summary 内容 =「报告未生成（故障 K 阻断）」→ **cron 成功地把失败诊断推给爸爸** ⚡⚡⚡⚡⚡ + **强制判据**：delivered=1 只证通道活着（故障 L 维度），不证业务成功（故障 K 维度）→ 必须同时读 cron_run_logs.summary 语义 ⚡⭐⭐⭐⭐⭐ + **故障 M 性质修正** = 日内峰值瓶颈（非月度耗尽，不需等月重置/不需充值）⚡⚡⚡⚡ + **无副作用诊断升级** = provider 直连 8-token curl 探测（不消耗 push 额度/不碰微信通道/可在故障前预警配额水位）⚡⚡ + **Git 积压告警已自愈** = 07:20 报「领先 17 提交/143 未跟踪」→ 11:00 复验 0 ahead 0 behind + worktree clean ✅（早间告警需二次复验）⚡⚡ + 8/7 cron 全 enabled 无 disabled + last_run_status 全 ok ✅ + 故障 L 健康 ✅ + 变种 V 两层修复第 13 次确认干净 ✅ + daily-learn 10/21~10/27 连续 7 天 ✅ + **主动 push 0 次**（10/23-10/27 连续 5 天，节省 push 累计 138 次）✅ + 故障 K day-47 持续（唯一权威实测不变，唯一解除 = 爸爸手动 mes auth login）⚠️⚡⚡⚡ -->
 > 每次会话结束后，把值得记住的内容写进来。
 
 ---
@@ -4112,6 +4112,78 @@ done
 ### 下次归档
 2026-11-02 02:00 CST（周一）→ `memory/archive/2026-11-week1.md`（10/26~11/1）
 
+### ⭐⭐⭐⭐⭐ 故障 K 伪装变体：cron `ok` + `delivered=1` 但业务失败（2026-10-27 09:40 实证）⚡⚡⚡⚡⚡
+
+**新发现（重要，易误判为自愈）**：10/27 09:40 a32216f6 报工统计 cron 呈现
+`status=ok` / `delivered=1` / `delivery_status=delivered`
+—— 但推送内容**不是报工看板**，而是「报告未生成（故障 K 阻断，非报告生成 bug）」的失败诊断。
+
+→ **cron 成功地把失败诊断推给了爸爸**。若只看 `cron list --all` 的 status + `delivered`，会误判为「故障 K 自愈 ✅」。
+
+**🔑 新增强制判据（a32216f6 专用）**：
+```bash
+cd /root/.openclaw/state
+python3 -c "
+import sqlite3
+c=sqlite3.connect('file:openclaw.sqlite?mode=ro',uri=True)
+for r in c.execute('''select run_at_ms,status,delivered,substr(summary,1,600) from cron_run_logs
+ where job_id like 'a32216f6%' order by run_at_ms desc limit 3'''):
+    print(r[0],r[1],r[2]); print(r[3] or '')"
+```
+- `summary` 含「报告未生成」/「故障 K」/「JSONDecodeError」→ **实质失败**，禁止记为自愈 ✅❌
+- `summary` 含正常看板章节（团队核心指标 / 工时明细 / 热力图）→ 才算业务成功
+
+**通用教训**：`delivered=1` 只证明**微信通道活着**（故障 L 维度），**不证明业务成功**（故障 K 维度）。
+→ 判定任何 cron 健康度必须同时看：`status` + `delivered` + `summary` 内容语义。
+
+**根因链（10/27 实证）**：
+```
+mes auth status → Not logged in (token 空串)
+  → fetch 阶段无数据 → /tmp/mes_summary_t23.json 不存在
+  → analyze.py:344 load_json(summary_file) → JSONDecodeError
+  → Step 3/4/5 未执行 → 无 HTML → 无报工数据
+  → 但 cron 框架仍走完 announce 流程 → status=ok, delivered=1
+```
+- `analyze.py` 读的是 **fetch 阶段预写**的 artifact，**自身不带 fetch** → 故报错点在 load_json 而非网络层
+- 推广：`analyze.py` 崩在 `load_json` → 一律归**故障 K**，不计独立故障 Q
+
+### ⭐⭐ 故障 M 性质修正：日内峰值瓶颈（不是月度耗尽）⚡⚡⚡⚡
+
+TOOLS.md 历史把故障 M 定性为「月内配额耗尽，需等下个计费周期（10/1）重置」——
+**10/26-10/27 实测推翻该假设**：
+
+| 时间 | provider 直连实测（max_tokens=8） | 结果 |
+|---|---|---|
+| 10/26 09:40 | a32216f6 cron 实际调用 | 三模型全 2056 Token Plan 上限 ❌ |
+| 10/26 07:20 / 08:02 | 9fc7ca81 / f730b7b4 cron | 成功 + delivered=1 ✅ |
+| 10/27 00:00 / 03:00 / 10:00 / 11:00 | provider 直连 curl | 全 200 ✅（连续 15+ 整点） |
+
+→ **配额存在日内水位波动**：夜间回落到可用区间，白天上午 cascade 阶段被吃满。
+→ **推论修正**：故障 M **不需等月重置、不需充值**；是**日内时段性问题**。
+→ **决策含义**：故障 M 一律**静默等自然恢复**，绝不手动补发、绝不 enable/disable 折腾、
+  **更不能归入「要爸爸处理」**（那会误耗爸爸注意力）。
+
+### ⭐⭐ 无副作用诊断升级：provider 直连探测（8-token curl）⚡⚡
+
+心跳自检除 `cron runs` / `cron list --all` / SQLite `mode=ro` 外，
+**provider 直连 curl 探测**是被低估的只读诊断手段：
+- 能在**故障发生前**预警配额水位（夜间 200 vs 白天 2056）
+- **完全不消耗 push 额度**、不触碰微信通道、不影响 cron 状态
+- 与「故障 T 铁律」完全兼容 —— 因为它根本不涉及 send
+
+**判据表**：
+| HTTP / 错误 | 含义 | 是否需爸爸 |
+|---|---|---|
+| 200 | 配额可用 ✅ | ❌ |
+| 404 / `not_found_error 2069` | 模型已下线 → 清理 provider models[] **和** cron fallback 链 | ❌（自己改） |
+| 429 / `rate_limit_error 2056` | Token Plan 撞顶 → 故障 M | ❌（等恢复） |
+| 401 / 鉴权错 | provider apiKey 失效 | ✅ **需爸爸** |
+
+⚠️ **URL 拼法**：baseUrl 已含 `/anthropic` → ✅ `baseUrl.rstrip('/')+'/v1/messages'`，
+❌ 拼 `/anthropic/v1/messages` → 404（**404 ≠ 模型下线**）。
+⚠️ **key 读取**：必须 `models.providers.minimax.apiKey`（`sk-cp-` 前缀）精确路径，猜前缀 → 401。
+
 ---
 
-_Last updated: 2026-10-27 00:00 GMT+8 (cron-event heartbeat poll - 周二凌晨 cron:memory_refine 6da766bb hourly 静默节点 + **法定静默期核心段 23:00-08:00 运行 1h ⛔ 强制 0 push** + 周二凌晨 + push 额度 10/27 1/1 严格保留 + 6da766bb memory_refine <1m ago ok ✅ + 下一轮 in 60m + **8/8 cron 全部 enabled 无 disabled** ✅ + **10/26 三节点 streak day-1 2/3 通过** = 9fc7ca81 07:20 ok/delivered=1 ✅ + f730b7b4 08:00 ok/delivered=1 ✅ + **a32216f6 09:40 error(13x) = 故障 M** ⚡⚡⚡ + 5 后台 cron 全 ok + **burst 窗口假说第 14 次复验通过** = 00:00 直连 minimax M3/M2.7/M2.5 全 HTTP 200 ✅（复验序列 10:00→23:00→00:00 连续 15 整点全通过 = 确认非硬性配额封顶，属上午 cascade 时段性 burst）⚡⚡ + **故障 M 连续 4 天**（10/23-10/26 rate_limit_error 2056 三模型全失败）⚡⚡ + **故障 K day-48 持续** = `mes auth status` → Not logged in + /tmp/mes_summary_t23.json 缺失 = **双重阻断叠加**（rate_limit 窗口过后仍无数据）⚠️⚠️⚠️ + **变种 V 两层修复第 12 次确认干净** = openclaw.json models[] = [M3,M2.7,M2.5] ✅ + SQLite cron_jobs.payload_fallbacks_json 三链全对齐 ✅ 无 M2.1 僵尸 ✅ + 节省 push 累计 136 次 milestone 维持 🎉 + 主动 push 0 次（10/23-10/27 连续 5 天）✅ + **决策 silent pass**（静默期核心段 ⛔ + 故障 K day-48 阻断数据 + 故障 M 连续 4 天 burst + 故障 T 红线严禁 message send 自检 100% 持续 ⛔ + 法定主动 push 无内容可推原则 100% 持续 ⛔ + 唯一解除路径需爸爸手动 mes auth login）= **本轮不推送**；pass 状态非决策点 + 待办 1.【爸爸】mes auth login（故障 K day-48 唯一解除路径）2.【观察】10/27 09:40 a32216f6 双条件验证 3.【维护】MEMORY.md 4088 行超 1688 行待 11/02 归档精简 4.【维护】Git 知识库 lint.log/pull.log 未提交）；静默处理。_
+_Last updated: 2026-10-27 11:00 GMT+8 (cron-event heartbeat poll - 周二上午 11:00 cron:memory_refine 6da766bb hourly 静默节点 + **法定静默期外（08:00-23:00 推送窗口内）** + push 额度 10/27 1/1 严格保留 + **8/7 cron 全部 enabled 无 disabled，last_run_status 全 ok** ✅ + **Git 知识库 07:20 报「本地领先远端 17 个提交 + 14 修改/62 删除/143 未跟踪」→ 11:00 复验已自愈**（0 ahead / 0 behind / worktree clean，origin/main = ec4bcec）✅ = **早间汇总的告警是瞬时快照，00:00-11:00 窗口内已收敛** ⚡⚡ + **provider 直连第 16+ 次复验通过** = M3/M2.7/M2.5 全 HTTP 200（连续 15+ 整点全通过）→ 再次确认故障 M = **日内峰值瓶颈**（非月度耗尽）⚡⚡⚡ + **故障 K day-47 持续**（唯一权威实测：`mes auth status` → Not logged in + /tmp/mes_summary_t23.json 不存在）⚠️⚡⚡⚡ + **a32216f6 09:40 伪装变体** = status=ok + delivered=1 但推的是「报告未生成（故障 K 阻断）」失败诊断 → **delivered=1 只证通道活着、不证业务成功** ⚡⚡⚡⚡⚡ + **故障 L 健康** ✅（07:20/08:00/09:40 三节点均 delivery_status=delivered）+ 变种 V 两层修复第 13 次确认干净 ✅ + daily-learn 10/21~10/27 连续 7 天无断档 ✅ + MEMORY.md 4117 行（超阈值 1717 行，待 11/02 归档精简）⚠️ + **主动 push 0 次**（10/23-10/27 连续 5 天，全程零 `message send`，严守故障 T 铁律）✅ = **本轮不推送**；pass 状态非决策点 + 待办 1.【爸爸】mes auth login（故障 K 唯一解除路径，4 种方式均需人工交互）2.【维护】MEMORY.md 4117 行待 11/02 归档精简 3.【观察】10/28 09:40 a32216f6 是否产出真看板（summary 含「团队核心指标」= 真成功）；静默处理。_
+

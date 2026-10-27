@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2025年东山精密数据库维保项目 - 服务总结报告</title>
+    <script src="https://cdn.bootcdn.net/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:-apple-system,"PingFang SC","Microsoft YaHei","Helvetica Neue",sans-serif; background:#f0f2f5; color:#333; line-height:1.6; }
+.container { max-width:1400px; margin:0 auto; padding:20px; }
+.header { background:linear-gradient(135deg,#1a237e,#283593); color:#fff; padding:40px; border-radius:12px; margin-bottom:24px; box-shadow:0 4px 15px rgba(26,35,126,0.3); }
+.header h1 { font-size:32px; margin-bottom:10px; }
+.header .subtitle { font-size:18px; opacity:0.9; margin-bottom:15px; }
+.header .meta-row { display:flex; gap:15px; flex-wrap:wrap; }
+.header .meta-item { font-size:13px; background:rgba(255,255,255,0.15); padding:6px 14px; border-radius:20px; }
+.nav-bar { background:#fff; padding:12px 20px; border-radius:8px; margin-bottom:20px; box-shadow:0 1px 4px rgba(0,0,0,0.06); display:flex; gap:10px; flex-wrap:wrap; align-items:center; position:sticky; top:0; z-index:100; }
+.nav-bar a { color:#283593; text-decoration:none; font-size:13px; padding:6px 14px; border-radius:15px; background:#e8eaf6; transition:all 0.2s; }
+.nav-bar a:hover { background:#c5cae9; }
+.card { background:#fff; border-radius:10px; padding:28px; margin-bottom:20px; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+.card h2 { font-size:22px; color:#1a237e; margin-bottom:18px; padding-bottom:12px; border-bottom:2px solid #e8eaf6; display:flex; align-items:center; gap:10px; }
+.card h3 { font-size:17px; color:#283593; margin:18px 0 12px; }
+.card p { font-size:14px; line-height:1.8; margin-bottom:12px; }
+.kpi-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-bottom:24px; }
+.kpi { background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; padding:24px; border-radius:10px; text-align:center; box-shadow:0 3px 10px rgba(102,126,234,0.3); }
+.kpi.green { background:linear-gradient(135deg,#11998e,#38ef7d); }
+.kpi.orange { background:linear-gradient(135deg,#f093fb,#f5576c); }
+.kpi.blue { background:linear-gradient(135deg,#4facfe,#00f2fe); }
+.kpi.purple { background:linear-gradient(135deg,#a18cd1,#fbc2eb); }
+.kpi .value { font-size:36px; font-weight:700; margin-bottom:6px; }
+.kpi .label { font-size:14px; opacity:0.9; }
+table { width:100%; border-collapse:collapse; font-size:13px; margin:16px 0; }
+th { background:#f5f7ff; color:#1a237e; padding:12px; text-align:left; font-weight:600; }
+td { padding:10px 12px; border-bottom:1px solid #eee; }
+tr:hover { background:#f8f9ff; }
+.text-right { text-align:right; }
+.text-center { text-align:center; }
+.contract-card { background:#fafbff; border:1px solid #e8eaf6; border-left:4px solid #283593; border-radius:8px; padding:20px; margin:16px 0; }
+.contract-card h3 { color:#1a237e; margin-top:0; margin-bottom:12px; font-size:18px; }
+.contract-info { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:12px; margin-bottom:16px; }
+.contract-info .item { background:#fff; padding:12px; border-radius:6px; }
+.contract-info .item .label { font-size:12px; color:#888; margin-bottom:4px; }
+.contract-info .item .value { font-size:16px; font-weight:600; color:#1a237e; }
+.progress-bar { margin:12px 0; }
+.progress-item { margin-bottom:16px; }
+.progress-header { display:flex; justify-content:space-between; margin-bottom:6px; }
+.progress-label { font-size:13px; color:#333; font-weight:600; }
+.progress-value { font-size:13px; color:#283593; font-weight:700; }
+.progress-track { height:24px; background:#e8eaf6; border-radius:12px; overflow:hidden; }
+.progress-fill { height:100%; background:linear-gradient(90deg,#667eea,#764ba2); border-radius:12px; display:flex; align-items:center; justify-content:flex-end; padding-right:10px; color:#fff; font-size:11px; font-weight:700; }
+.chart-container { position:relative; height:400px; margin:20px 0; }
+.chart-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin:20px 0; }
+.doc-section { background:#f8f9ff; border-left:4px solid #667eea; padding:20px; border-radius:0 8px 8px 0; margin:16px 0; }
+.doc-section h4 { color:#1a237e; margin-bottom:10px; font-size:16px; }
+.doc-section ul { padding-left:20px; }
+.doc-section li { margin-bottom:6px; line-height:1.7; font-size:14px; color:#444; }
+.value-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:16px; margin-top:20px; }
+.value-card { background:#fafbff; border:1px solid #e8eaf6; border-radius:10px; padding:20px; }
+.value-card h4 { color:#1a237e; font-size:17px; margin-bottom:10px; }
+.value-card p, .value-card ul { font-size:14px; color:#555; line-height:1.8; }
+.value-card ul { padding-left:20px; }
+.value-card li { margin-bottom:6px; }
+ul, ol { margin-left:20px; margin-bottom:12px; }
+li { margin-bottom:6px; line-height:1.8; font-size:14px; }
+.footer { background:linear-gradient(135deg,#1a237e,#283593); color:#fff; padding:30px 40px; border-radius:12px; margin-top:30px; text-align:center; }
+.footer p { color:rgba(255,255,255,0.85); margin-bottom:6px; font-size:14px; }
+@media print { .container { padding:10px; } .card { box-shadow:none; border:1px solid #ddd; page-break-inside:avoid; } body { background:#fff; } .nav-bar { display:none; } }
+@media (max-width:768px) { .chart-grid { grid-template-columns:1fr; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>2025年东山精密数据库维保项目</h1>
+            <div class="subtitle">服务总结报告</div>
+            <div class="meta-row">
+                <div class="meta-item">📅 2025.09.26 - 2026.04.27</div>
+                <div class="meta-item">🏢 苏州东山精密科技</div>
+                <div class="meta-item">📊 报告日期：2026-04-27</div>
+            </div>
+        </div>
+
+        <div class="nav-bar">
+            <a href="#overview">📋 服务概述</a>
+            <a href="#contract">📑 合同执行</a>
+            <a href="#charts">📈 人天分析</a>
+            <a href="#docs">📄 交付文档</a>
+            <a href="#team">👥 交付团队</a>
+            <a href="#cases">🔧 故障处理</a>
+            <a href="#value">🏆 交付价值</a>
+        </div>
+
+        <div class="card" id="overview">
+            <h2>📋 1. 服务报告概述</h2>
+            <p>本服务报告对2025年东山精密数据库维保项目服务情况进行总结，对服务的内容、效果、交付文档、问题、改进建议等进行说明。服务周期为2025年09月26日至2026年04月27日，共计7个月。</p>
+        </div>
+
+        <div class="card" id="contract">
+            <h2>📑 2. 合同执行情况</h2>
+            <h3>2.1 合同基本信息</h3>
+            <table>
+                <tr><th width="20%">项目</th><th>内容</th></tr>
+                <tr><td>合同名称</td><td>2025年东山精密数据库运维项目</td></tr>
+                <tr><td>甲方名称</td><td>苏州东山精密科技</td></tr>
+                <tr><td>乙方名称</td><td>云和恩墨（北京）信息技术有限公司</td></tr>
+                <tr><td>服务周期</td><td>2025年09月26日 至 2026年04月27日（7个月）</td></tr>
+            </table>
+            
+            <h3>2.2 合同子项执行情况</h3>
+            <div class="contract-card">
+                <h3>📋 东山精密基本维保 (2025100412099)</h3>
+                <div class="contract-info">
+                    <div class="item"><div class="label">服务请求数</div><div class="value">55个</div></div>
+                    <div class="item"><div class="label">占比</div><div class="value">80.9%</div></div>
+                </div>
+                <div class="progress-bar"><div class="progress-item"><div class="progress-header"><span class="progress-label">工单消耗进度</span><span class="progress-value">55 / 68 (80.9%)</span></div><div class="progress-track"><div class="progress-fill" style="width: 80.9%;">80.9%</div></div></div></div>
+            </div>
+            <div class="contract-card">
+                <h3>📋 东山精密人天服务 (2025100412100)</h3>
+                <div class="contract-info">
+                    <div class="item"><div class="label">服务请求数</div><div class="value">7个</div></div>
+                    <div class="item"><div class="label">占比</div><div class="value">10.3%</div></div>
+                </div>
+                <div class="progress-bar"><div class="progress-item"><div class="progress-header"><span class="progress-label">工单消耗进度</span><span class="progress-value">7 / 68 (10.3%)</span></div><div class="progress-track"><div class="progress-fill" style="width: 10.3%;">10.3%</div></div></div></div>
+            </div>
+            <div class="contract-card">
+                <h3>📋 东山精密白求恩软件 (2025102812170)</h3>
+                <div class="contract-info">
+                    <div class="item"><div class="label">服务请求数</div><div class="value">4个</div></div>
+                    <div class="item"><div class="label">占比</div><div class="value">5.9%</div></div>
+                </div>
+                <div class="progress-bar"><div class="progress-item"><div class="progress-header"><span class="progress-label">工单消耗进度</span><span class="progress-value">4 / 68 (5.9%)</span></div><div class="progress-track"><div class="progress-fill" style="width: 5.9%;">5.9%</div></div></div></div>
+            </div>
+            <div class="contract-card">
+                <h3>📋 oracle基本维保 (2024102110855)</h3>
+                <div class="contract-info">
+                    <div class="item"><div class="label">服务请求数</div><div class="value">2个</div></div>
+                    <div class="item"><div class="label">占比</div><div class="value">2.9%</div></div>
+                </div>
+                <div class="progress-bar"><div class="progress-item"><div class="progress-header"><span class="progress-label">工单消耗进度</span><span class="progress-value">2 / 68 (2.9%)</span></div><div class="progress-track"><div class="progress-fill" style="width: 2.9%;">2.9%</div></div></div></div>
+            </div>
+        </div>
+
+        <div class="card" id="charts">
+            <h2>📈 3. 服务人天分类分析</h2>
+            <div class="chart-grid">
+                <div>
+                    <h3>服务类型占比（饼图）</h3>
+                    <div class="chart-container"><canvas id="pieChart"></canvas></div>
+                </div>
+                <div>
+                    <h3>服务人天消耗（柱状图）</h3>
+                    <div class="chart-container"><canvas id="barChart"></canvas></div>
+                </div>
+            </div>
+            
+            <h3>服务类型明细表</h3>
+            <table>
+                <thead><tr><th>服务类型</th><th class="text-center">工单数量</th><th class="text-center">占比</th><th class="text-center">预估人天</th><th>说明</th></tr></thead>
+                <tbody>
+                    <tr><td>🔧 故障处理</td><td class="text-center">21</td><td class="text-center">30.4%</td><td class="text-center">~12人天</td><td>告警处理、ORA错误分析、DG延迟恢复、归档清理等</td></tr>
+                    <tr><td>🔍 巡检服务</td><td class="text-center">9</td><td class="text-center">13.0%</td><td class="text-center">~6人天</td><td>数据库巡检、巡检报告输出、巡检项优化</td></tr>
+                    <tr><td>🚀 安装部署</td><td class="text-center">11</td><td class="text-center">15.9%</td><td class="text-center">~8人天</td><td>RAC安装、Linux部署、Proxy安装、数据库纳管</td></tr>
+                    <tr><td>📦 数据迁移</td><td class="text-center">5</td><td class="text-center">7.2%</td><td class="text-center">~4人天</td><td>数据导入导出、云迁移、表导出</td></tr>
+                    <tr><td>⚡ 性能优化</td><td class="text-center">3</td><td class="text-center">4.3%</td><td class="text-center">~2人天</td><td>SQL优化、权限配置、密码重置</td></tr>
+                    <tr><td>💬 咨询支持</td><td class="text-center">14</td><td class="text-center">20.3%</td><td class="text-center">~5人天</td><td>技术咨询、方案编写、问题分析、空间统计</td></tr>
+                    <tr><td>🌐 网络系统</td><td class="text-center">3</td><td class="text-center">4.3%</td><td class="text-center">~1.5人天</td><td>交换机变更、网卡绑定、时钟同步</td></tr>
+                    <tr><td>🔐 权限安全</td><td class="text-center">2</td><td class="text-center">2.9%</td><td class="text-center">~0.6人天</td><td>MSSQL赋权、MySQL只读用户创建</td></tr>
+                    <tr style="background:#1a237e;color:#fff;font-weight:700;"><td>合计</td><td class="text-center">69</td><td class="text-center">100%</td><td class="text-center">39.1人天</td><td>服务期内总消耗（313小时）</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card" id="docs">
+            <h2>📄 4. 交付文档清单</h2>
+            <p>服务期内，团队共输出以下交付文档和成果物：</p>
+            
+            <div class="doc-section">
+                <h4>📊 巡检报告（5份）</h4>
+                <ul>
+                    <li><strong>苏州东山精密科技数据库巡检信息采集</strong>（2025-10-24）- 完成数据库健康检查信息采集</li>
+                    <li><strong>东山精密一套oracle数据库巡检</strong>（2025-10-27）- Oracle数据库全面巡检</li>
+                    <li><strong>东山精密orcl01数据库巡检</strong>（2025-10-27）- orcl01实例专项巡检</li>
+                    <li><strong>东山精密11月巡检汇报</strong>（2025-12-04）- 11月度巡检总结报告</li>
+                    <li><strong>东山精密2026年1月数据库巡检报告及PPT整理</strong>（2026-02-09）- 月度巡检报告与汇报PPT</li>
+                </ul>
+            </div>
+            
+            <div class="doc-section">
+                <h4>📝 巡检PPT（2份）</h4>
+                <ul>
+                    <li><strong>东山精密巡检PPT编写</strong>（2025-12-11）- 巡检汇报演示文稿</li>
+                    <li><strong>东山精密2026年1月数据库巡检报告及PPT整理</strong>（2026-02-09）- 巡检报告配套PPT</li>
+                </ul>
+            </div>
+            
+            <div class="doc-section">
+                <h4>📋 方案文档（1份）</h4>
+                <ul>
+                    <li><strong>苏州东山精密科技核心 Oracle 添加ASM磁盘组方案</strong>（2026-01-20）- 12T ASM磁盘组扩容方案编写、审核及实施文档</li>
+                </ul>
+            </div>
+            
+            <div class="doc-section">
+                <h4>🔧 脚本与工具（1个）</h4>
+                <ul>
+                    <li><strong>苏州东山精密科技 MRP 自动重启脚本部署</strong>（2026-01-20）- DataGuard MRP进程自动重启脚本</li>
+                </ul>
+            </div>
+            
+            <div class="doc-section">
+                <h4>📈 统计报告（1份）</h4>
+                <ul>
+                    <li><strong>东山精密三套sql server数据库大小统计</strong>（2026-01-15）- SQLServer数据库空间使用统计报告</li>
+                </ul>
+            </div>
+            
+            <div class="doc-section">
+                <h4>📑 配置文档（多项）</h4>
+                <ul>
+                    <li><strong>东山精密告警策略配置</strong>（2025-12-03）- 监控告警规则配置文档</li>
+                    <li><strong>东山精密巡检项优化</strong>（2025-12-16）- 巡检项目优化清单</li>
+                    <li><strong>东山精密oracle密码策略修改及赋权</strong>（2025-12-30）- 安全策略配置文档</li>
+                    <li><strong>东山精密整理数据库信息</strong>（2025-10-28）- 数据库资产清单</li>
+                </ul>
+            </div>
+            
+            <h3>交付文档汇总表</h3>
+            <table>
+                <thead><tr><th>序号</th><th>文档类型</th><th>文档名称</th><th>交付日期</th><th>交付人员</th></tr></thead>
+                <tbody>
+                    <tr><td>1</td><td>巡检报告</td><td>苏州东山精密科技数据库巡检信息采集</td><td>2025-10-24</td><td>高卫</td></tr>
+                    <tr><td>2</td><td>巡检报告</td><td>东山精密一套oracle数据库巡检</td><td>2025-10-27</td><td>高卫</td></tr>
+                    <tr><td>3</td><td>巡检报告</td><td>东山精密orcl01数据库巡检</td><td>2025-10-27</td><td>赵小兵</td></tr>
+                    <tr><td>4</td><td>资产清单</td><td>东山精密整理数据库信息</td><td>2025-10-28</td><td>高卫</td></tr>
+                    <tr><td>5</td><td>巡检报告</td><td>东山精密11月巡检汇报</td><td>2025-12-04</td><td>高卫</td></tr>
+                    <tr><td>6</td><td>配置文档</td><td>东山精密告警策略配置</td><td>2025-12-03</td><td>徐肖霞</td></tr>
+                    <tr><td>7</td><td>巡检PPT</td><td>东山精密巡检PPT编写</td><td>2025-12-11</td><td>未分配</td></tr>
+                    <tr><td>8</td><td>配置文档</td><td>东山精密巡检项优化</td><td>2025-12-16</td><td>徐肖霞</td></tr>
+                    <tr><td>9</td><td>配置文档</td><td>东山精密oracle密码策略修改及赋权</td><td>2025-12-30</td><td>高卫</td></tr>
+                    <tr><td>10</td><td>统计报告</td><td>东山精密三套sql server数据库大小统计</td><td>2026-01-15</td><td>高卫</td></tr>
+                    <tr><td>11</td><td>方案文档</td><td>苏州东山精密科技核心 Oracle 添加ASM磁盘组方案（12T）</td><td>2026-01-20</td><td>未分配</td></tr>
+                    <tr><td>12</td><td>脚本工具</td><td>苏州东山精密科技 MRP 自动重启脚本部署</td><td>2026-01-20</td><td>未分配</td></tr>
+                    <tr><td>13</td><td>巡检报告</td><td>东山精密2026年1月数据库巡检报告及PPT整理</td><td>2026-02-09</td><td>高卫</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card" id="team">
+            <h2>📋 5. 服务清单明细</h2>
+            <p>以下是服务期内全部68个服务请求的明细清单：</p>
+            <table>
+                <thead><tr><th class="text-center">序号</th><th class="text-center">服务时间</th><th>服务内容</th><th class="text-center">服务人员</th><th class="text-center">服务工时</th></tr></thead>
+                <tbody>
+                    <tr><td class="text-center">1</td><td class="text-center">2025-09-26</td><td>数据库优化参数配置并协助导入数据</td><td class="text-center">王振飞</td><td class="text-center">14</td></tr>
+                    <tr><td class="text-center">2</td><td class="text-center">2025-09-28</td><td>完成相关问题分析诊断</td><td class="text-center">许文榕</td><td class="text-center">2</td></tr>
+                    <tr><td class="text-center">3</td><td class="text-center">2025-10-24</td><td>东山精密SQLServer日志</td><td class="text-center">未分配</td><td class="text-center">2</td></tr>
+                    <tr><td class="text-center">4</td><td class="text-center">2025-10-24</td><td>采集数据巡检信息等</td><td class="text-center">高卫</td><td class="text-center">8</td></tr>
+                    <tr><td class="text-center">5</td><td class="text-center">2025-10-27</td><td>东山精密5套sqlserver 巡检</td><td class="text-center">未分配</td><td class="text-center">8</td></tr>
+                    <tr><td class="text-center">6</td><td class="text-center">2025-10-27</td><td>oracle一套库巡检报告word编写</td><td class="text-center">杨卓</td><td class="text-center">4</td></tr>
+                    <tr><td class="text-center">7</td><td class="text-center">2025-10-27</td><td>编写巡检报告</td><td class="text-center">高卫</td><td class="text-center">4</td></tr>
+                    <tr><td class="text-center">8</td><td class="text-center">2025-10-29</td><td>已整理完成</td><td class="text-center">高卫</td><td class="text-center">8</td></tr>
+                    <tr><td class="text-center">9</td><td class="text-center">2025-11-05</td><td>远程支持东山精密白求恩部署纳管</td><td class="text-center">吴伟龙</td><td class="text-center">5</td></tr>
+                    <tr><td class="text-center">10</td><td class="text-center">2025-11-11</td><td>kill相应的会话</td><td class="text-center">高卫</td><td class="text-center">2</td></tr>
+                    <tr><td class="text-center">11</td><td class="text-center">2025-11-12</td><td>mysql数据库创建只读账号，一直无权限</td><td class="text-center">高卫</td><td class="text-center">2</td></tr>
+                    <tr><td class="text-center">12</td><td class="text-center">2025-11-13</td><td>东山sqlserver 收缩日志，昨日全备失败，修改备份目录权限，重跑维护任务全备成功</td><td class="text-center">未分配</td><td class="text-center">1</td></tr>
+                    <tr><td class="text-center">13</td><td class="text-center">2025-11-14</td><td>东山精密数据库纳管</td><td class="text-center">高卫</td><td class="text-center">6</td></tr>
+                    <tr><td class="text-center">14</td><td class="text-center">2025-11-17</td><td>处理客户提出的问题</td><td class="text-center">高卫</td><td class="text-center">4</td></tr>
+                    <tr><td class="text-center">15</td><td class="text-center">2025-11-19</td><td>1、检查windows环境my.ini配置文件；2、添加skip-grant-table,share-memory后重启库；3、重置密码；4、取消参数，重新访问</td><td class="text-center">熊群</td><td class="text-center">1</td></tr>
+                    <tr><td class="text-center">16</td><td class="text-center">2025-11-19</td><td>白求恩安装proxy创建msyql用户</td><td class="text-center">高卫</td><td class="text-center">8</td></tr>
+                    <tr><td class="text-center">17</td><td class="text-center">2025-11-21</td><td>安装proxy</td><td class="text-center">高卫</td><td class="text-center">4</td></tr>
+                    <tr><td class="text-center">18</td><td class="text-center">2025-11-24</td><td>清理归档部署归档删除脚本</td><td class="text-center">高卫</td><td class="text-center">2</td></tr>
+                    <tr><td class="text-center">19</td><td class="text-center">2025-12-02</td><td>处理告警及参会</td><td class="text-center">高卫</td><td class="text-center">4</td></tr>
+                    <tr><td class="text-center">20</td><td class="text-center">2025-12-03</td><td>优化告警模板告警发送重复频率，优化告警模板，拆分告警模板，屏蔽部分ORA报错，观察告警情况</td><td class="text-center">徐肖霞</td><td class="text-center">4</td></tr>
+                    <tr><td class="text-center">21</td><td class="text-center">2025-12-05</td><td>远程协助，一起排查问题，定位为网络问题</td><td class="text-center">未分配</td><td class="text-center">2</td></tr>
+                    <tr><td class="text-center">22</td><td class="text-center">2025-12-06</td><td>数据库问题分析</td><td class="text-center">高卫</td><td class="text-center">4</td></tr>
+                    <tr><td class="text-center">23</td><td class="text-center">2025-12-08</td><td>编写ppt</td><td class="text-center">高卫</td><td class="text-center">4</td></tr>
+                    <tr><td class="text-center">24</td><td class="text-center">2025-12-12</td><td>东山精密巡检PPT编写</td><td class="text-center">未分配</td><td class="text-center">4</td></tr>
+                    <tr><td class="text-center">25</td><td class="text-center">2025-12-16</td><td>优化表空间扣分规则，调整巡检项</td><td class="text-center">徐肖霞</td><td class="text-center">2</td></tr>
+                    <tr><td class="text-center">26</td><td class="text-center">2025-12-17</td><td>目前定位到是优化器统计顾问任务导致PGA不断增涨</td><td class="text-center">徐肖霞</td><td class="text-center">8</td></tr>
+                    <tr><td class="text-center">27</td><td class="text-center">2025-12-20</td><td>东山精密ora-04030分析</td><td class="text-center">高卫</td><td class="text-center">8</td></tr>
+                    <tr><td class="text-center">28</td><td class="text-center">2025-12-30</td><td>白求恩中sql server和pg性能按钮点击报错，调整巡检项依旧巡检，得分很低，问题很多</td><td class="text-center">高卫</td><td class="text-center">8</td></tr>
+                    <tr><td class="text-center">29</td><td class="text-center">2026-01-05</td><td>东山精密数据库巡检报告整理</td><td class="text-center">高卫</td><td class="text-center">8</td></tr>
+                    <tr><td class="text-center">30</td><td class="text-center">2026-01-06</td><td>授权</td><td class="text-center">未分配</td><td class="text-center">1</td></tr>
+                    <tr><td class="text-center">31</td><td class="text-center">2026-01-07</td><td>分析ora-03150报错，及调整zcloud告警模板</td><td class="text-center">徐肖霞</td><td class="text-center">2</td></tr>
+                    <tr><td class="text-center">32</td><td class="text-center">2026-01-12</td><td>东山精密核心dataguad gap恢复</td><td class="text-center">未分配</td><td class="text-center">8</td></tr>
+                    <tr><td class="text-center">33</td><td class="text-center">2026-01-12</td><td>已创建ufread账号</td><td class="text-center">高卫</td><td class="text-center">1</td></tr>
+                    <tr><td class="text-center">34</td><td class="text-center">2026-01-13</td><td>检查触发器</td><td class="text-center">高卫</td><td class="text-center">1</td></tr>
+                    <tr><td class="text-center">35</td><td class="text-center">2026-01-15</td><td>sql server数据库大小统计</td><td class="text-center">高卫</td><td class="text-center">4</td></tr>
+                    <tr><td class="text-center">36</td><td class="text-center">2026-01-18</td><td>配合存储侧关闭主库，存储侧完成后开启主库</td><td class="text-center">高卫</td><td class="text-center">4</td></tr>
+                    <tr><td class="text-center">37</td><td class="text-center">2026-01-19</td><td>172.17.14.34 云上 SQLserver 2008 R2 ， 还原完成（数据来源于192.168.169.173）</td><td class="text-center">未分配</td><td class="text-center">6</td></tr>
+                    <tr><td class="text-center">38</td><td class="text-center">2026-01-19</td><td>东山云上 SQLserver 备份恢复 （数据来源 10.26.5.9）</td><td class="text-center">未分配</td><td class="text-center">8</td></tr>
+                    <tr><td class="text-center">39</td><td class="text-center">2026-01-20</td><td>苏州东山精密科技dg ORA-01157异常恢复</td><td class="text-center">未分配</td><td class="text-center">4</td></tr>
+                    <tr><td class="text-center">40</td><td class="text-center">2026-01-22</td><td>苏州东山精密科技核心dg延时高问题分析</td><td class="text-center">未分配</td><td class="text-center">8</td></tr>
+                    <tr><td class="text-center">41</td><td class="text-center">2026-01-23</td><td>苏州东山精密科技 MRP 自动重启脚本部署</td><td class="text-center">未分配</td><td class="text-center">8</td></tr>
+                    <tr><td class="text-center">42</td><td class="text-center">2026-01-24</td><td>restore新加的数据文件，开启mrp</td><td class="text-center">高卫</td><td class="text-center">4</td></tr>
+                    <tr><td class="text-center">43</td><td class="text-center">2026-01-26</td><td>苏州东山精密科技核心 Oracle 添加ASM磁盘组 3个4T，合计12T，方案编写审核及实施</td><td class="text-center">未分配</td><td class="text-center">8</td></tr>
+                    <tr><td class="text-center">44</td><td class="text-center">2026-01-26</td><td>清理crash目录下文件</td><td class="text-center">高卫</td><td class="text-center">1</td></tr>
+                    <tr><td class="text-center">45</td><td class="text-center">2026-01-29</td><td>内存告警问题分析</td><td class="text-center">高卫</td><td class="text-center">1</td></tr>
+                    <tr><td class="text-center">46</td><td class="text-center">2026-01-30</td><td>云上环境DG 硬盘分析及建议</td><td class="text-center">侯志清</td><td class="text-center">1</td></tr>
+                    <tr><td class="text-center">47</td><td class="text-center">2026-02-02</td><td>SQLserver 数据迁移</td><td class="text-center">未分配</td><td class="text-center">12</td></tr>
+                    <tr><td class="text-center">48</td><td class="text-center">2026-02-03</td><td>schema和表导入导出</td><td class="text-center">高卫</td><td class="text-center">3</td></tr>
+                    <tr><td class="text-center">49</td><td class="text-center">2026-02-05</td><td>东山精密SQL性能分析及优化</td><td class="text-center">未分配</td><td class="text-center">8</td></tr>
+                    <tr><td class="text-center">50</td><td class="text-center">2026-02-05</td><td>东山精密-BPM物理机安装操作系统及配置网络等</td><td class="text-center">王振飞</td><td class="text-center">8</td></tr>
+                    <tr><td class="text-center">51</td><td class="text-center">2026-02-05</td><td>安装两套oracle linux 8.10及BIOS配置</td><td class="text-center">高卫</td><td class="text-center">4</td></tr>
+                    <tr><td class="text-center">52</td><td class="text-center">2026-02-06</td><td>客户反馈已经正常</td><td class="text-center">侯志清</td><td class="text-center">2</td></tr>
+                    <tr><td class="text-center">53</td><td class="text-center">2026-02-09</td><td>整理巡检报告及ppt</td><td class="text-center">高卫</td><td class="text-center">4</td></tr>
+                    <tr><td class="text-center">54</td><td class="text-center">2026-02-09</td><td>已检查完成oracle数据库的表空间使用率</td><td class="text-center">高卫</td><td class="text-center">2</td></tr>
+                    <tr><td class="text-center">55</td><td class="text-center">2026-02-09</td><td>配置udev，安装集群、数据库并创建数据库，调整数据库参数等</td><td class="text-center">高卫</td><td class="text-center">12</td></tr>
+                    <tr><td class="text-center">56</td><td class="text-center">2026-03-02</td><td>整理巡检报告，上传到客户钉钉群</td><td class="text-center">高卫</td><td class="text-center">8</td></tr>
+                    <tr><td class="text-center">57</td><td class="text-center">2026-03-02</td><td>查询具有dba权限的用户，及dg延迟问题分析</td><td class="text-center">高卫</td><td class="text-center">2</td></tr>
+                    <tr><td class="text-center">58</td><td class="text-center">2026-03-05</td><td>东山精密-BPMDB两台数据库服务器时钟不同步处理</td><td class="text-center">王振飞</td><td class="text-center">2</td></tr>
+                    <tr><td class="text-center">59</td><td class="text-center">2026-03-10</td><td>10.26.5.9 备份数据库、通过堡垒机将备份文件保存到本地，再上传到上云，恢复数据库</td><td class="text-center">未分配</td><td class="text-center">3</td></tr>
+                    <tr><td class="text-center">60</td><td class="text-center">2026-03-13</td><td>手动清理归档，部署归档脚本，及调整归档路径</td><td class="text-center">高卫</td><td class="text-center">2</td></tr>
+                    <tr><td class="text-center">61</td><td class="text-center">2026-03-20</td><td>查看主库三个表中主键的定义，然后查看测试库的索引进行对比，然后创建主键</td><td class="text-center">高卫</td><td class="text-center">2</td></tr>
+                    <tr><td class="text-center">62</td><td class="text-center">2026-04-03</td><td>通过白求恩生成巡检报告，然后整理上传到钉钉及邮件发送给客户</td><td class="text-center">高卫</td><td class="text-center">6</td></tr>
+                    <tr><td class="text-center">63</td><td class="text-center">2026-04-05</td><td>配合客户升级核心交换机，关闭和启动库和集群，并检查DG同步情况</td><td class="text-center">高卫</td><td class="text-center">2</td></tr>
+                    <tr><td class="text-center">64</td><td class="text-center">2026-04-21</td><td>苏州东山精密科技安装Oracle RAC前环境检查：登录服务器检查网卡配置，发现两台机器仅有一个网卡两个网口</td><td class="text-center">高卫</td><td class="text-center">1</td></tr>
+                    <tr><td class="text-center">65</td><td class="text-center">2026-04-22</td><td>网卡绑定完了相互ping不通，public通了后，私网绑定后又有问题，反复同客户进行沟通测试</td><td class="text-center">高卫</td><td class="text-center">6</td></tr>
+                    <tr><td class="text-center">66</td><td class="text-center">2026-04-23</td><td>ens3f0和ens3f1为同一个网卡两个网口，绑定测试网络正常</td><td class="text-center">高卫</td><td class="text-center">1</td></tr>
+                    <tr><td class="text-center">67</td><td class="text-center">2026-04-24</td><td>更新udev文件，添加BPM_DATA磁盘组，dbca建bpme9数据库，修改参数文件，调整大页参数，创建4.5T表空间</td><td class="text-center">高卫</td><td class="text-center">4</td></tr>
+                    <tr><td class="text-center">68</td><td class="text-center">2026-04-27</td><td>1、与高卫进行项目工作交接，全面承接该项目相关事宜。2、接替高卫，持续推进并完成数据库数据导入相关工作。3、与客户沟通确认当前业务使用Dell EMC存储</td><td class="text-center">潘瑞</td><td class="text-center">8</td></tr>
+                    <tr style="background:#1a237e;color:#fff;font-weight:700;"><td colspan="4" class="text-right">合计</td><td class="text-center">313h (39.1人天)</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card" id="team">
+            <h2>👥 6. 交付团队与工时分布</h2>
+            <table>
+                <thead><tr><th>交付人员</th><th class="text-center">工单数量</th><th class="text-center">占比</th><th>主要职责</th></tr></thead>
+                <tbody>
+                    <tr style="background:#fff8e1;"><td><strong>高卫</strong></td><td class="text-center">43个</td><td class="text-center">63.2%</td><td>主力交付工程师，负责数据库运维、故障排查、巡检、RAC部署等核心工作</td></tr>
+                    <tr><td>徐肖霞</td><td class="text-center">4个</td><td class="text-center">5.9%</td><td>专项技术支持，告警策略配置、巡检项优化、ORA-04030深度分析</td></tr>
+                    <tr><td>熊群</td><td class="text-center">2个</td><td class="text-center">2.9%</td><td>MySQL问题排查、密码重置、Zabbix监控问题处理</td></tr>
+                    <tr><td>王振飞</td><td class="text-center">2个</td><td class="text-center">2.9%</td><td>服务器时钟同步、BPM物理机操作系统安装</td></tr>
+                    <tr><td>潘瑞 / 侯志清 / 邓秋爽 / 赵小兵 / 许文榕</td><td class="text-center">各1个</td><td class="text-center">各1.5%</td><td>专项支持</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card" id="cases">
+            <h2>🔧 7. 部分故障处理成果</h2>
+            <table>
+                <thead><tr><th width="35%">故障</th><th>处理结果</th></tr></thead>
+                <tbody>
+                    <tr><td>2025年11月24日，东山精密12.52oracle数据库归档满了导致业务异常</td><td><strong>问题原因：</strong>归档日志空间满导致数据库无法写入<br><strong>处理结果：</strong>紧急清理归档日志，恢复数据库正常运行，避免业务中断</td></tr>
+                    <tr><td>2025年12月17日，东山精密数据库出现ORA-04030报错问题分析</td><td><strong>问题原因：</strong>内存分配错误，进程无法分配足够内存<br><strong>处理结果：</strong>深度分析根因，调整内存参数，提供解决方案</td></tr>
+                    <tr><td>2026年01月19日，苏州东山精密科技dg ORA-01157异常恢复</td><td><strong>问题原因：</strong>DataGuard备库数据文件识别错误<br><strong>处理结果：</strong>恢复数据文件，重建DG同步</td></tr>
+                    <tr><td>2026年01月09日，东山精密核心dataguad gap恢复</td><td><strong>问题原因：</strong>主备库日志gap导致数据不同步<br><strong>处理结果：</strong>恢复日志同步，重建gap</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card" id="value">
+            <h2>🏆 8. 服务结论 - 交付价值总结</h2>
+            <div class="value-grid">
+                <div class="value-card"><h4>🛡️ 业务零中断</h4><p>所有工单均为P4/P5级别，业务暂未受影响。成功处理多次紧急故障，均未造成业务中断。</p></div>
+                <div class="value-card"><h4>🔧 重大变更顺利实施</h4><ul><li>12T ASM磁盘组扩容</li><li>Oracle RAC集群部署</li><li>两套Oracle Linux 8.10安装</li><li>核心交换机升级配合</li></ul></div>
+                <div class="value-card"><h4>📊 完善巡检体系</h4><ul><li>完成5轮数据库巡检</li><li>输出2份巡检PPT</li><li>优化巡检项与告警策略</li><li>部署MRP自动重启脚本</li></ul></div>
+                <div class="value-card"><h4>📄 丰富交付文档</h4><ul><li>5份巡检报告</li><li>2份巡检PPT</li><li>1份扩容方案</li><li>1个自动化脚本</li><li>4份配置文档</li></ul></div>
+                <div class="value-card"><h4>👥 专业团队</h4><p>以高卫为核心（63.2%工单），10人团队形成稳定服务梯队，深度了解客户系统。</p></div>
+                <div class="value-card"><h4>📈 系统稳定性提升</h4><p>月度服务请求在2026年1月达峰值（17个）后回落至5-9个/月，系统进入稳定运行期。</p></div>
+            </div>
+            <p style="margin-top:24px; font-size:15px; line-height:2;">在已交付的服务中，我们始终遵循用户至上的服务理念，及时处理和解决用户遇到的故障和疑难，为业务系统的安全稳健运行提供了强有力的技术支持，切实履行完合同约定的各项服务内容。</p>
+        </div>
+
+        <div class="footer">
+            <p><strong>云和恩墨（北京）信息技术有限公司</strong></p>
+            <p>专业数据库服务商 | 7×24小时技术支持</p>
+            <p>报告生成时间：2026-04-27</p>
+            <p>数据来源：MES服务请求系统</p>
+        </div>
+    </div>
+
+    <script>
+        const categories = {"故障处理": 21, "巡检服务": 9, "安装部署": 11, "数据迁移": 5, "性能优化": 3, "咨询支持": 14, "网络系统": 3, "权限安全": 2};
+        const labels = Object.keys(categories);
+        const data = Object.values(categories);
+        const colors = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c', '#e67e22', '#34495e'];
+        const manDays = [12, 6, 8, 4, 2, 5, 1.5, 0.6];
+
+        new Chart(document.getElementById('pieChart'), {
+            type: 'pie',
+            data: { labels: labels, datasets: [{ data: data, backgroundColor: colors, borderWidth: 2, borderColor: '#fff' }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { font: { size: 12 } } } } }
+        });
+
+        new Chart(document.getElementById('barChart'), {
+            type: 'bar',
+            data: { labels: labels, datasets: [{ label: '预估人天', data: manDays, backgroundColor: colors, borderWidth: 0, borderRadius: 6 }] },
+            options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, title: { display: true, text: '人天' } } } }
+        });
+    </script>
+</body>
+</html>
