@@ -878,6 +878,72 @@ curl -s -o /dev/null -w '%{http_code}' -X POST "https://api.minimaxi.com/anthrop
 - **failureNotificationDelivery 全部 = not-delivered** → **不消耗 push 额度** ✅（节省 push 实测有效）
 - 法定主动权无须每次修复 → 等 cron 下次触发自愈（10/4 三节点观察）
 
+### 🚨 故障 Q 变种 V2：缺失 .gitmodules 致 git submodule fatal（2026-10-28 08:00 固化 ⚡⚡⚡⚡⚡）
+
+**这是故障 Q 迄今**唯一被定位到**确定根因**的一次** —— 之前所有故障 Q 记录都只写了症状（"Exec failed"），本条给出根因与修复。
+
+**症状**：
+- `cron list --all` → 9fc7ca81（早间汇总）status=error，**delivered=0**
+- `cron_run_logs.summary` → `⚠️ 🛠️ Exec failed: ... → run git submodule (agent)`
+- 历史：10/23、10/24、10/25 error → 10/26、10/27 ok → 10/28 error = **间歇复发**
+
+**根因**：
+仓库有**两个已跟踪的 gitlink（mode 160000）**，但根目录**没有 `.gitmodules` 文件**：
+| gitlink | 记录 SHA | 实际 remote | 实际状态 |
+|---|---|---|---|
+| `document` | `84b3761` | `git@github.com:ymhctt/document.git` | 独立 repo，dirty=0，SHA 与 gitlink 一致 ✅ |
+| `skills/obsidian-skills` | `fa1e131` | `https://github.com/kepano/obsidian-skills.git` | 独立 repo，dirty=0，SHA 与 gitlink 一致 ✅ |
+
+→ `git submodule status` 直接 fatal：
+```
+fatal: no submodule mapping found in .gitmodules for path 'document'
+```
+→ 汇总 cron 执行到 `git submodule` 那一步就崩 → **整条推送链断**（delivered=0）
+
+**🔑 为什么 git_sync（7:00）一直 ok 而汇总（7:20）会崩**：
+- `scripts/pull-document.sh` 内容 = `cd document && git pull origin main` → **直接进子目录，完全绕开 submodule 映射检查**
+- 汇总 cron 会调 `git submodule`（查子仓状态）→ 才触发 fatal
+- → 决定了「哪些 cron 崩」取决于该次 prompt 路径是否碰 submodule = **间歇性的根源**
+
+**✅ 修复（内部配置修复，静默期合法 = AGENTS.md 规则四）**：
+```bash
+cd /root/.openclaw/workspace
+cp .git/config /tmp/gitconfig.bak.$(date +%s)      # 1. 备份
+# 2. 写 .gitmodules（path/url/branch 按实际 remote 抄）
+cat > .gitmodules <<'EOF'
+[submodule "document"]
+	path = document
+	url = git@github.com:ymhctt/document.git
+	branch = main
+[submodule "skills/obsidian-skills"]
+	path = skills/obsidian-skills
+	url = https://github.com/kepano/obsidian-skills.git
+	branch = main
+EOF
+git submodule init document
+git submodule init skills/obsidian-skills            # 3. 注册映射
+git add .gitmodules
+git commit -m "fix: add missing .gitmodules for document and skills/obsidian-skills gitlinks"
+git push workspace master:openclaw-workspace        # 4. 推送（refspec 显式！本地分支是 master）
+```
+
+**验证断言（6 项全过才算修好）**：
+| 断言 | 期望值 |
+|---|---|
+| `git submodule status` | 两行都有 SHA + `(heads/main)`，**exit 0** |
+| stderr | 无 "no submodule mapping" fatal |
+| `git submodule foreach` | 两个子仓 rev-parse **等于 gitlink 记录 SHA** |
+| 子仓 dirty | 0 / 0 |
+| `./scripts/pull-document.sh` | `Already up to date.` exit 0 |
+| `git rev-list --left-right --count @{u}...HEAD` | `0 0` |
+
+**🛡️ 预防**：
+- 任何 `git submodule` 操作前先确认 `.gitmodules` 存在且有对应 path 条目
+- 新增 gitlink（`git submodule add`）后**必须**确认 `.gitmodules` 已提交 —— 本次就是该文件从未入库导致
+- 判断「gitlink 是不是正规 submodule」= `git ls-files -s | awk '$1=="160000"'` 列出全部，对照 `.gitmodules` 条目数
+
+**⚠️ 教训**：故障 Q 历史记录里那些"间歇 Exec failed"如果**每次都去定位根因**，本可在 10/23 就修好 —— **不要满足于"Exec failed = 工具层问题，等自愈"的结论**，至少要复现一次命令看真实 stderr。
+
 ### 🚨 故障 M 实证完全推翻（2026-10-13 18:00 ⚡⚡⚡⚡⚡）
 
 **历史修订已全部错**——10/13 18:00 heartbeat 实证 a32216f6 连续 8 天 burst（10/6-10/13），**不是间歇性，是持续 burst**：

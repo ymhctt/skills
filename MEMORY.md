@@ -4283,3 +4283,19 @@ _Last updated: 2026-10-27 11:00 GMT+8 (cron-event heartbeat poll - 周二上午 
   > 先 `SELECT job_id,name FROM cron_jobs` 看真实 id，再判定「漂移」还是「消失」。
   > 文档里的 cron ID 至少每季度用 SQLite 对一次账。
 - **主动 push 0 次**（10/23 起连续 6 天零 `message send`，严守故障 T 铁律）✅
+
+## 2026-10-28 08:02 ⚡ 故障 Q 首次定位到确定根因并修复（.gitmodules 缺失）
+
+**这是故障 Q（subagent 工具调用层 Exec failed）迄今唯一一次被定位到确定根因** —— 此前所有故障 Q 记录只写症状。
+
+- **症状**：9fc7ca81（早间汇总）10/28 07:20 `status=error`、`delivered=0`，summary = `⚠️ 🛠️ Exec failed: ... → run git submodule (agent)`
+- **根因**：仓库有**两个已跟踪 gitlink（mode 160000）** —— `document`（`84b3761`）与 `skills/obsidian-skills`（`fa1e131`）—— 但根目录**没有 `.gitmodules` 文件** → `git submodule status` fatal：`no submodule mapping found in .gitmodules for path 'document'` → 汇总 cron 走到该步就崩，整条推送链断
+- **为何 git_sync 7:00 一直 ok**：`scripts/pull-document.sh` = `cd document && git pull origin main`，**直接进子目录，绕开 submodule 映射检查**；只有汇总 cron 会调 `git submodule` → 这就是 10/23/24/25 崩、10/26/27 好的**间歇性根源**
+- **修复**：备份 `.git/config` → 新建 `.gitmodules`（两个 path/url/branch 按实际 remote 抄）→ `git submodule init` ×2 → commit `bd7f887` → `git push workspace master:openclaw-workspace`
+- **验证 6 项全过**：`git submodule status` 两行 SHA + exit 0 / 无 fatal / 两子仓 SHA 等于 gitlink 记录值 / dirty 0,0 / `pull-document.sh` `Already up to date.` / 上下游 `0 0`
+- **预防**：新增 gitlink 后**必须**确认 `.gitmodules` 已入库；`git ls-files -s | awk '$1=="160000"'` 可列出全部 gitlink 对照 `.gitmodules` 条目数
+- **教训**：故障 Q 历史那些「间歇 Exec failed」若每次都复现命令看真实 stderr，**10/23 就能修好** —— 不要满足于「工具层问题，等自愈」
+
+**同时确认**：故障 K 仍 **day-48**（`mes auth status` = Not logged in，`/tmp/mes_summary_t23.json` 不存在）→ 唯一解除 = 爸爸 `mes auth login`，无自助路径。9:00 报工统计预计仍推「报告未生成」诊断。
+
+**本轮零 push**（只读自检 + 内部配置修复，全程无任何 `message send`）。
