@@ -1,0 +1,8 @@
+[submodule "document"]
+	path = document
+	url = git@github.com:ymhctt/document.git
+	branch = main
+[submodule "skills/obsidian-skills"]
+	path = skills/obsidian-skills
+	url = https://github.com/kepano/obsidian-skills.git
+	branch = main
