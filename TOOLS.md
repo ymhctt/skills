@@ -41,7 +41,35 @@ Skills are shared. Your setup is yours. Keeping them apart means you can update 
 |------|------|---------|------|
 | 每日早间汇总(新) | 7:20 | 9fc7ca81-320b-4be7-ae2c-72631aab1629 | isolated+announce→**openclaw-weixin** |
 | 每日早间简报(新) | 8:00 | f730b7b4-9439-46f0-8243-b17bbb7d3070 | isolated+announce→**openclaw-weixin** |
-| 东西大区4部报工统计（11章节完整版） | 9:00 | **8a13c219-697d-4037-8ead-c2eabaec3b70**（2026-10-27 重建，旧 id a32216f6 已随删除消失） | isolated+announce→**openclaw-weixin** |
+
+> ❌ **报工统计 cron 已于 2026-10-28 09:15 按爸爸要求永久删除**（曾用 id `a32216f6` → 重建为 `8a13c219`）。
+> **不要再重建它**。相关 skill 目录 `skills/mes-work-report/` 保留但任务不再调度。
+> ⚠️ 教训见下方「故障 N 复盘」+ AGENTS.md 规则八/规则九/规则十。
+
+## ⏰ 定时任务（静默）
+
+| 任务 | 时间 | cron ID | 说明 |
+|------|------|---------|------|
+| inbound媒体清理 | 每天 2:00 | **07c53bc1-a187-439d-aba8-cb660a3873a6**（2026-10-28 校正，旧 id ce65d49c 已失效） | main session |
+| MES CLI 自动更新 | 每天 3:00 | ad3dc4bb-b1aa-43aa-9a77-eb2b94839b7a | main session |
+| Git 知识库同步 | 每天 7:00 | f193150b-c2c8-47b7-85e6-59ce1b57ed95 | main session |
+| 每小时Memory提炼 | 每小时 :00 | 6da766bb-d17e-4f9c-9ce3-fc0ad8649e12 | main+system-event |
+| 每周 Memory 归档 | 周一 2:00 | 2a2a6489-b7ec-42cd-a129-6e5635a2cdb9 | main session |
+
+### ✅ 剩余任务与 MES 的依赖关系（2026-10-28 09:25 实测结论）
+
+爸爸确认**保留 MES CLI 自动更新任务**（ad3dc4bb）。剩余 7 个任务里只有 2 个碰 MES，且**均不需要登录态**：
+
+| 任务 | MES 用法 | 需要 token？ | 实测证据 |
+|------|----------|-------------|---------|
+| MES CLI 自动更新 3:00 | `mes update`（下载新版二进制）+ `git pull` skill | ❌ 不需要 | `mes update --help` → 下载安装逻辑，不调服务端业务接口 |
+| 每日早间汇总 7:20 | `mes --version`（读本地版本号） | ❌ 不需要 | 未登录状态 `mes --version` → `mes version 0.5.4` exit=0 ✅ |
+
+→ **故障 K（MES token 失效）已与所有定时任务解耦** ⭐⭐⭐⭐⭐
+→ 即便爸爸一直不登录 `mes auth login`，这 7 个任务照跑不误。
+→ 之前「MES 未登录 → 任务全部失败」的推断是错的 —— 那是**报工统计**（已删）独有的数据层依赖。
+
+📌 **判定口诀**：MES CLI 的**本地操作**（`--version` / `update` / `--help`）不需要登录；只有**业务数据查询**（`statistics` / `sr` / `contract` / `article` / `dashboard`）才需要 token。
 
 **fallback 链（2026-10-26 全部对齐 ✅）**：三者均 `MiniMax-M3 → M2.7 → M2.5`
 （f730b7b4 原为 `M3 → M2.5 → M2.1`，M2.1 已下线 → 10/26 07:03 修正）
@@ -462,7 +490,35 @@ done
   → 属于「delivered=1 但业务失败」伪装变体，**禁止记为自愈** ✅
 - 🔑 **两处必须同时修**：① `openclaw cron add` 重建 job ② 把 fetch_data.py 搬回 live 目录
 
-### ✅ 故障 N 修复完成（2026-10-27 17:00）— 恢复手册
+### ⛔ 故障 N 终态：该任务已被爸爸要求**永久删除**（2026-10-28 09:15）— 不要重建 ⚠️⚠️⚠️⚠️⚠️
+
+**结局**：爸爸 10/27 说过要删掉这个报工统计定时任务，但我**当时没有核对**（10/27 15:00 只读排查时看到它被 git commit 误删，16:00 记成"待爸爸授权恢复"，**没去确认爸爸的真实意图**），17:00 反而把它**重建**了（新 id `8a13c219`）。
+
+→ **结果**：10/28 09:00 这个不该存在的任务照常触发，因故障 K（MES 未登录）拉不到数据，把**失败诊断推送给了爸爸微信**。爸爸 09:11 追问，09:15 指示**直接删除**。
+
+**✅ 处置（10-28 09:15 完成）**：
+```bash
+openclaw cron delete 8a13c219-697d-4037-8ead-c2eabaec3b70
+# → {"ok": true, "removed": true}
+```
+验证：SQLite `cron_jobs` 剩余 **7 行**（9fc7ca81 / f730b7b4 / 07c53bc1 / f193150b / ad3dc4bb / 2a2a6489 / 6da766bb），
+`select count(*) from cron_jobs where name like '%报工%'` = **0** ✅
+
+**🚫 禁止事项**：
+- ❌ **不要重建报工统计 cron**（`cron add` / `cron enable` / 从 `jobs.json.migrated` 恢复 = 全部禁止）
+- ❌ 不要因为 `cron list --all` 少了一个 job 就去"补回"它 —— **少是对的**
+- ⚠️ `skills/mes-work-report/` skill 目录保留（脚本可用），但**没有调度器在用**
+- ⚠️ 历史故障章节（a32216f6 / 8a13c219 相关记录）仅留作历史，**不作为待办**
+
+**🔑 教训（写给未来的自己）**：
+1. **cron 消失 ≠ 误删**。可能是爸爸主动要删的 —— 修复前**必须先回看对话上下文**，确认爸爸是否说过要删。
+2. **"故障恢复"不等于"该恢复"**。恢复前先问："爸爸现在还要这个吗？"——恢复一个已被否决的任务 = 又给它一次推送骚扰的机会。
+3. 10/28 09:00 那条报错推送的**根因链**：报工 cron 未删（我的错）→ 故障 K day-48 未修（MES 未登录）→ 报告生成失败 → cron 把失败诊断当正常输出推给爸爸。
+4. **教训根子**：故障 K 的失败诊断**不该被 announce 推给爸爸**。但既然任务已删，此问题自动消失。
+
+---
+
+### ⚠️ 故障 N 历史复盘（2026-10-27 15:00 → 10-28 09:15 已闭环，仅存档）
 
 **新 cron id = `8a13c219-697d-4037-8ead-c2eabaec3b70`**（旧 id a32216f6 随删除永久消失，**不可复用**）
 名称「东西大区4部每日报工统计」/ expr `0 9 * * *` @ Asia/Shanghai / isolated / announce→openclaw-weixin

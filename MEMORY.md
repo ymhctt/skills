@@ -65,7 +65,7 @@ document/  (恩墨记录)
 | 每小时Memory提炼 | 每小时 :00 | 提炼内容到 MEMORY.md | 静默 |
 | 每周Memory归档 | 每周一 2:00 | 上周日记归档 → announce微信推送 | 静默 |
 | 每日早间汇总 | 每天 8:00 | Git/Memory/备份状态汇总 → announce微信 | 正常通知 |
-| **东西大区4部报工统计（新skill）** | **每天 9:00** | **MES查询→HTML+摘要推 openclaw-weixin** | **正常通知** |
+| ~~**东西大区4部报工统计（新skill）**~~ | ~~每天 9:00~~ | ❌ **2026-10-28 已按爸爸要求永久删除 cron**（曾用 a32216f6 → 8a13c219）；skill 目录保留但不调度 | — |
 | 每日MES自动更新 | 每天 3:00 | mes update + skill git pull | 静默 |
 | **inbound媒体清理** | 每天 2:00 | 清理1天前临时文件 | 静默 |
 
@@ -522,7 +522,7 @@ for ts,rat,jid,st,tok in c.execute('select ts,run_at_ms,job_id,status,total_toke
 | **当前版本** | 0.5.0（2026-05-05 更新） |
 | **升级方式** | CLI：`mes update`；Skill：git pull 最新版仓库覆盖安装 |
 | **自动更新** | 每天凌晨 3:00 自动执行更新任务（cron ID: ad3dc4bb-b1aa-43aa-9a77-eb2b94839b7a） |
-| **每日周报工统计** | 每天早上 9:00 统计东西大区4部本周报工并推送（cron ID: 8a13c219-697d-4037-8ead-c2eabaec3b70，isolated+announce→openclaw-weixin；旧 id a32216f6 已于 2026-10-27 重建后失效） |
+| ~~**每日周报工统计**~~ | ❌ **2026-10-28 09:15 按爸爸要求永久删除**（曾用 a32216f6 → 8a13c219，SQLite 已 0 行）。skill 目录 `skills/mes-work-report/` 保留但不调度，**不要重建** |
 | **inbound媒体清理** | 每天凌晨 2:00 清理临时文件（cron ID: **07c53bc1-a187-439d-aba8-cb660a3873a6**，2026-10-28 校正；旧 id ce65d49c 已失效） |
 
 ---

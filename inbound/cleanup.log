@@ -9,3 +9,4 @@ Sun Aug 23 02:00:22 CST 2026 (cron:media_cleanup, noop, inbound 8.0K / tmp uploa
 Mon Sep 07 02:00:00 CST 2026 (cron:media_cleanup, noop, inbound=8.0K / tmp upload_extracted=4.0K / media/inbound=32K / trash_batch=0, no staged dirs>24h, no files>7d, freed: 0)
 Wed Sep 09 02:00:25 CST 2026 (cron:media_cleanup, cleaned 1 staged file in media/inbound (>7d, SQL手工查询手册 mtime 2026-08-02 > 7d), freed: ~32K, after: inbound=8.0K / tmp upload_extracted=4.0K / media/inbound=removed)
 Fri Sep 11 02:01:09 CST 2026 (cron:media_cleanup, noop, inbound=8.0K / tmp upload_extracted=4.0K / media/inbound=4.0K, no staged dirs>24h, no files>7d, freed: 0)
+Thu Oct 29 02:01:00 CST 2026 (cron:media_cleanup, cleaned 12 files >7d + 11 staged dirs >24h, freed: 63MB, trash=state/inbound_trash_20261029, after media/inbound=616K / workspace/media/inbound=4.0K / media_blobs=0)
