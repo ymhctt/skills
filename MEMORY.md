@@ -448,7 +448,9 @@ document/  (恩墨记录)
 
 ## 📋 待完成事项
 
-- [ ] **【阻塞中·需爸爸】`mes auth login`** — 故障 K day-46+（MES token 空串，从未写入）。4 种登录方式均需人工交互，无人值守不可完成。**a32216f6 报工统计 13x 连续失败的根本原因**
+- [x] ~~**【阻塞中·需爸爸】`mes auth login`**~~ — **2026-10-29 17:42 爸爸明确指示：「MES 登录失效问题以后不用关注了」** → **故障 K 归档为「已关闭/不再跟踪」，不再作为待办、不再作为「需要爸爸动手」的开口理由、不再做任何 `mes auth status` 巡检**。
+  - 连带关闭：a32216f6 报工统计 cron（已于 10/28 按爸爸要求永久删除）+ `skills/mes-work-report/` skill 目录保留但不调度
+  - MES CLI **本地操作**（`mes --version` / `mes update` / `mes --help`）不需登录 → `ad3dc4bb` 每日MES CLI自动更新任务**照常运行，不受影响**
 - [ ] **【维护】MEMORY.md 瘦身** — 4055 行 / 1.6 MB，超 2400 行阈值 69% → 待 11/02 归档统一精简
 - [ ] **【维护】Git 知识库变更未提交** ⚠️
 - [ ] 完善 IDENTITY.md（婷婷的头像尚未设置）
@@ -4299,3 +4301,100 @@ _Last updated: 2026-10-27 11:00 GMT+8 (cron-event heartbeat poll - 周二上午 
 **同时确认**：故障 K 仍 **day-48**（`mes auth status` = Not logged in，`/tmp/mes_summary_t23.json` 不存在）→ 唯一解除 = 爸爸 `mes auth login`，无自助路径。9:00 报工统计预计仍推「报告未生成」诊断。
 
 **本轮零 push**（只读自检 + 内部配置修复，全程无任何 `message send`）。
+
+## 🚨 2026-10-29 17:36 事故：静默机制彻底失效（25 条骚扰消息）— 最高优先级教训 ⚡⚡⚡⚡⚡
+
+**爸爸原话**：「你说是静默处理，结果一直给我发？今天凌晨三点 四点还在发。你想干嘛？」
+
+**这是 10/28 19:37 同一问题的第二次复发，且更严重**（10/28 是 1 条，这次是 25 条）。
+
+### 📊 排查实锤（`delivery_queue_entries` 表）
+
+- 10/29 **05:07 ~ 17:07** 共 **25 条** openclaw-weixin 消息 → 全部由我发出
+- **cron 完全无辜**：7 个 job 的 `delivered` 全是 `not-requested`；只有 07:20/08:00 两个 announce job 是 `delivered=1`（正常推送）
+- 25 条内容 = 我的**回复正文**（"05:37 无变化：…静默。" / "⚠️ 🛠️ Exec failed: …" / "17:07 状态无变化：…"）
+- ⚠️ **最恶劣**：每条结尾都写着「静默处理」「一切正常，静默」→ **一边发消息一边宣称自己在静默**
+
+### 🎯 根因（三层叠加）
+
+1. **systemEvent 注入误判**：`cron:memory_refine` 每小时注入本对话 → 我每次都当成「该输出状态报告」
+2. **NO_REPLY 失效**：写在正文里 + 前面跟一大段表格 → 整条被当普通消息推送
+3. **自检 stdout 回灌**：`openclaw cron list --all | grep ...` 的 stdout（含 `⚠️ 🛠️ Exec failed:` 工具错误文本）直接进对话 → 6 条属此类
+
+### ✅ 修复（机制层面，2026-10-29 17:40 已执行并验证）
+
+| # | 动作 | 验证 |
+|---|---|---|
+| 1 | cron `6da766bb` isolated+command → **main+systemEvent** | SQLite 确认 `session=main, kind=systemEvent, delivery=NONE` ✅ |
+| 2 | 全部静默 job `--no-deliver`：07c53bc1 / ad3dc4bb / f193150b / 6da766bb | SQLite 确认 4 个 delivery=NONE ✅ |
+| 3 | `2a2a6489` 每周Memory归档的 announce 推送**也关掉** | delivery=NONE ✅ |
+| 4 | `scripts/memory_refine.sh` 重写：stdout 强制空（只 `>> "$LOG"`），备份 `/tmp/memory_refine.sh.bak.20261029` | 实跑 `stdout_len=0` ✅ |
+| 5 | HEARTBEAT.md 重写为规则式 + 新增「自检通道零输出」段 + 事故对照表 + 自检三问 | 已写 ✅ |
+
+**当前 7 job 状态**（全部 delivery 正确）：
+```
+07c53bc1 inbound媒体清理        main  systemEvent  NONE
+2a2a6489 每周Memory归档          main  systemEvent  NONE   ← 推送已关
+6da766bb 每小时Memory提炼        main  systemEvent  NONE   ← 已改
+f193150b 每日Git同步             main  systemEvent  NONE
+ad3dc4bb 每日MES CLI自动更新    main  systemEvent  NONE
+9fc7ca81 每日早间汇总 7:20      isolated agentTurn  announce ← 正常推送
+f730b7b4 每日早间简报 8:00      isolated agentTurn  announce ← 正常推送
+```
+
+### 🔑 最高优先级长期判据（写进 TOOLS.md / AGENTS.md 级别）
+
+> **「静默」两个字不是开关。** 只要回复里出现任何正文，就等于推送给爸爸。
+> 「静默处理」「一切正常，静默」这类结尾 = **自欺欺人 = 实际又发了**。
+>
+> ✅ **唯一正确做法**：整条回复**只有 `NO_REPLY` 四个字符**，工具调用在之前完成。
+> ✅ **自检命令 stdout 必须重定向**：`openclaw cron list --all > /tmp/x.txt 2>&1`，否则输出回灌成微信消息。
+> ✅ **判定流程（自检三问）**：有新情况吗？需爸爸动手吗？爸爸问了吗？三个都否 → `NO_REPLY`。
+
+### 📌 排查方法（下次复用）
+
+```bash
+cd /root/.openclaw/state && python3 -c "
+import sqlite3,datetime,json
+c=sqlite3.connect('file:openclaw.sqlite?mode=ro',uri=True)
+for r in c.execute('''select enqueued_at,entry_json from delivery_queue_entries
+ where enqueued_at > (strftime('%s','now','-24 hours')*1000) order by enqueued_at asc'''):
+    ts=datetime.datetime.fromtimestamp(r[0]/1000).strftime('%m-%d %H:%M')
+    j=json.loads(r[1]); print('==',ts,'==')
+    print(j['payloads'][0].get('text','')[:300])"
+```
+→ **`delivery_queue_entries` 是判定「到底发了什么给爸爸」的唯一权威表**，
+比 `cron_run_logs.delivered` 更全面（后者只记 cron 推送，不记我的自发回复）。
+
+
+## 🔒 故障 K（MES 登录失效）已关闭 —— 爸爸 2026-10-29 17:42 指示 ⚡⚡⚡⚡⚡
+
+**爸爸原话**：「MES 登录失效问题以后不用关注了」
+
+### 关闭范围（自此生效）
+
+| 项 | 处置 |
+|---|---|
+| 故障 K（MES token 失效，9/11 起 day-49） | **归档为「已关闭·不再跟踪」** |
+| 「需要爸爸 `mes auth login`」开口理由 | **永久删除** —— 不再作为任何一次 push 的理由 |
+| `mes auth status` 巡检 | **取消** —— 不再跑、不再查、不再写进任何状态报告 |
+| `/tmp/mes_summary_t23.json` 存在性检查 | **取消** |
+| a32216f6 报工统计 cron | 已于 10/28 按爸爸要求永久删除（不重建） |
+| `skills/mes-work-report/` skill 目录 | 保留文件，但**不再调度、不再验证** |
+
+### ⚠️ 仍需正常运行的（不要误删）
+
+- `ad3dc4bb` 每日MES CLI自动更新（3:00）：`mes update` + `git pull`
+  - **MES CLI 本地操作不需要登录** → `mes update --help` 走下载安装逻辑，不调业务接口
+  - → **该 cron 与登录态无关，照常跑**
+- `mes --version` 读本地版本号 —— 同样不需要登录
+
+### 🔑 长期判据
+
+> **MES 登录态 = 爸爸主动管理的事项，不在我的观察清单里。**
+> 故障 K 相关的所有巡检、记录、播报动作一律停止。
+> 以后若爸爸自己要用报工看板，**由爸爸主动说**，我不主动提、不主动问、不主动提醒。
+
+**注**：故障 K 的历史技术细节（无自助路径穷举表、误判 1/2 纠正、伪装变体判据）保留在 TOOLS.md / 本文件上文，
+仅作**历史档案**查阅，**不再是活跃监控项**。
+
