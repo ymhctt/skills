@@ -1,0 +1,89 @@
+{
+  "title": "统一权限数据库RAC节点驱逐故障分析报告",
+  "background": [
+    "2026年6月29日18:01:55，客户统一权限数据库RAC集群（两节点rac45d1/rac45d2，Oracle 11.2.0.4，Linux x86_64）发生节点驱逐事件，rac45d2被rac45d1强制驱逐出集群。rac45d2在约57秒后（18:02:52）完成集群重配置并重新加入。",
+    "该RAC集群承载核心统一权限（tyqxprod）数据库，使用bond1（mode=1, miimon=100）作为私网互联，eth0为active slave、eth2为backup slave。",
+    "故障期间rac45d1的/var/log/messages显示eth0网卡（ixgbe 10Gb驱动）在18:01:25发生TX timeout，内核触发网卡重置。rac45d2的alert日志则记录了CRS-1612/CRS-1611/CRS-1610/CRS-1608的驱逐序列。",
+    "客户在故障发生前未观察到任何告警，故障期间rac45d2上的数据库实例、VIP和集群服务全部中断。中断持续约57秒后集群自动恢复。"
+  ],
+  "phenomenon": [
+    "rac45d1的/var/log/messages中记录到eth0网卡发生TX timeout及Reset Adapter：",
+    "code:Jun 29 18:01:25 rac45d1 kernel: ixgbe 0000:85:00.0: eth0: initiating reset due to tx timeout\nJun 29 18:01:25 rac45d1 kernel: ixgbe 0000:85:00.0: eth0: Reset adapter\nJun 29 18:01:26 rac45d1 kernel: ixgbe 0000:85:00.0: eth0: detected SFP+: 5\nJun 29 18:01:26 rac45d1 kernel: ixgbe 0000:85:00.0: eth0: NIC Link is Up 10 Gbps, Flow Control: RX/TX\nJun 29 18:01:26 rac45d1 kernel: bond1: link status up again after 0 ms for interface eth0",
+    "rac45d2的clusterware alert日志中CSSD依次记录了从50%到100%的网络心跳丢失告警，最终将本节点驱逐：",
+    "code:2026-06-29 18:01:41.683: [cssd(42407)]CRS-1612:Network communication with node rac45d1 (1) missing for 50% of timeout interval.  Removal of this node from cluster in 14.030 seconds\n2026-06-29 18:01:48.685: [cssd(42407)]CRS-1611:Network communication with node rac45d1 (1) missing for 75% of timeout interval.  Removal of this node from cluster in 7.030 seconds\n2026-06-29 18:01:53.686: [cssd(42407)]CRS-1610:Network communication with node rac45d1 (1) missing for 90% of timeout interval.  Removal of this node from cluster in 2.030 seconds\n2026-06-29 18:01:55.717: [cssd(42407)]CRS-1608:This node was evicted by node 1, rac45d1; details at (:CSSNM00005:) in /oracle/11204/grid/log/rac45d2/cssd/ocssd.log.\n2026-06-29 18:01:55.717: [cssd(42407)]CRS-1656:The CSS daemon is terminating due to a fatal error\n2026-06-29 18:02:28.687: [cssd(407765)]CRS-1601:CSSD Reconfiguration complete. Active nodes are rac45d1 rac45d2 .\n2026-06-29 18:02:52.521: [crsd(411258)]CRS-1201:CRSD started on node rac45d2.",
+    "期间rac45d2上的ora.crsd、ora.asm、ora.evmd、ora.ctssd等集群资源全部FAIL，ora.cluster_interconnect.haip也failed。CRSD最终在18:02:02因无法与CSSD通信而中止。",
+    "rac45d2上的数据库实例、VIP/SCAN VIP等服务在18:01:55开始中断，至18:02:52集群恢复后由CRSD自动重新拉起。整个中断持续约57秒。"
+  ],
+  "root_cause": [
+    "本次故障的根本原因是 rac45d1的eth0网卡（ixgbe 10Gb驱动）发生TX timeout，触发内核重置网卡，而该物理网卡所在的bond1（私网互联）由于miimon的监控盲区未能切换到backup网卡eth2，最终导致CSSD心跳超时并触发节点驱逐。",
+    "完整因果链如下：",
+    "① eth0 (ixgbe) 发生TX timeout，TX ring buffer描述符未被硬件回收，TX队列卡死约5秒。",
+    "② Driver Reset Adapter，ixgbe_reinit_locked() 重置网卡，carrier短暂off（&lt;100ms）。",
+    "③ 物理层（PHY）始终保持Link Up，MII寄存器报告carrier UP，网口LED正常。",
+    "④ Bond (miimon=100) 认为链路正常，miimon 100ms轮询周期内未捕获carrier flap（\"0 ms\"）。",
+    "⑤ Bond未触发failover → eth2不被激活，集群互联持续走故障eth0。",
+    "⑥ CSSD UDP心跳包发送失败，Misscount累计（~28秒）。",
+    "⑦ Lease Arbitration（租约仲裁）：两节点均能访问Voting Disk，Node 1（编号较低）胜出。",
+    "⑧ rac45d2被驱逐，CSSD终止，CRSD开始清理资源。",
+    "核心缺陷：miimon只监控L1物理链路的carrier状态，无法感知L2驱动层TX队列故障；ixgbe Reset Adapter速度极快（&lt;100ms），miimon 100ms采样窗口完全错过carrier flap，导致bond failover机制完全失效。",
+    "补充说明：eth0在18:01:26已恢复链路，但CSSD心跳实际丢失从~18:01:28开始（依据misscount反推），持续到18:01:55驱逐。链路恢复不等于心跳恢复：HAIP虚拟IP需重新初始化ARP和路由，UDP socket需要重建，\"detected SFP+: 5\"提示可能存在物理层边际问题进一步延迟恢复。",
+    "关键证据：",
+    "1. ixgbe TX timeout + Reset Adapter 触发网卡重置，但重置速度极快。",
+    "2. bond1日志\"link status up again after 0 ms for interface eth0\"证明miimon认为eth0从未中断。",
+    "3. eth2作为backup slave整个过程未被激活，TX队列正常但未接管流量。",
+    "4. CRS-1608明确记录\"evicted by node 1, rac45d1\"，符合2节点集群中节点编号较低者胜出的仲裁规则。"
+  ],
+  "action": [
+    "云和恩墨在接到故障申报后立即组织人员对rac45d1的/var/log/messages、rac45d2的alert日志、ocssd日志和bonding状态进行收集与分析。处置过程按时间顺序如下：",
+    "18:01:55 — 故障发生，rac45d2被rac45d1驱逐，CSSD/CRSD级联清理。",
+    "18:02:07 — rac45d2 CSSD重启并开始重新加入集群。",
+    "18:02:28 — CSSD Reconfiguration完成，两节点均在线。",
+    "18:02:52 — CRSD启动完成，集群服务全面恢复。",
+    "故障期间rac45d2上的数据库实例、VIP、SCAN服务由CRSD在18:02:52后自动拉起，无需人工干预。rac45d1在整个事件期间未受CSSD影响，持续对外提供服务。",
+    "故障定位的关键步骤：",
+    "1. 对比rac45d1的/var/log/messages，发现18:01:25 eth0 TX timeout + Reset Adapter记录；",
+    "2. 对比rac45d2的alert日志，确认CRS-1612/1611/1610/1608序列和misscount ~28秒；",
+    "3. 抓取bond1的\"link status up again after 0 ms\"日志，确认miimon未检测到carrier flap；",
+    "4. 确认eth2作为backup slave未被激活，TX队列正常但流量未切换；",
+    "5. 推算misscount起始点（18:01:55 - 28s ≈ 18:01:27），与eth0恢复链路时间（18:01:26）吻合，验证链路恢复后心跳未立即重建；",
+    "6. 定位根因为miimon监控盲区 + ixgbe Reset速度过快导致bond failover未触发。",
+    "本次故障在57秒内由集群自愈机制完成恢复，未影响客户核心业务连续性。故障定位耗时约40分钟，主要时间消耗在告警信息交叉对比与排除OGG/应用层影响因素。"
+  ],
+  "solution": [
+    "为避免同类型故障再次发生，建议按以下优先级落实改进措施：",
+    "bold:【P0 高】升级ixgbe驱动和NIC固件",
+    "TX timeout本身是异常事件，根因可能是驱动bug或固件缺陷。建议检查当前ixgbe驱动版本是否在已知问题清单中（如某些版本在高负载下TX队列卡死Bug），升级到厂商推荐的稳定版本，并同时升级网卡固件。",
+    "bold:【P0 高】检查和更换SFP+模块",
+    "\"detected SFP+: 5\"提示SFP+模块被重新探测，应检查模块接触情况、光功率、模块本身质量。如确认模块异常或老化，应立即更换；同时检查光纤线路质量（光衰是否在标准范围内）。",
+    "bold:【P1 高】增加ARP监控弥补miimon盲区",
+    "将 bond1 的 miimon 监控替换为 arp_interval 监控（在bond1配置中增加 arp_interval=100 arp_ip_target=对端私网IP arp_validate=3）。ARP 请求走完整的数据通道（TX → 链路 → RX），可检测到 TX 队列卡死类故障。注意 ARP 监控与 miimon 互斥，需在非生产环境充分测试后再上线。",
+    "bold:【P1 高】迁移到 LACP mode=4",
+    "如私网交换机支持LACP（802.3ad），将bond模式从mode=1（active-backup）改为mode=4（LACP）。LACP模式下两条链路同时工作（active-active），单网卡故障时流量自动走另一条，无需failover切换时间，是最理想的冗余方案。",
+    "bold:【P1 中】增加私网冗余路径",
+    "如有第二组bond接口可用，配置HAIP多路径。即使单组bond故障，Oracle HAIP可自动使用备用路径，提供额外冗余。",
+    "bold:【P2 中】设置diagwait",
+    "11.2.0.4默认diagwait可能不足，建议在所有节点停止集群后设置diagwait=13以上，确保驱逐前有足够时间收集ocssd诊断信息。命令：crsctl set css diagwait 13。",
+    "bold:【P2 低】检查rp_filter",
+    "多私网环境下rp_filter=1可能导致RDS/IB连接drop（MOS Doc 1286796.1），建议设为0或2。",
+    "bold:【P0 高】立即检查事项",
+    "1. 检查eth0网卡硬件：使用ethtool -i eth0查看驱动版本；ethtool -S eth0关注tx_timeout计数；ethtool -m eth0检查SFP+模块光功率。",
+    "2. 检查dmesg历史：dmesg -T | grep -i \"ixgbe|eth0|tx timeout|reset\" 确认是否此前已有TX timeout事件。",
+    "3. 检查交换机端口：登录私网交换机查看eth0对应端口的error counters、CRC error、input/output drops等。",
+    "4. 检查misscount和diagwait：crsctl get css misscount 和 crsctl get css diagwait。"
+  ],
+  "other": [
+    "本次故障暴露了一个被广泛低估的Linux bonding配置风险：miimon监控无法检测驱动层TX队列故障。建议将上述miimon盲区问题纳入客户RAC集群标准化配置检查清单（Standard Configuration Checklist），在所有新部署的RAC环境中：",
+    "1. 默认采用LACP mode=4（如交换机支持）；",
+    "2. 如使用mode=1，必须配置arp_interval监控作为补充；",
+    "3. 所有私网网卡必须确认SFP+模块质量，定期检查光功率；",
+    "4. ixgbe驱动版本需纳入变更管理，定期升级到稳定版本。",
+    "另建议在 RAC 集群中统一配置 OSWatcher 监控（已部署）和网卡 tx_timeout 计数器告警，OSWatcher 历史数据可大幅提升未来类似故障的定位效率。"
+  ],
+  "attachments": [
+    "附件1：rac45d1-var-log-messages-20260629.txt — 故障时段rac45d1的/var/log/messages（含ixgbe TX timeout + bond1 flap日志）",
+    "附件2：rac45d2-alert-rac45d2.log — 故障时段rac45d2的clusterware alert日志（含CRS-1612/1611/1610/1608驱逐序列）",
+    "附件3：rac45d1-rac45d2-ocssd.log — 两节点CSSD ocssd.log相关片段（CSSNM00005驱逐协商记录）",
+    "附件4：统一权限数据库RAC节点驱逐故障分析报告.html — 完整故障分析报告（HTML版，含因果链图与时间线对比图）"
+  ],
+  "footer_source": "云和恩墨（北京）信息技术有限公司数据库技能知识库深度分析"
+}
