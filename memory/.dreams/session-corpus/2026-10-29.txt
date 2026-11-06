@@ -38,3 +38,26 @@
 [main/sessions/main/18d082e0-be9d-47cc-80ce-55e0d9c79cda#L661] Assistant: 05:07 状态（法定静默期）： - memory_refine 05:00 ✅、git_sync 07:00 ✅- 07:20 早间汇总 ❌ 未送达（工具链失败）、08:00 早间简报 ✅ - cron 仍 7 个（报工统计任务不存在），无 disabled - 故障 K day-51 持续（`Not logged in`、artifact 不存在） 静默处理，不推送。距 07:00 Git 同步还有2h。
 [main/sessions/main/18d082e0-be9d-47cc-80ce-55e0d9c79cda#L665] Assistant: 05:37 无变化：memory_refine 05:00 ✅、MES 未登录。法定静默期，静默。
 [main/sessions/main/18d082e0-be9d-47cc-80ce-55e0d9c79cda#L669] Assistant: 06:07 状态（法定静默期，距退出约 2h）： - memory_refine 06:00 ✅ - 07:20 早间汇总 ❌ 未送达（工具链失败）、08:00 早间简报 ✅ - cron 仍 7 个（报工统计任务不存在） - 故障 K day-51 持续（`Not logged in`、artifact 不存在） 静默处理，不推送。
+[main/sessions/main/18d082e0-be9d-47cc-80ce-55e0d9c79cda#L673] Assistant: 06:37 无变化：memory_refine 06:00 ✅、MES 未登录。法定静默期尾段，静默。
+[main/sessions/main/18d082e0-be9d-47cc-80ce-55e0d9c79cda#L677] Assistant: 07:30 状态——**今天 07:20 早间汇总 ✅ 已送达**（昨天那次工具链失败未复现）： - **07:20 早间汇总 ✅ delivered=1** ← 昨天失败的那条今天正常了 - git_sync 07:00 ✅、memory_refine 07:00 ✅ - 08:00 早间简报待触发（30min 后） - cron 仍 7 个（报工统计任务不存在） - 故障 K day-51 持续（`Not logged in`、artifact 不存在） 无异常，继续观察 08:00 与 09:40（后者因任务已不存在，不会触发
+[main/sessions/main/18d082e0-be9d-47cc-80ce-55e0d9c79cda#L681] Assistant: 07:37 无变化：07:20 早间汇总 ✅ 已送达、memory_refine 07:00 ✅、08:00 简报待触发（23min 后）、MES 未登录、cron 仍 7 个。静默。
+[main/sessions/main/18d082e0-be9d-47cc-80ce-55e0d9c79cda#L685] Assistant: 08:07 状态： - **07:20 早间汇总 ✅ 已送达** - **08:00 早间简报 ✅ 已送达**（今天两个推送节点均成功） - memory_refine 08:00 ✅ - cron 仍 7 个（报工统计任务不存在，今天 09:40 不会触发） - 故障 K day-51 持续（`Not logged in`、artifact 不存在） 一切正常，静默。
+[main/sessions/main/18d082e0-be9d-47cc-80ce-55e0d9c79cda#L689] Assistant: 08:37 无变化：07:20 ✅、08:00 ✅ 均已送达，memory_refine 08:00 ✅，MES 未登录，cron 仍 7 个。静默。
+[main/sessions/main/18d082e0-be9d-47cc-80ce-55e0d9c79cda#L693] Assistant: 09:07 状态： - 07:20 早间汇总 ✅、08:00 早间简报 ✅ 均已送达 - memory_refine 09:00 ✅ - 报工统计：**10/29 09:40不会触发**（任务已不存在，最后一条记录停在 10-28 09:10） - 故障 K day-51 持续（`Not logged in`、artifact 不存在） 一切正常，静默。
+[main/sessions/main/18d082e0-be9d-47cc-80ce-55e0d9c79cda#L697] Assistant: 09:37 无变化：07:20 ✅、08:00 ✅ 已送达，memory_refine 09:00 ✅，cron 仍 7 个，MES 未登录。静默。
+[main/sessions/main/18d082e0-be9d-47cc-80ce-55e0d9c79cda#L701] Assistant: 10:07 状态无变化： - 07:20 早间汇总 ✅、08:00 早间简报 ✅ 均已送达 - memory_refine 10:00 ✅ - cron 仍 7 个（报工统计任务不存在），无 disabled - 故障 K day-51 持续（`Not logged in`、artifact 不存在） 静默处理。
+[main/sessions/main/18d082e0-be9d-47cc-80ce-55e0d9c79cda#L705] Assistant: 10:37 无变化：07:20 ✅、08:00 ✅ 已送达，memory_refine 10:00 ✅，cron 仍 7 个，MES 未登录。静默。
+[main/sessions/main/18d082e0-be9d-47cc-80ce-55e0d9c79cda#L709] Assistant: 11:07 状态无变化： - 07:20 早间汇总 ✅、08:00 早间简报 ✅ 均已送达 - memory_refine 11:00 ✅ - cron 仍 7 个（报工统计任务不存在） - 故障 K day-51 持续（`Not logged in`、artifact 不存在） 静默处理。
+[main/sessions/main/18d082e0-be9d-47cc-80ce-55e0d9c79cda#L713] Assistant: 11:37 无变化：07:20 ✅、08:00 ✅ 已送达，memory_refine 11:00 ✅，cron 仍 7 个，MES 未登录。静默。
+[main/sessions/main/18d082e0-be9d-47cc-80ce-55e0d9c79cda#L717] Assistant: 12:07 状态无变化： - 07:20 早间汇总 ✅、08:00 早间简报 ✅ 均已送达 - memory_refine 12:00 ✅ - cron 仍 7 个（报工统计任务不存在），无 disabled - 故障 K day-51 持续（`Not logged in`、artifact 不存在） 静默处理。
+[main/sessions/main/18d082e0-be9d-47cc-80ce-55e0d9c79cda#L721] Assistant: 12:37 无变化：07:20 ✅、08:00 ✅ 已送达，memory_refine 12:00 ✅，cron 仍 7 个，MES 未登录。静默。
+[main/sessions/main/18d082e0-be9d-47cc-80ce-55e0d9c79cda#L725] Assistant: 13:07 状态无变化： - 07:20 早间汇总 ✅、08:00 早间简报 ✅ 均已送达 - memory_refine 13:00 ✅ - cron 仍 7 个（报工统计任务不存在） - 故障 K day-51 持续（`Not logged in`、artifact 不存在） 静默处理。
+[main/sessions/main/18d082e0-be9d-47cc-80ce-55e0d9c79cda#L729] Assistant: 13:37 无变化：07:20 ✅、08:00 ✅ 已送达，memory_refine 13:00 ✅，cron 仍 7 个，MES 未登录。静默。
+[main/sessions/main/18d082e0-be9d-47cc-80ce-55e0d9c79cda#L733] Assistant: 14:07 状态无变化： - 07:20 早间汇总 ✅、08:00 早间简报 ✅ 均已送达 - memory_refine 14:00 ✅ - cron 仍 7 个（报工统计任务不存在），无 disabled - 故障 K day-51 持续（`Not logged in`、artifact 不存在） 静默处理。
+[main/sessions/main/18d082e0-be9d-47cc-80ce-55e0d9c79cda#L737] Assistant: 14:37 无变化：07:20 ✅、08:00 ✅ 已送达，memory_refine 14:00 ✅，cron 仍 7 个，MES 未登录。静默。
+[main/sessions/main/18d082e0-be9d-47cc-80ce-55e0d9c79cda#L741] Assistant: 15:07 状态无变化： - 07:20 早间汇总 ✅、08:00 早间简报 ✅ 均已送达 - memory_refine 15:00 ✅ - cron 仍 7 个（报工统计任务不存在） - 故障 K day-51 持续（`Not logged in`、artifact 不存在） 静默处理。
+[main/sessions/main/18d082e0-be9d-47cc-80ce-55e0d9c79cda#L745] Assistant: 15:37 无变化：07:20 ✅、08:00 ✅ 已送达，memory_refine 15:00 ✅，cron 仍 7 个，MES 未登录。静默。
+[main/sessions/main/18d082e0-be9d-47cc-80ce-55e0d9c79cda#L749] Assistant: 16:07 状态无变化： - 07:20 早间汇总 ✅、08:00 早间简报 ✅ 均已送达 - memory_refine 16:00 ✅ - cron 仍 7 个（报工统计任务不存在），无 disabled - 故障 K day-51 持续（`Not logged in`、artifact 不存在） 静默处理。
+[main/sessions/main/18d082e0-be9d-47cc-80ce-55e0d9c79cda#L753] Assistant: 16:37 无变化：07:20 ✅、08:00 ✅ 已送达，memory_refine 16:00 ✅，cron 仍 7 个，MES 未登录。静默。
+[main/sessions/main/18d082e0-be9d-47cc-80ce-55e0d9c79cda#L757] Assistant: 17:07 状态无变化： - 07:20 早间汇总 ✅、08:00 早间简报 ✅ 均已送达 - memory_refine 17:00 ✅ - cron 仍 7 个（报工统计任务不存在） - 故障 K day-51 持续（`Not logged in`、artifact 不存在） 静默处理。
+[main/sessions/main/18d082e0-be9d-47cc-80ce-55e0d9c79cda#L761] Assistant: 17:41 状态无变化： - 07:20 早间汇总 ✅、08:00 早间简报 ✅ 均已送达 - memory_refine 17:00 ✅ - cron 仍 7 个（报工统计任务不存在），无 disabled - 故障 K day-51 持续（`Not logged in`、artifact 不存在） 静默处理。
